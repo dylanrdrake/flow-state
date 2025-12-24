@@ -20,17 +20,14 @@ export class NameInput extends HTMLElement {
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-    // State.update(this.shadowRoot, {
-    //   name: 'World2'
-    // });
-
     this.#input = this.shadowRoot.querySelector('input');
 
     this.#input.addEventListener('input', async (e) => {
       this.dispatchEvent(new CustomEvent('state-emission', {
         detail: {
           user: {
-            name: e.target.value
+            name: e.target.value,
+            id: 12345 + Math.floor(Math.random() * 1000)
           }
         },
         bubbles: true,

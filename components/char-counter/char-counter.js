@@ -12,6 +12,7 @@ fetch(new URL('./char-counter.html', import.meta.url))
   .then(html => template.innerHTML = html);
 
 export class CharCounter extends HTMLElement {
+  #state;
   #clearButton;
   // state tracked outside of State.js.
   // You can put it in a State scope if needed elsewhere.
@@ -25,6 +26,11 @@ export class CharCounter extends HTMLElement {
 
     State.create(shadowRoot, {
       clearBtnLabel: 'Clear'
+    }).then((state) => {
+      this.#state = state;
+      state.watch('user', (newValue) => {
+        console.log('user child state changed to:', newValue);
+      });
     });
 
     this.#clearButton = this.shadowRoot.querySelector('#clear-btn');
@@ -37,9 +43,17 @@ export class CharCounter extends HTMLElement {
       });
     });
 
-  }
-
-  async connectedCallback() {
+    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
+      detail: {
+        key: 'user',
+        callback: (newValue) => {
+          console.log('user:', newValue);
+          console.log('child state', this.#state)
+        }
+      },
+      bubbles: true,
+      composed: true
+    }));
   }
 }
 

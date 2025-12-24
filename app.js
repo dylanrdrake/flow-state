@@ -32,21 +32,8 @@ class SignalApp extends HTMLElement {
       count: (state) => state.user.name.length
     });
 
-    // let update1 = this.#state.update({
-    //   name: 'SignalApp'
-    // });
-    // console.log('update1', update1.name);
-
-    this.#state.ready.then(() => {
-      let updated = this.#state.update((prev) => {
-        console.error('prev:', prev);
-        return {
-          user: {
-            name: 'Signal'
-          }
-        }
-      });
-      console.log('updated', updated.name);
+    this.#state.watch('user', (newValue) => {
+      console.log('App state user changed to:', newValue);
     });
   }
 }
