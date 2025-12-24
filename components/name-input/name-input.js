@@ -29,20 +29,15 @@ export class NameInput extends HTMLElement {
     this.#input.addEventListener('input', async (e) => {
       this.dispatchEvent(new CustomEvent('state-emission', {
         detail: {
-          name: e.target.value
+          user: {
+            name: e.target.value
+          }
         },
         bubbles: true,
         composed: true
       }));
     });
   }
-
-
-  // async connectedCallback() {
-  //   await State.update(this.shadowRoot, {
-  //     name: 'World3'
-  //   });
-  // }
 }
 
 customElements.define('name-input', NameInput);

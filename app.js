@@ -26,8 +26,10 @@ class SignalApp extends HTMLElement {
 
     // Use constructor directly to get immediate access to State instance
     this.#state = new State(shadowRoot, {
-      name: 'World',
-      count: (state) => state.name.length
+      user: {
+        name: 'World'
+      },
+      count: (state) => state.user.name.length
     });
 
     // let update1 = this.#state.update({
@@ -39,7 +41,9 @@ class SignalApp extends HTMLElement {
       let updated = this.#state.update((prev) => {
         console.error('prev:', prev);
         return {
-          name: 'Signal'
+          user: {
+            name: 'Signal'
+          }
         }
       });
       console.log('updated', updated.name);

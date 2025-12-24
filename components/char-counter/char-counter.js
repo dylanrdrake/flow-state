@@ -30,7 +30,9 @@ export class CharCounter extends HTMLElement {
     this.#clearButton = this.shadowRoot.querySelector('#clear-btn');
     this.#clearButton.addEventListener('click', (e) => {
       State.update(this, {
-        name: '',
+        user: {
+          name: ''
+        },
         clearBtnLabel: `Clear ${++this.#clearCount}`
       });
     });
