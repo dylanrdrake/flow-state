@@ -24,7 +24,7 @@
   <br />
 
   <!-- App #2 -->
-  <!-- <script type="module">
+  <script type="module">
     import { State } from "state.js";
 
     await State.create('app2', {
@@ -76,8 +76,8 @@
       </button>
     </span>
 
-    <div id="top-half"></div>
+    <div id="top-half" bind-state="count" to-prop="innerHTML"></div>
     <div id="bottom-half"></div>
-  </div> -->
+  </div>
 </body>
 </html>

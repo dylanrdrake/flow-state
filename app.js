@@ -15,42 +15,53 @@ await fetch(new URL('./app.css', import.meta.url))
   .then(css => sheet.replaceSync(css))
 
 
+const tenThousandNumbers = Array.from({ length: 1000000 }, (_, i) => i);
+const tenThousandStrings = (nums) => nums.map(num => `Item ${num}`);
+const tenThousandObjects = (strings) => strings.map(str => ({ label: str }));
+
+
 class SignalApp extends HTMLElement {
   #state;
+  #testPerfBtn;
+  #testPerfLabel;
 
   constructor() {
     super();
-    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.appendChild(template.content.cloneNode(true));
+    this.#testPerfBtn = this.shadowRoot.getElementById('test-perf-btn');
+    this.#testPerfLabel = this.shadowRoot.getElementById('test-perf-label');
+
+    this.#testPerfBtn.addEventListener('click', (e) => {
+      console.time('State Update Propagation');
+      State.update(this.shadowRoot, {
+        numberArr: tenThousandNumbers.reverse()
+      });
+    });
+
 
     // Use constructor directly to get immediate access to State instance
-    this.#state = new State(shadowRoot, {
+    State.create(this.shadowRoot, {
       user: {
         name: 'World'
       },
-      count: (state) => state.user.name.length
+      count: (state) => state.user.name.length,
+      numberArr: tenThousandNumbers,
+      stringArr: (state) => tenThousandObjects(tenThousandStrings(state.numberArr)),
     });
 
-    this.#state.watch('user', (newValue) => {
-      console.error('App user:', newValue);
+    State.watch(this.shadowRoot, 'stringArr', (newValue) => {
+      console.timeEnd('State Update Propagation');
+      let firstFive = newValue.slice(0, 5).map(obj => obj.label);
+      this.#testPerfLabel.textContent = `First 5 items: ${firstFive.join(', ')}`;
     });
 
-    this.#state.watch('count', (newValue) => {
-      console.error('App count:', newValue);
+    console.time('State Update Propagation');
+    State.update(this.shadowRoot, {
+      numberArr: tenThousandNumbers.reverse()
     });
-
-    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
-      detail: {
-        key: 'count',
-        callback: (newValue) => {
-          console.error('App counter count:', newValue);
-        }
-      },
-      bubbles: true,
-      composed: true
-    }));
-  }
+  }  
 }
 
 customElements.define('signal-app', SignalApp);

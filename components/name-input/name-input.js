@@ -26,8 +26,7 @@ export class NameInput extends HTMLElement {
       this.dispatchEvent(new CustomEvent('state-emission', {
         detail: {
           user: {
-            name: e.target.value,
-            id: 12345 + Math.floor(Math.random() * 1000)
+            name: e.target.value
           }
         },
         bubbles: true,

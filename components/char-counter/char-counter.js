@@ -14,8 +14,6 @@ fetch(new URL('./char-counter.html', import.meta.url))
 export class CharCounter extends HTMLElement {
   #state;
   #clearButton;
-  // state tracked outside of State.js.
-  // You can put it in a State scope if needed elsewhere.
   #clearCount = 0;
 
   constructor() {
@@ -25,45 +23,30 @@ export class CharCounter extends HTMLElement {
     this.shadowRoot.innerHTML = template.innerHTML;
 
     State.create(shadowRoot, {
-      clearBtnLabel: 'Clear'
+      clearBtnLabel: 'Clear',
     }).then((state) => {
       this.#state = state;
-      // state.watch('user', (newValue) => {
-      //   console.log('user child state changed to:', newValue);
-      // });
+    });
+
+    State.watch(this.shadowRoot, 'clearBtnLabel', (newValue) => {
+      console.timeEnd('Clear Button Clicked - State Update');
+      console.log('CharCounter clearBtnLabel changed to:', newValue);
+    });
+
+    State.watch(this.shadowRoot, 'user.name', (newValue) => {
+      console.log('CharCounter user.name changed. New length:', newValue);
     });
 
     this.#clearButton = this.shadowRoot.querySelector('#clear-btn');
     this.#clearButton.addEventListener('click', (e) => {
-      State.update(this, {
+      console.time('Clear Button Clicked - State Update');
+      State.update(this.shadowRoot, {
         user: {
           name: ''
         },
         clearBtnLabel: `Clear ${++this.#clearCount}`
       });
     });
-
-    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
-      detail: {
-        key: 'user',
-        callback: (newValue) => {
-          console.error('char-counter user:', newValue);
-        }
-      },
-      bubbles: true,
-      composed: true
-    }));
-
-    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
-      detail: {
-        key: 'count',
-        callback: (newValue) => {
-          console.error('char-counter count:', newValue);
-        }
-      },
-      bubbles: true,
-      composed: true
-    }));
   }
 }
 
