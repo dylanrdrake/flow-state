@@ -28,9 +28,9 @@ export class CharCounter extends HTMLElement {
       clearBtnLabel: 'Clear'
     }).then((state) => {
       this.#state = state;
-      state.watch('user', (newValue) => {
-        console.log('user child state changed to:', newValue);
-      });
+      // state.watch('user', (newValue) => {
+      //   console.log('user child state changed to:', newValue);
+      // });
     });
 
     this.#clearButton = this.shadowRoot.querySelector('#clear-btn');
@@ -47,8 +47,18 @@ export class CharCounter extends HTMLElement {
       detail: {
         key: 'user',
         callback: (newValue) => {
-          console.log('user:', newValue);
-          console.log('child state', this.#state)
+          console.error('char-counter user:', newValue);
+        }
+      },
+      bubbles: true,
+      composed: true
+    }));
+
+    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
+      detail: {
+        key: 'count',
+        callback: (newValue) => {
+          console.error('char-counter count:', newValue);
         }
       },
       bubbles: true,

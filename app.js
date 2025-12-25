@@ -33,8 +33,23 @@ class SignalApp extends HTMLElement {
     });
 
     this.#state.watch('user', (newValue) => {
-      console.log('App state user changed to:', newValue);
+      console.error('App user:', newValue);
     });
+
+    this.#state.watch('count', (newValue) => {
+      console.error('App count:', newValue);
+    });
+
+    this.shadowRoot.dispatchEvent(new CustomEvent('state-watch', {
+      detail: {
+        key: 'count',
+        callback: (newValue) => {
+          console.error('App counter count:', newValue);
+        }
+      },
+      bubbles: true,
+      composed: true
+    }));
   }
 }
 
