@@ -28,7 +28,7 @@ export class GreetingDisplay extends HTMLElement {
       id: 123
     });
 
-    NodeState.watch(this.#shadow, 'user', this.#state.update);
+    NodeState.watch(this, 'user', this.#state.update);
   }
 }
 

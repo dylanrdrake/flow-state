@@ -20,12 +20,11 @@ export class CharCounter extends HTMLElement {
     const shadowRoot = this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.innerHTML = template.innerHTML;
-    this.#clearBtn = this.shadowRoot.getElementById('clear-btn');
 
-    NodeState.get(this.shadowRoot, 'hooks.reset').then((resetHook) => {
-      this.#reset = resetHook;
-      this.#clearBtn.addEventListener('click', this.#reset);
-    });
+    NodeState.get(this, 'hooks.reset').then(h => this.#reset = h);
+
+    this.#clearBtn = this.shadowRoot.getElementById('clear-btn');
+    this.#clearBtn.addEventListener('click', () => this.#reset());
   }
 }
 

@@ -2,12 +2,12 @@ import { NodeState } from './lib/NodeState.js';
 import './components/name-input/name-input.js';
 import './components/greeting-display/greeting-display.js';
 import './components/char-counter/char-counter.js';
-import './components/name-history-record/name-history-record.js';
+import './components/name-history/name-history.js';
 
 const sheet = new CSSStyleSheet();
 const template = document.createElement('template');
 
-const millionNumbers = Array.from({ length: 1000000 }, (_, i) => i + 1);
+// const millionNumbers = Array.from({ length: 1000000 }, (_, i) => i + 1);
 
 await fetch(new URL('./app.html', import.meta.url))
   .then(res => res.text())
@@ -21,16 +21,17 @@ await fetch(new URL('./app.css', import.meta.url))
 class TestApp extends HTMLElement {
   #state;
   #testPerfBtn;
-  #historyContainer;
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-    this.#testPerfBtn = this.shadowRoot.getElementById('test-perf-btn');
-    this.#historyContainer = this.shadowRoot.getElementById('name-history');
 
+    this.#testPerfBtn = this.shadowRoot.getElementById('test-perf-btn');
+
+    // README: always pass the same root where the template content is rendered
+    // if using shadow DOM pass the shadow DOM root, if using the light DOM pass 'this'
     this.#state = new NodeState(this.shadowRoot, {
       user: {
         name: 'World',
@@ -43,6 +44,7 @@ class TestApp extends HTMLElement {
           zip: '12345'
         }
       },
+
       changeHistory: [],
 
       nameCharCount: (state) => state.user.name.length,
@@ -52,6 +54,16 @@ class TestApp extends HTMLElement {
         reset: this.#resetHook.bind(this)
       }
     });
+
+    // README: watching from the light DOM node if NodeState is attached to shadow DOM doesn't work
+    NodeState.watch(this, 'user.name', (newName) => {
+      console.log(`using "this": ${newName}`);
+    });
+    // Can static watch from shadowRoot
+    NodeState.watch(this.shadowRoot, 'user.name', (newName) => {
+      console.log(`using "this.shadowRoot": ${newName}`);
+    });
+    // Should be watching directly on this.#state instead
   }
 
 
@@ -71,11 +83,6 @@ class TestApp extends HTMLElement {
         }
       ]
     }));
-
-    const recordEl = document.createElement('name-history-record');
-    recordEl.setAttribute('username', newName);
-    recordEl.setAttribute('timestamp', timestamp);
-    this.#historyContainer.prepend(recordEl);
   }
 
 
@@ -86,7 +93,6 @@ class TestApp extends HTMLElement {
       },
       changeHistory: []
     });
-    this.#historyContainer.innerHTML = '';
   }
 }
 

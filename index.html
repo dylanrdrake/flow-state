@@ -21,6 +21,7 @@
 <body>
   <!-- App #1 -->
   <test-app></test-app>
+  <!-- App #1 -->
 
   <br />
   <br />
@@ -30,7 +31,12 @@
     import { NodeState } from "NodeState.js";
 
     let stateAPI = await NodeState.create('app2', {
-      count: 0
+      count: 0,
+      hooks: {
+        updateCount: async (newCount) => {
+          stateAPI.update({ count: newCount });
+        }
+      }
     });
 
     document.getElementById('add-1-btn').addEventListener('click', (e) => {
@@ -41,7 +47,7 @@
       });
     });
   </script>
-
+  <!-- Template -->
   <div id="app2">
     <span
       nstate-count-to-prop="innerHTML"
@@ -51,6 +57,7 @@
       <button id="add-1-btn">Add 1</button>
     </span>
 
+    <!-- Clear Button -->
     <script type="module">
       import { NodeState } from "NodeState.js";
 
@@ -59,14 +66,17 @@
         clearCountLabel: (state) => `Clear ${state.clearCount}`
       });
 
+      const updateCount = await NodeState.get('app2', 'hooks.updateCount');
+
       document.getElementById('app2-clear-btn').addEventListener('click', (e) => {
         childStateAPI.update((prev) => ({
           count: 0,
           clearCount: prev.clearCount + 1
         }));
+        updateCount(0);
       });
     </script>
-
+    <!-- Template -->
     <span id="app2-clear-btn-span">
       <button
         id="app2-clear-btn"
@@ -75,6 +85,7 @@
         Clear
       </button>
     </span>
+    <!-- Clear Button -->
 
 
     <div id="top-half" nstate-count-to-prop="innerHTML"></div>
@@ -87,5 +98,6 @@
       });
     </script>
   </div>
+  <!-- App #2 -->
 </body>
 </html>

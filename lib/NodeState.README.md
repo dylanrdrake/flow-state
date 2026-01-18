@@ -28,6 +28,7 @@ new NodeState(root, config)
   - Async factory. Waits for `root` if a string selector is provided.
 - `NodeState.watch(element, key, callback)`
   - Registers a watcher for a state key on a DOM element. Supports string selectors for `element`.
+- `NodeState.get` TODO
 
 ### Instance Methods (Public API)
 - `state.ready` → Promise<void>
@@ -66,10 +67,14 @@ state.ready.then(() => {
 ```
 
 ## Notes
-- Only keys defined in the initial config can be updated.
+- Only keys defined in the initial config can be updated. Must provide hooks to child components to update state without direct reference to it.
 - Computed properties are functions in the config; they receive the current state as an argument.
 - Supports deep/nested state and dot notation for keys.
 - Designed for use in web components and vanilla JS apps.
+- Use instance methods for local reading and updating, use static methods for reading from overall system (local and directly above)
+- Always pass the same root where your template content lives:
+If using shadow DOM: new NodeState(this.shadowRoot, {...})
+If using light DOM: new NodeState(this, {...}) and append template to this
 
 ## License
 MIT
