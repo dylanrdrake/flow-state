@@ -7,7 +7,7 @@ fetch(new URL('./char-counter.css', import.meta.url))
   .then(res => res.text())
   .then(css => sheet.replaceSync(css));
 
-fetch(new URL('./char-counter.html', import.meta.url))
+await fetch(new URL('./char-counter.html', import.meta.url))
   .then(res => res.text())
   .then(html => template.innerHTML = html);
 
@@ -17,14 +17,14 @@ export class CharCounter extends HTMLElement {
 
   constructor() {
     super();
-    const shadowRoot = this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.innerHTML = template.innerHTML;
 
     NodeState.get(this, 'hooks.reset').then(h => this.#reset = h);
 
     this.#clearBtn = this.shadowRoot.getElementById('clear-btn');
-    this.#clearBtn.addEventListener('click', () => this.#reset());
+    this.#clearBtn?.addEventListener('click', () => this.#reset());
   }
 }
 

@@ -1,5 +1,5 @@
 import { NodeState } from '../../lib/NodeState.js';
-import './name-history-record/name-history-record.js';
+import { NameHistoryRecord } from './name-history-record/name-history-record.js';
 
 class NameHistory extends HTMLElement {
   #shadow;
@@ -9,19 +9,19 @@ class NameHistory extends HTMLElement {
     this.#shadow = this.attachShadow({ mode: 'open' });
     this.#shadow.appendChild(document.createElement('slot'));
 
-    // README: can always read from the light DOM if below
+    // README: can read from the light DOM (unless using closed shadow)
     NodeState.watch(this, 'changeHistory', this.#renderHistory.bind(this));
   }
 
-  #renderHistory(history) {
+  #renderHistory(changeHistory) {
     this.#shadow.innerHTML = '';
-    let records = history.map(record => {
-      const recordEl = document.createElement('name-history-record');
-      recordEl.username = record.username;
-      recordEl.timestamp = record.timestamp;
-      return recordEl;
+    let recordEls = changeHistory.map(record => {
+      return new NameHistoryRecord({
+        username: record.username,
+        timestamp: record.timestamp
+      });
     });
-    this.#shadow.append(...records.reverse());
+    this.#shadow.append(...recordEls.reverse());
   }
 }
 

@@ -22,7 +22,7 @@ export class NameInput extends HTMLElement {
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-    NodeState.get(this.shadowRoot, 'hooks.setName').then(h => this.#setName = h);
+    NodeState.get(this, 'hooks.setName').then(h => this.#setName = h);
 
     this.#input = this.shadowRoot.querySelector('input');
 

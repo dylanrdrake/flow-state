@@ -12,23 +12,48 @@ fetch(new URL('./greeting-display.html', import.meta.url))
   .then(html => template.innerHTML = html);
 
 export class GreetingDisplay extends HTMLElement {
-  #state;
-  #shadow;
+  // #state;
 
   constructor() {
     super();
-    this.#shadow = this.attachShadow({ mode: 'closed' }); 
-    this.#shadow.adoptedStyleSheets = [sheet];
-    this.#shadow.appendChild(template.content.cloneNode(true));
+    const shadow = this.attachShadow({ mode: 'closed' }); 
+    shadow.adoptedStyleSheets = [sheet];
+    shadow.appendChild(template.content.cloneNode(true));
 
     // README: closed shadowRoot will block parent state updates to bindings under this element,
-    // so we need to create a new NodeState instance and watcher here to tunnel updates through.
-    this.#state = new NodeState(this.#shadow, {
-      name: 'overwrite',
-      id: 123
+    // so we need to to tunnel updates through.
+    // README: can also do it manually 2 ways.
+    // We have to attach NodeState to the closed shadowRoot so that updates can be tunneled through.
+    // (.shadowRoot is inaccessible from outside when shadow is closed so NodeState can't access it)
+    let state = NodeState.create(shadow, {
+      user: {
+        name: 'overwrite',
+        id: 1234
+      },
+      config: {
+        logUpdates: true
+      }
+    })
+    NodeState.watch(this, 'user', user => state.update({ user }));
+    NodeState.watch(this, 'config', config => state.update({ config }));
+
+    NodeState.get(this, 'hooks.setName').then(setNameHook => {
+      setNameHook('Overwrite Name');
     });
 
-    NodeState.watch(this, 'user', this.#state.update);
+    // README: could also be done like this
+    // this.#state = new NodeState(shadow, {
+    //   user: {
+    //     name: 'overwrite',
+    //     id: 123,
+    //   },
+    //   config: {
+    //     logUpdates: false
+    //   }
+    // });
+
+    // NodeState.watch(this, 'user', this.#state.update);
+    // NodeState.watch(this, 'config', this.#state.update);
   }
 }
 

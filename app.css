@@ -1,7 +1,0 @@
-:host {
-    background-color: gainsboro;
-}
-#name-history {
-  height: 200px;
-  overflow-y: scroll;
-}
