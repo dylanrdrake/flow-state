@@ -5,99 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Test App</title>
 
-  <!-- for App #2 -->
-  <script type="importmap">
-    {
-      "imports": {
-        "NodeState.js": "./lib/NodeState.js"
+  <!-- has to be loaded before app.js to work as a
+       higher state for any getters/watchers from child nodes.
+       Won't setup event listeners in time if not
+  -->
+  <script type="module">
+    import { NodeState } from './lib/NodeState.js'
+    let bodyEl = document.querySelector('body')
+    let state = NodeState.create(bodyEl, {
+      testValue: 123,
+      user: {
+        address: {
+          zipp: 12345
+        }
       }
-    }
+    })
   </script>
+
   <script type="module">
     import './app.js';
   </script>
+
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
 </head>
 
 <body>
-  <!-- App #1 -->
   <test-app></test-app>
-  <!-- App #1 -->
-
-  <br />
-  <br />
-
-  <!-- App #2 -->
-  <script type="module">
-    import { NodeState } from "NodeState.js";
-
-    let stateAPI = await NodeState.create('app2', {
-      count: 0,
-      hooks: {
-        updateCount: async (newCount) => {
-          stateAPI.update({ count: newCount });
-        }
-      }
-    });
-
-    document.getElementById('add-1-btn').addEventListener('click', (e) => {
-      stateAPI.update((prev) => {
-        return {
-          count: prev.count + 1
-        };
-      });
-    });
-  </script>
-  <!-- Template -->
-  <div id="app2">
-    <span
-      nstate-count-to-prop="innerHTML"
-    ></span>
-
-    <span>
-      <button id="add-1-btn">Add 1</button>
-    </span>
-
-    <!-- Clear Button -->
-    <script type="module">
-      import { NodeState } from "NodeState.js";
-
-      let childStateAPI = await NodeState.create('app2-clear-btn-span', {
-        clearCount: 0,
-        clearCountLabel: (state) => `Clear ${state.clearCount}`
-      });
-
-      const updateCount = await NodeState.get('app2', 'hooks.updateCount');
-
-      document.getElementById('app2-clear-btn').addEventListener('click', (e) => {
-        childStateAPI.update((prev) => ({
-          count: 0,
-          clearCount: prev.clearCount + 1
-        }));
-        updateCount(0);
-      });
-    </script>
-    <!-- Template -->
-    <span id="app2-clear-btn-span">
-      <button
-        id="app2-clear-btn"
-        nstate-clearCountLabel-to-prop="innerHTML"
-      >
-        Clear
-      </button>
-    </span>
-    <!-- Clear Button -->
-
-
-    <div id="top-half" nstate-count-to-prop="innerHTML"></div>
-    <div id="bottom-half"></div>
-
-    <script type="module">
-      import { NodeState } from "NodeState.js";
-      NodeState.watch('app2', 'count', (newValue) => {
-        document.getElementById('bottom-half').textContent = newValue;
-      });
-    </script>
-  </div>
-  <!-- App #2 -->
 </body>
 </html>

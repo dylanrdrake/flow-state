@@ -1,10 +1,9 @@
-import { NodeState } from './lib/NodeState.js';
-import './components/name-input/name-input.js';
-import './components/greeting-display/greeting-display.js';
-import './components/char-counter/char-counter.js';
-import './components/name-history/name-history.js';
+import { NodeState as N$ } from './lib/NodeState.js';
+import './components/work-space.js';
+import './components/log-history.js';
 
-// // const millionNumbers = Array.from({ length: 1000000 }, (_, i) => i + 1);
+// const sheet = new CSSStyleSheet();
+// const template = document.createElement('template');
 
 // await fetch(new URL('./app.html', import.meta.url))
 //   .then(res => res.text())
@@ -15,30 +14,33 @@ import './components/name-history/name-history.js';
 //   .then(css => sheet.replaceSync(css))
 
 
-export const CSS = String.raw;
-export const HTML = String.raw;
+const CSS = String.raw;
+const HTML = String.raw;
 
 const styles = CSS`
   :host {
     background-color: gainsboro;
     display: flex;
     flex-direction: column;
+    width: 100%;
+    height: 100%;
 
-    & name-history {
-      max-height: 200px;
-      overflow-y: scroll;
+    & work-space {
+      flex-grow: 1;
+      max-height: 75%;
+    }
+
+    & log-history {
+      border-top: 2px solid gray;
+      min-height: 25%;
+      max-height: 25%;
     }
   }
 `
 
 const html = HTML`
-  <greeting-display></greeting-display>
-
-  <name-input></name-input>
-
-  <char-counter></char-counter>
-
-  <name-history></name-history>
+  <work-space></work-space>
+  <log-history></log-history>
 `;
 
 const sheet = new CSSStyleSheet();
@@ -49,91 +51,97 @@ template.innerHTML = html;
 
 class TestApp extends HTMLElement {
   #state;
-  #stateConfig = {
-    config: {
-      logUpdates: false
-    },
-
-    user: {
-      name: 'World',
-      id: 123,
-      address: {
-        street: '123 Main St',
-        city: 'Anytown',
-        state: 'CA',
-        country: 'USA',
-        zip: '12345'
-      }
-    },
-
-    changeHistory: [],
-
-    nameCharCount: (state) => state.user.name.length,
-
-    hooks: {
-      setName: this.#nameChangeHook.bind(this),
-      reset: this.#resetHook.bind(this)
-    }
-  };
 
   constructor() {
     super();
-    let shadow = this.attachShadow({ mode: 'closed' });
-    shadow.adoptedStyleSheets = [sheet];
-    shadow.appendChild(template.content.cloneNode(true));
+    this.shadow = this.attachShadow({ mode: 'closed' });
+    this.shadow.adoptedStyleSheets = [sheet];
+    this.shadow.appendChild(template.content.cloneNode(true));
 
-    // README: have to use reference to the shadow DOM when
+      // README: have to use reference to the shadow DOM when
     // using closed mode so that NodeState can access it
-    this.#state = NodeState.create(shadow, this.#stateConfig);
+    this.#state = N$.create(this.shadow, {
+      config: {
+        logUpdates: false
+      },
 
-    NodeState.watch(shadow, 'user', (user) => {
-      console.log('App detected user change:', user);
-    });
-
-    this.#state.update({
       user: {
-        name: 'Alice',
-        id: 456
+        name: 'Dylan',
+        id: 123,
+        address: {
+          street: '123 Main St',
+          city: 'Anytown',
+          state: 'CA',
+          country: 'USA',
+          zip: '12345'
+        }
+      },
+
+      items: [],
+
+      itemCount: (state) => state.items.length,
+
+      log: [],
+
+      hooks: {
+        addItem: this.#addItemHook.bind(this),
+        deleteItem: this.#deleteItemHook.bind(this),
+        clearItems: this.#clearItems.bind(this)
       }
-    });
-
-    NodeState.watch(shadow, 'user', (user) => {
-      console.log('App detected user change after update:', user);
-    });
-
-    NodeState.get(shadow, 'user')
-      .then(user => {
-        console.log('App got user via get():', user);
-      });
+    })
   }
 
-  #nameChangeHook(newName) {
-    const timestamp = new Date().toLocaleString();
+  #addItemHook = () => {
+    this.#state.update(prev => {
+      let id = Date.now();
+      let newItem = {
+        id: id,
+        name: `Item: ${id}`,
+        createdAt: new Date().toISOString()
+      };
+      return {
+        user: { id: Date.now() },
+        items: [
+          ...prev.items,
+          newItem
+        ],
+        log: [
+          {
+            user: prev.user,
+            message: `ADDED ${newItem.name} at ${newItem.createdAt}`
+          },
+          ...prev.log
+        ]
+      }
+    });
+  }
 
-    this.#state.update((prev) => ({
-      user: {
-        name: newName,
-        id: Date.now().toString()
-      },
-      changeHistory: [
-        ...prev.changeHistory,
+  #deleteItemHook = (itemId) => {
+    this.#state.update(prev => ({
+      items: prev.items.filter(item => item.id !== itemId),
+      log: [
         {
-          username: newName,
-          timestamp: timestamp
-        }
+          user: prev.user,
+          message: `DELETED item ${itemId} at ${new Date().toISOString()}`
+        },
+        ...prev.log
       ]
     }));
   }
 
-
-  #resetHook() {
-    this.#state.update({
-      user: {
-        name: ''
-      },
-      changeHistory: []
-    });
+  #clearItems = () => {
+    this.#state.update(prev => ({
+      items: [],
+      log: [
+        {
+          user: prev.user,
+          message: `CLEARED all items at ${new Date().toISOString()}`
+        },
+        ...prev.log
+      ]
+    }));
   }
+
 }
 
 customElements.define('test-app', TestApp);
