@@ -1,4 +1,4 @@
-import { NodeState as N$ } from '../lib/NodeState.js';
+import { FlowState as Flow } from '../lib/FlowState.js';
 
 
 const CSS = String.raw;

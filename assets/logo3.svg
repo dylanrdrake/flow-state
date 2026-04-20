@@ -22,6 +22,6 @@
   <circle cx="80" cy="155" r="10" fill="#87ceeb" stroke="#5da5c4" stroke-width="2"/>
   <circle cx="140" cy="155" r="10" fill="#87ceeb" stroke="#5da5c4" stroke-width="2"/>
   
-  <!-- N$ Text -->
-  <text x="100" y="45" font-family="monospace" font-size="16" font-weight="bold" fill="white" text-anchor="middle">N$</text>
+  <!-- Flow Text -->
+  <text x="100" y="45" font-family="monospace" font-size="16" font-weight="bold" fill="white" text-anchor="middle">Flow</text>
 </svg>

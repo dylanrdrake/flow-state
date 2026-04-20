@@ -1,4 +1,4 @@
-import { NodeState as N$ } from '../lib/NodeState.js';
+import { FlowState as Flow } from '../lib/FlowState.js';
 import { WorkItem } from '../components/work-item.js';
 
 
@@ -32,11 +32,11 @@ class WorkView extends HTMLElement {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
     this.shadowRoot.adoptedStyleSheets = [sheet];
 
-    N$.get(this.shadowRoot, 'deleteItem').then(deleteItem => {
+    Flow.get(this.shadowRoot, 'deleteItem').then(deleteItem => {
       this.#deleteItem = deleteItem;
     });
 
-    N$.watch(this, 'items', (items) => {
+    Flow.watch(this, 'items', (items) => {
       let itemEls = items.map(item => {
         let el = new WorkItem({
           id: item.id
@@ -46,8 +46,20 @@ class WorkView extends HTMLElement {
       });
       this.shadowRoot.replaceChildren(...itemEls.reverse());
     });
-  }
 
+    this.observer = new MutationObserver((muts) => {
+      console.log('mutation observed in work-view', muts);
+    })
+    this.observer.observe(this.shadowRoot, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+   }
+
+   disconnectedCallback() {
+     this.observer.disconnect();
+  }
 }
 
 window.customElements.define('work-view', WorkView);

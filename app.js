@@ -1,4 +1,4 @@
-import { NodeState as N$ } from './lib/NodeState.js';
+import { FlowState as Flow } from './lib/FlowState.js';
 import './components/work-space.js';
 import './components/log-history.js';
 
@@ -47,8 +47,8 @@ class TestApp extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     // README: have to use reference to the shadow DOM when
-    // using closed mode so that NodeState can access it
-    this.#state = N$.create(shadow, {
+    // using closed mode so that FlowState can access it
+    this.#state = Flow.create(this, {
       config: {
         logUpdates: false
       },
@@ -76,7 +76,10 @@ class TestApp extends HTMLElement {
       deleteItem: this.#deleteItemHook.bind(this),
       clearItems: this.#clearItems.bind(this)
     });
+
+    this.#state.through(shadow);
   }
+
 
   #addItemHook = () => {
     this.#state.update(prev => {

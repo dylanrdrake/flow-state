@@ -1,4 +1,4 @@
-import { NodeState as N$ } from '../lib/NodeState.js';
+import { FlowState as Flow } from '../lib/FlowState.js';
 
 
 const CSS = String.raw;
@@ -17,7 +17,7 @@ const template = document.createElement('template');
 template.innerHTML = HTML`
   <button id="add-btn">Add</button>
   <button id="clear-btn">Clear</button>
-  <div ns-bind-itemCount-to-prop="innerHTML"></div>
+  <div flow-bind-itemCount-to-prop="innerHTML"></div>
 `;
 
 
@@ -27,20 +27,37 @@ class SideBar extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
-    this.shadowRoot.adoptedStyleSheets = [sheet];
 
-    this.#addBtn = this.shadowRoot.getElementById('add-btn');
-    this.#clearBtn = this.shadowRoot.getElementById('clear-btn');
+    const shadow = this.attachShadow({ mode: 'closed' });
 
-    N$.get(this.shadowRoot, 'clearItems').then(clearItems => {
+    shadow.appendChild(template.content.cloneNode(true));
+    shadow.adoptedStyleSheets = [sheet];
+
+    this.#addBtn = shadow.getElementById('add-btn');
+    this.#clearBtn = shadow.getElementById('clear-btn');
+
+    Flow.through(shadow);
+
+    Flow.get(shadow, 'clearItems').then(clearItems => {
       this.#clearBtn.addEventListener('click', clearItems);
     });
 
-    N$.get(this.shadowRoot, 'addItem').then(addItem => {
+    Flow.get(shadow, 'addItem').then(addItem => {
       this.#addBtn.addEventListener('click', addItem);
     });
+
+    this.observer = new MutationObserver((muts) => {
+      console.log('mutation observed in side-bar', muts);
+    })
+    this.observer.observe(shadow, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
+  }
+
+  disconnectedCallback() {
+     this.observer.disconnect();
   }
 }
 

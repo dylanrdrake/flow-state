@@ -1,4 +1,4 @@
-import { NodeState as N$ } from '../lib/NodeState.js';
+import { FlowState as Flow } from '../lib/FlowState.js';
 import { LogEntry } from './log-entry.js';
 
 
@@ -27,7 +27,7 @@ class LogHistory extends HTMLElement {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
     this.shadowRoot.adoptedStyleSheets = [sheet];
 
-    N$.watch(this, 'log', (logEntries) => {
+    Flow.watch(this, 'log', (logEntries) => {
       let logEls = logEntries.map(entry => new LogEntry(entry));
       this.shadowRoot.replaceChildren(...logEls);
     });

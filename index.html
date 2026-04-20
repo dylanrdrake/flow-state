@@ -12,9 +12,9 @@
        Won't setup event listeners in time if not
   -->
   <script type="module">
-    import { NodeState } from './lib/NodeState.js'
+    import { FlowState } from './lib/FlowState.js'
     let bodyEl = document.querySelector('body')
-    let state = NodeState.create(bodyEl, {
+    let state = FlowState.create(bodyEl, {
       testValue: 123,
       user: {
         address: {
