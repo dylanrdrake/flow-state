@@ -151,6 +151,14 @@ function renderTree() {
       renderDetail(snap);
     });
 
+    rowEl.addEventListener('mouseenter', () => {
+      channel.postMessage({ type: 'highlight', id });
+    });
+
+    rowEl.addEventListener('mouseleave', () => {
+      channel.postMessage({ type: 'clear-highlight', id });
+    });
+
     nodeEl.appendChild(rowEl);
     container.appendChild(nodeEl);
 
@@ -203,11 +211,6 @@ function renderDetail(snap) {
           <span class="meta-label">Computed</span>
           <span class="meta-val computed-list">${snap.computedKeys.join(', ')}</span>
         </div>` : ''}
-      ${snap.watcherKeys.length > 0 ? `
-        <div class="meta-row">
-          <span class="meta-label">Watchers</span>
-          <span class="meta-val">${snap.watcherKeys.join(', ')}</span>
-        </div>` : ''}
       <div class="meta-row">
         <span class="meta-label">Flow-throughs</span>
         <span class="meta-val">${snap.flowThroughCount}</span>
@@ -219,6 +222,9 @@ function renderDetail(snap) {
     </div>
     <div class="section-label">State</div>
     <div id="detail-values"></div>
+    <br />
+    <div class="section-label">Watchers</div>
+    <div id="detail-watchers"></div>
   `;
 
   const valuesEl = panel.querySelector('#detail-values');
@@ -226,6 +232,41 @@ function renderDetail(snap) {
     valuesEl.appendChild(renderValueTree(snap.values, [], snap));
   } else {
     valuesEl.innerHTML = '<span class="val-null">State not serializable</span>';
+  }
+
+  const watchersEl = panel.querySelector('#detail-watchers');
+  if (snap.watchers?.length > 0) {
+    const list = document.createElement('div');
+    list.className = 'watcher-list';
+    for (const w of snap.watchers) {
+      // Find the snapshot whose rootTag starts with w.source (e.g. "work-view" matches "work-view (shadow)")
+      const sourceSnap = Array.from(snapshots.values()).find(s => s.rootTag.startsWith(w.source));
+      const sourceId = sourceSnap?.id ?? null;
+
+      const row = document.createElement('div');
+      row.className = 'watcher-row';
+      row.innerHTML = `
+        <span class="watcher-source">${w.source}</span>
+        <span class="watcher-arrow">→</span>
+        <span class="watcher-key">${w.key}</span>
+      `;
+      row.addEventListener('mouseenter', () => {
+        if (sourceId) {
+          document.querySelector(`.tree-node[data-id="${sourceId}"]`)?.classList.add('highlighted');
+          channel.postMessage({ type: 'highlight', id: sourceId });
+        }
+      });
+      row.addEventListener('mouseleave', () => {
+        if (sourceId) {
+          document.querySelector(`.tree-node[data-id="${sourceId}"]`)?.classList.remove('highlighted');
+          channel.postMessage({ type: 'clear-highlight', id: sourceId });
+        }
+      });
+      list.appendChild(row);
+    }
+    watchersEl.appendChild(list);
+  } else {
+    watchersEl.innerHTML = '<span class="val-null">- No watchers -</span>';
   }
 }
 
