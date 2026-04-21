@@ -202,6 +202,10 @@ class WorkView extends HTMLElement {
 
     this.#state = Flow.create(this.shadowRoot, {
       edits: null
+    },
+    undefined,
+    {
+      label: 'WorkView'
     });
 
     this.#saveBtn.addEventListener('click', () => {

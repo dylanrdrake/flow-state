@@ -115,6 +115,9 @@ function renderTree() {
 
   function renderNode(id, depth) {
     const snap = snapshots.get(id);
+    const tagHtml = snap.label
+      ? `${snap.label} &lt;${snap.rootTag}&gt;`
+      : `&lt;${snap.rootTag}&gt;`;
     if (!snap) return;
 
     const nodeChildren = children.get(id) ?? [];
@@ -130,7 +133,7 @@ function renderTree() {
     rowEl.style.paddingLeft = `${depth * 18 + 10}px`;
     rowEl.innerHTML = `
       <span class="tree-toggle">${nodeChildren.length > 0 ? (isExpanded ? '▼' : '▶') : '·'}</span>
-      <span class="tree-tag">&lt;${snap.rootTag}&gt;</span>
+      <span class="tree-tag">${tagHtml}</span>
       <span class="tree-badges">
         <span class="badge keys">${keyCount}k</span>
         ${snap.watcherCount > 0  ? `<span class="badge watch">${snap.watcherCount}w</span>` : ''}
@@ -185,9 +188,13 @@ function renderDetail(snap) {
     return;
   }
 
+  const tagHtml = snap.label
+    ? `${snap.label} &lt;${snap.rootTag}&gt;`
+    : `&lt;${snap.rootTag}&gt;`;
+
   panel.innerHTML = `
     <div class="detail-header">
-      <span class="detail-tag">&lt;${snap.rootTag}&gt;</span>
+      <span class="detail-tag">${tagHtml}</span>
       <span class="detail-id">${snap.id.slice(0, 8)}…</span>
     </div>
     <div class="detail-meta">

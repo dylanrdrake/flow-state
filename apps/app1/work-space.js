@@ -81,6 +81,8 @@ class Workspace extends HTMLElement {
     }, {
       selectWorkItem: this.#selectWorkItemHook.bind(this),
       saveWorkItem: this.#saveWorkItem.bind(this)
+    }, {
+      label: 'Workspace'
     });
 
     this.#state.update({
