@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowState</title>
+</head>
+<script type="importmap">
+{
+  "imports": {
+    "flow-state": "../../index.js"
+  }
+}
+</script>
+<body>
+  <div id="app">
+    <div>
+      Count:<span flow-watch-count-to-prop="innerHTML"></span>
+    </div>
+    <button id="inc-btn">
+      Increment
+    </button>
+  </div>
+  <script type="module">
+    import { FlowState } from 'flow-state';
+
+    const appEl = document.querySelector('#app');
+
+    const state = await FlowState.create(appEl, {
+      count: 0
+    });
+
+    const incBtn = document.querySelector('#inc-btn');
+
+    incBtn.addEventListener('click', () => {
+      state.update(prev => ({
+        count: prev.count + 1
+      }));
+    });
+  </script>
+</body>
+</html>

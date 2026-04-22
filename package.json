@@ -1,0 +1,47 @@
+{
+  "name": "flow-state",
+  "version": "0.1.0",
+  "description": "A lightweight, DOM-native reactive state library for web components and vanilla JavaScript.",
+  "type": "module",
+  "main": "./index.js",
+  "module": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "lib/",
+    "devtools/",
+    "apps/"
+  ],
+  "keywords": [
+    "state",
+    "reactive",
+    "web-components",
+    "functional",
+    "dom",
+    "browser",
+    "vanilla",
+    "no-dependencies",
+    "zero-deps",
+    "0-deps",
+    "signal",
+    "computed",
+    "hooks",
+    "simple"
+  ],
+  "author": "Dylan Drake",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dylanrdrake/flow-state.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dylanrdrake/flow-state/issues"
+  },
+  "homepage": "https://github.com/dylanrdrake/flow-state#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}
