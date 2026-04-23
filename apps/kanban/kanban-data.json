@@ -63,13 +63,7 @@
   {
     "id": "in-progress",
     "title": "In Progress",
-    "cards": [
-      {
-        "id": 103,
-        "title": "🔴 #sourceElRegistry leaks — WeakRef values but the Map key is a string ID",
-        "desc": "#sourceElRegistry is a Map<string, WeakRef> — the WeakRef lets the element be collected but the string → WeakRef entry in the Map itself is never cleaned up. Every kanban-card that ever connected will accumulate an entry forever. Needs a FinalizationRegistry to prune stale entries, or a different approach."
-      }
-    ]
+    "cards": []
   },
   {
     "id": "review",
@@ -84,6 +78,11 @@
         "id": 101,
         "title": "🔴 Duplicate-mount guard returns wrong type",
         "desc": "When a second FlowState is mounted on the same root the early-return gives callers { hasKey, flowThroughs } instead of { update, watch, get, through }.\n\nFix: Throw an error, or stash the real instanceApi on the root and return it from the guard."
+      },
+      {
+        "id": 103,
+        "title": "🔴 #sourceElRegistry leaks — WeakRef values but the Map key is a string ID",
+        "desc": "#sourceElRegistry is a Map<string, WeakRef> — the WeakRef lets the element be collected but the string → WeakRef entry in the Map itself is never cleaned up. Every kanban-card that ever connected will accumulate an entry forever. Needs a FinalizationRegistry to prune stale entries, or a different approach."
       }
     ]
   }
