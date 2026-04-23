@@ -69,7 +69,7 @@ Or import directly from a CDN:
 
 ### Scope
 
-A `FlowState` instance is **scoped to a root DOM element**. State updates propagate to all descendants of that root. Only one `FlowState` instance can be mounted per element.
+A `FlowState` instance is **scoped to a root DOM element**. State updates propagate to all descendants/children of that root. Only one `FlowState` instance can be mounted per element.
 
 ```js
 const state = new FlowState(rootElement, { init, hooks, options });
@@ -77,17 +77,17 @@ const state = new FlowState(rootElement, { init, hooks, options });
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `rootElement` | `Node` | The DOM element that owns this state scope |
+| `rootElement` | `Node` | The DOM element that this state scope is mounted to |
 | `config` | `Object` | Configuration object: `{ init, hooks, options }` |
 | `config.init` | `Object` | Initial state. Functions become **computed values**. |
 | `config.hooks` | `Object` | Non-reactive static values (e.g. callbacks, services) |
-| `config.options` | `Object` | `{ label: string }` — labels this instance in devtools |
+| `config.options` | `Object` | `{ label: string }` — labels this instance in devtools (to be expanded later...) |
 
 Returns an **instance API** object: `{ update, watch, get, through }`.
 
 ### Config — Values and Computed
 
-Plain values and computed values are declared together in `config`. Any value whose definition is a function is treated as a **computed value** — it receives the current state and returns a derived result.
+Plain values and computed values are declared together in `config.init`. Any value whose definition is a function is treated as a **computed value** — it receives the current state and returns a derived result.
 
 ```js
 const state = new FlowState(app, {

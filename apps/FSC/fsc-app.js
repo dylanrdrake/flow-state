@@ -35,10 +35,6 @@ class FSCApp extends FlowStateComponent {
     }
   };
 
-  constructor() {
-    super();
-  }
-
   #updateTitle(newTitle) {
     this.state.update({ title: newTitle });
   }

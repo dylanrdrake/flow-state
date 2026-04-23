@@ -1,0 +1,90 @@
+[
+  {
+    "id": "backlog",
+    "title": "Backlog",
+    "cards": [
+      {
+        "id": 104,
+        "title": "🔴 #get skips falsy hook values",
+        "desc": "if (this.#hooks[key]) is falsy for hooks whose value is 0, false, null, or \"\". Those hooks are silently ignored and undefined is returned instead.\n\nFix: Change to if (key in this.#hooks) — the same pattern already used correctly in #watch."
+      },
+      {
+        "id": 105,
+        "title": "🟡 Computed dependency tracking is top-level only",
+        "desc": "The Proxy in #getComputedDependencies records only the first property accessed. (s) => s.user.name tracks \"user\", so any change to user — even unrelated nested keys — triggers recomputation.\n\nFix: Track full dot-separated paths recursively through the Proxy using a path-accumulating handler."
+      },
+      {
+        "id": 106,
+        "title": "🟡 #querySelectorAllDeep misses closed flowThrough shadows",
+        "desc": "Deep queries only recurse into el.shadowRoot (open shadows). Declarative bindings inside closed shadow roots registered via through() on nested components are never found.\n\nFix: After scanning open shadows, also iterate this.#flowThroughs and recurse into each registered ShadowRoot."
+      },
+      {
+        "id": 107,
+        "title": "🟡 #hasOverwritingFlow blind to closed shadows",
+        "desc": "The overwrite check reads current.shadowRoot, which is null for closed shadows. A nested closed-shadow FlowState scope won't block an ancestor from stomping its bindings.\n\nFix: Store closed ShadowRoot refs via through() and check them during the upward traversal."
+      },
+      {
+        "id": 108,
+        "title": "🟡 #update is async but never awaited",
+        "desc": "#update is declared async but contains no await expressions. It returns a Promise nobody handles — misleading and could mask future async bugs.\n\nFix: Remove the async keyword. The method is synchronous."
+      },
+      {
+        "id": 109,
+        "title": "🟠 No disconnectedCallback / cleanup",
+        "desc": "Watcher entries, registry entries, and __Flow__ stay attached for the page lifetime even when root elements are removed. In SPAs with frequent mount/unmount this causes unbounded growth.\n\nFix: Add disconnectedCallback (or destroy()) to remove the registry entry, clear watchers, and delete __Flow__."
+      },
+      {
+        "id": 110,
+        "title": "🟠 flowThroughs holds strong ShadowRoot references",
+        "desc": "The #flowThroughs Map keeps a strong ref to every registered ShadowRoot. Removing a component from the DOM does not release its shadow root from memory.\n\nFix: Use WeakRef for Map values, or clean up entries in disconnectedCallback."
+      },
+      {
+        "id": 111,
+        "title": "🔵 through() has no guard against pre-init calls",
+        "desc": "FlowState.through() dispatches an event that must be caught by a FlowState listener on the host. Called before that instance exists, the event fires with no listener and is silently lost.\n\nFix: Document the ordering requirement clearly, or queue the linkage and replay it when a FlowState instance later mounts on the host."
+      },
+      {
+        "id": 112,
+        "title": "🔵 Prototype-collision state key names",
+        "desc": "#setNested and #mergeValues iterate keys without filtering reserved names. A key named __proto__, constructor, or toString could corrupt the object prototype.\n\nFix: Skip or throw for keys that collide with Object.prototype property names (use Object.hasOwn guard)."
+      },
+      {
+        "id": 102,
+        "title": "🔴 Batched functional updates share same snapshot",
+        "desc": "Multiple state.update(s => ...) calls in one microtask all receive structuredClone(this.#values) — the pre-flush state. The second function never sees the first's result.\n\nFix: Accumulate a running draft and pass it to each successive functional update before merging into state."
+      }
+    ]
+  },
+  {
+    "id": "todo",
+    "title": "To Do",
+    "cards": []
+  },
+  {
+    "id": "in-progress",
+    "title": "In Progress",
+    "cards": [
+      {
+        "id": 103,
+        "title": "🔴 #sourceElRegistry leaks — WeakRef values but the Map key is a string ID",
+        "desc": "#sourceElRegistry is a Map<string, WeakRef> — the WeakRef lets the element be collected but the string → WeakRef entry in the Map itself is never cleaned up. Every kanban-card that ever connected will accumulate an entry forever. Needs a FinalizationRegistry to prune stale entries, or a different approach."
+      }
+    ]
+  },
+  {
+    "id": "review",
+    "title": "In Review",
+    "cards": []
+  },
+  {
+    "id": "done",
+    "title": "Done",
+    "cards": [
+      {
+        "id": 101,
+        "title": "🔴 Duplicate-mount guard returns wrong type",
+        "desc": "When a second FlowState is mounted on the same root the early-return gives callers { hasKey, flowThroughs } instead of { update, watch, get, through }.\n\nFix: Throw an error, or stash the real instanceApi on the root and return it from the guard."
+      }
+    ]
+  }
+]

@@ -6,111 +6,34 @@ FlowState.devtools();
 const HTML = String.raw;
 const CSS = String.raw;
 
-let nextId = 100;
-const uid = () => ++nextId;
-
-const INITIAL_COLUMNS = [
-  {
-    id: 'backlog',
-    title: 'Backlog',
-    cards: [
-      { id: uid(), title: 'Research competitors',   desc: 'Survey top 5 competitors and summarise findings.' },
-      { id: uid(), title: 'Define personas',         desc: 'Create 3 user personas based on interview notes.' },
-      { id: uid(), title: 'Write API spec',          desc: 'Draft OpenAPI 3 spec for the new endpoints.' },
-    ],
-  },
-  {
-    id: 'todo',
-    title: 'To Do',
-    cards: [
-      { id: uid(), title: 'Design system tokens',   desc: 'Export colour and spacing tokens from Figma.' },
-      { id: uid(), title: 'Set up CI pipeline',     desc: 'GitHub Actions: lint, test, build on every PR.' },
-    ],
-  },
-  {
-    id: 'in-progress',
-    title: 'In Progress',
-    cards: [
-      { id: uid(), title: 'Auth flow',              desc: 'Implement OAuth 2 PKCE flow with refresh tokens.' },
-      { id: uid(), title: 'Dashboard layout',       desc: 'Responsive grid scaffold for the main dashboard.' },
-    ],
-  },
-  {
-    id: 'review',
-    title: 'In Review',
-    cards: [
-      { id: uid(), title: 'Onboarding screens',     desc: 'Three-step onboarding wizard — awaiting design sign-off.' },
-    ],
-  },
-  {
-    id: 'done',
-    title: 'Done',
-    cards: [
-      { id: uid(), title: 'Project kickoff',        desc: 'Kickoff meeting held, goals aligned, repo created.' },
-      { id: uid(), title: 'Repo scaffolding',       desc: 'Monorepo set up with workspaces and shared config.' },
-    ],
-  },
-];
-
-class KanbanApp extends FlowStateComponent {
-  shadowMode = 'open';
-
-  styles = CSS`
-    :host {
+const styles = CSS`
+  :host {
       display: flex;
       flex-direction: column;
       height: 100vh;
       background: #0f172a;
       color: #e2e8f0;
       font-family: system-ui, sans-serif;
-    }
+  }
 
-    header {
+  header {
       display: flex;
       align-items: center;
       gap: 16px;
       padding: 16px 24px;
       border-bottom: 1px solid #1e293b;
       flex-shrink: 0;
-    }
+  }
 
-    header h1 {
+  header h1 {
       font-size: 1.1rem;
       font-weight: 700;
       color: #f1f5f9;
       letter-spacing: -0.3px;
-    }
+  }
 
-    .add-card-form {
-      display: flex;
-      gap: 8px;
+  .new-card-btn {
       margin-left: auto;
-    }
-
-    .add-card-form select {
-      padding: 6px 10px;
-      border-radius: 7px;
-      border: 1px solid #334155;
-      background: #1e293b;
-      color: #e2e8f0;
-      font: inherit;
-      font-size: 13px;
-    }
-
-    .add-card-form input {
-      padding: 6px 10px;
-      border-radius: 7px;
-      border: 1px solid #334155;
-      background: #1e293b;
-      color: #e2e8f0;
-      font: inherit;
-      font-size: 13px;
-      width: 200px;
-    }
-
-    .add-card-form input::placeholder { color: #64748b; }
-
-    .add-card-form button {
       padding: 6px 14px;
       border-radius: 7px;
       border: none;
@@ -120,11 +43,11 @@ class KanbanApp extends FlowStateComponent {
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-    }
+  }
 
-    .add-card-form button:hover { background: #4f46e5; }
+  .new-card-btn:hover { background: #4f46e5; }
 
-    .board {
+  .board {
       display: flex;
       flex-direction: row;
       gap: 16px;
@@ -132,103 +55,244 @@ class KanbanApp extends FlowStateComponent {
       overflow-x: auto;
       flex: 1;
       align-items: flex-start;
-    }
+  }
 
-    .board::-webkit-scrollbar { height: 6px; }
-    .board::-webkit-scrollbar-track { background: transparent; }
-    .board::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-  `;
+  .board::-webkit-scrollbar { height: 6px; }
+  .board::-webkit-scrollbar-track { background: transparent; }
+  .board::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
 
-  template = HTML`
-    <header>
-      <h1>Kanban Board</h1>
-      <div class="add-card-form">
-        <input id="card-title-input" type="text" placeholder="New card title…" />
-        <select id="column-select"></select>
-        <button id="add-card-btn">+ Add Card</button>
+  /* ── Edit modal ─────────────────────────────────────────── */
+
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+  }
+
+  .modal {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 14px;
+    padding: 24px;
+    width: 480px;
+    max-width: calc(100vw - 32px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+
+  .modal h2 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+  }
+
+  .modal label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .modal input,
+  .modal textarea,
+  .modal select {
+    padding: 8px 10px;
+    border-radius: 7px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #e2e8f0;
+    font: inherit;
+    font-size: 13px;
+    resize: vertical;
+  }
+
+  .modal input:focus,
+  .modal textarea:focus,
+  .modal select:focus {
+    outline: none;
+    border-color: #6366f1;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .modal-actions button {
+    padding: 7px 18px;
+    border-radius: 7px;
+    border: none;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-cancel { background: #334155; color: #94a3b8; }
+  .btn-cancel:hover { background: #475569; color: #e2e8f0; }
+  .btn-save   { background: #6366f1; color: #fff; }
+  .btn-save:hover { background: #4f46e5; }
+`;
+
+const template = HTML`
+  <header>
+    <h1>Kanban Board</h1>
+    <button class="new-card-btn" id="new-card-btn">+ New Card</button>
+  </header>
+  <div class="board" id="board"></div>
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal">
+      <h2>Edit Card</h2>
+      <label>Title<input id="modal-title" type="text" /></label>
+      <label>Description / Notes<textarea id="modal-desc" rows="6"></textarea></label>
+      <label>Column<select id="modal-column"></select></label>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modal-cancel">Cancel</button>
+        <button class="btn-save" id="modal-save">Save</button>
       </div>
-    </header>
-    <div class="board" id="board"></div>
-  `;
+    </div>
+  </div>
+`;
+
+
+const uid = () => Date.now();
+
+class KanbanApp extends FlowStateComponent {
+  #board;
+  #newCardBtn;
+  // Modal
+  #modalBackdrop;
+  #modalHeading;
+  #modalTitle;
+  #modalDesc;
+  #modalColumn;
+  #editingCard = null; // { card: Card|null, columnId: string }
+
+  shadowMode = 'open';
+
+  styles = styles;
+
+  template = template;
 
   flowConfig = {
     init: {
-      columns: INITIAL_COLUMNS,
+      columns: [],
       selectedCard: null,
     },
     hooks: {
       moveCard:   (...args) => this.#moveCard(...args),
       deleteCard: (...args) => this.#deleteCard(...args),
       selectCard: (...args) => this.#selectCard(...args),
+      editCard:   (...args) => this.#openModal(...args),
     },
     options: { label: 'KanbanApp' },
   };
 
-  constructor() {
-    super();
-  }
-
   connectedCallback() {
     super.connectedCallback();
 
-    const shadow = this.shadowRoot;
-    const board = shadow.getElementById('board');
-    const addBtn = shadow.getElementById('add-card-btn');
-    const titleInput = shadow.getElementById('card-title-input');
-    const colSelect = shadow.getElementById('column-select');
+    this.#board        = this.shadowRoot.getElementById('board');
+    this.#newCardBtn   = this.shadowRoot.getElementById('new-card-btn');
+    this.#modalBackdrop = this.shadowRoot.getElementById('modal-backdrop');
+    this.#modalHeading  = this.shadowRoot.querySelector('.modal h2');
+    this.#modalTitle    = this.shadowRoot.getElementById('modal-title');
+    this.#modalDesc     = this.shadowRoot.getElementById('modal-desc');
+    this.#modalColumn   = this.shadowRoot.getElementById('modal-column');
 
-    // Populate column selector and render columns
-    this.state.watch('columns', (columns) => {
-      // Sync column selector options
-      const prev = colSelect.value;
-      colSelect.innerHTML = columns.map(c =>
-        `<option value="${c.id}">${c.title}</option>`
-      ).join('');
-      if (prev) colSelect.value = prev;
+    // Close modal on backdrop click
+    this.#modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === this.#modalBackdrop) this.#closeModal();
+    });
+    this.shadowRoot.getElementById('modal-cancel').addEventListener('click', () => this.#closeModal());
+    this.shadowRoot.getElementById('modal-save').addEventListener('click', () => this.#saveModal());
 
-      // Sync kanban-column elements
-      const existing = new Map(
-        [...board.querySelectorAll('kanban-column')].map(el => [el.dataset.columnId, el])
-      );
-
-      // Remove columns that no longer exist
-      for (const [id, el] of existing) {
-        if (!columns.find(c => c.id === id)) el.remove();
-      }
-
-      // Add or update columns in order
-      columns.forEach((col, i) => {
-        let el = existing.get(col.id);
-        if (!el) {
-          el = document.createElement('kanban-column');
-          el.dataset.columnId = col.id;
-          board.appendChild(el);
-        }
-        // Move to correct position if needed
-        if (board.children[i] !== el) board.insertBefore(el, board.children[i]);
-      });
+    // Listen for edit events bubbling up from kanban-card (through column shadow)
+    this.shadowRoot.addEventListener('kanban-card-edit', (e) => {
+      this.#openModal(e.detail.card, e.detail.columnId);
     });
 
-    addBtn.addEventListener('click', () => {
-      const title = titleInput.value.trim();
-      if (!title) return;
-      this.#addCard(colSelect.value, title);
-      titleInput.value = '';
+    // Close on Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.#closeModal();
     });
 
-    titleInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') addBtn.click();
-    });
+    // Load columns from API, then watch for render
+    fetch('/api/kanban')
+      .then(r => r.json())
+      .then(columns => this.state.update({ columns }))
+      .catch(err => console.error('Failed to load kanban data:', err));
+
+    this.state.watch('columns', this.#renderColumns.bind(this));
+
+    this.#newCardBtn.addEventListener('click', () => this.#openModal(null, null));
   }
 
-  #addCard(columnId, title) {
+  #renderColumns(columns) {
+    // Sync modal column selector
+    const opts = columns.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+    if (this.#modalColumn) {
+      const mprev = this.#modalColumn.value;
+      this.#modalColumn.innerHTML = opts;
+      if (mprev) this.#modalColumn.value = mprev;
+    }
+
+    // Sync kanban-column elements
+    const existing = new Map(
+      [...this.#board.querySelectorAll('kanban-column')].map(el => [el.dataset.columnId, el])
+    );
+
+    // Remove columns that no longer exist
+    for (const [id, el] of existing) {
+      if (!columns.find(c => c.id === id)) el.remove();
+    }
+
+    // Add or update columns in order
+    columns.forEach((col, i) => {
+      let el = existing.get(col.id);
+      if (!el) {
+        el = document.createElement('kanban-column');
+        el.dataset.columnId = col.id;
+        this.#board.appendChild(el);
+      }
+      // Move to correct position if needed
+      if (this.#board.children[i] !== el) this.#board.insertBefore(el, this.#board.children[i]);
+    });
+
+  }
+
+  #persist() {
+    fetch('/api/kanban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(this.state.get('columns')),
+    }).catch(err => console.error('Failed to save kanban data:', err));
+  }
+
+  #addCard(columnId, title, desc = '') {
     this.state.update(prev => ({
       columns: prev.columns.map(col =>
         col.id === columnId
-          ? { ...col, cards: [...col.cards, { id: uid(), title, desc: '' }] }
+          ? { ...col, cards: [...col.cards, { id: uid(), title, desc }] }
           : col
       ),
-    }));
+    })).then(() => this.#persist());
   }
 
   #moveCard(cardId, fromColumnId, toColumnId) {
@@ -247,7 +311,7 @@ class KanbanApp extends FlowStateComponent {
           col.id === toColumnId ? { ...col, cards: [...col.cards, card] } : col
         ),
       };
-    });
+    }).then(() => this.#persist());
   }
 
   #deleteCard(cardId, columnId) {
@@ -257,7 +321,60 @@ class KanbanApp extends FlowStateComponent {
           ? { ...col, cards: col.cards.filter(c => c.id !== cardId) }
           : col
       ),
-    }));
+    })).then(() => this.#persist());
+  }
+
+  #openModal(card, columnId) {
+    const isNew = card === null;
+    // Default to first column when opening for a new card
+    const resolvedColumnId = columnId ?? this.state.get('columns')?.[0]?.id ?? '';
+    this.#editingCard = { card, columnId: resolvedColumnId };
+    this.#modalHeading.textContent = isNew ? 'New Card' : 'Edit Card';
+    this.#modalTitle.value = card?.title ?? '';
+    this.#modalDesc.value  = card?.desc  ?? '';
+    this.#modalColumn.value = resolvedColumnId;
+    this.#modalBackdrop.classList.add('open');
+    this.#modalTitle.focus();
+  }
+
+  #closeModal() {
+    this.#editingCard = null;
+    this.#modalBackdrop.classList.remove('open');
+  }
+
+  #saveModal() {
+    if (!this.#editingCard) return;
+    const { card, columnId } = this.#editingCard;
+    const newTitle    = this.#modalTitle.value.trim();
+    const newDesc     = this.#modalDesc.value.trim();
+    const newColumnId = this.#modalColumn.value;
+    if (!newTitle) return;
+
+    if (card === null) {
+      // Creating a new card
+      this.#addCard(newColumnId, newTitle, newDesc);
+    } else {
+      // Editing an existing card
+      this.state.update(prev => {
+        let movedCard;
+        const columns = prev.columns.map(col => {
+          if (col.id === columnId) {
+            movedCard = { ...col.cards.find(c => c.id === card.id), title: newTitle, desc: newDesc };
+            return { ...col, cards: col.cards.filter(c => c.id !== card.id) };
+          }
+          return col;
+        });
+        return {
+          columns: columns.map(col =>
+            col.id === newColumnId
+              ? { ...col, cards: [...col.cards, movedCard] }
+              : col
+          ),
+        };
+      }).then(() => this.#persist());
+    }
+
+    this.#closeModal();
   }
 
   #selectCard(card) {

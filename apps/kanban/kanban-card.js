@@ -38,34 +38,40 @@ const styles = CSS`
     font-size: 12px;
     color: #64748b;
     line-height: 1.4;
+    white-space: pre-wrap;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    margin-top: 8px;
+  .card-actions {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    display: none;
+    gap: 2px;
   }
 
-  .delete-btn {
+  .card:hover .card-actions,
+  :host([selected]) .card .card-actions {
+    display: flex;
+  }
+
+  .card-actions button {
     background: none;
     border: none;
-    color: #475569;
-    font-size: 15px;
     cursor: pointer;
-    padding: 0 2px;
+    padding: 3px 4px;
     line-height: 1;
     border-radius: 4px;
+    font-size: 13px;
   }
 
-  .delete-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
-  }
+  .edit-btn  { color: #64748b; }
+  .edit-btn:hover  { color: #a5b4fc; background: rgba(165,180,252,0.1); }
+  .delete-btn { color: #64748b; }
+  .delete-btn:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
 `;
 
 const sheet = new CSSStyleSheet();
@@ -73,12 +79,13 @@ sheet.replaceSync(styles);
 
 const template = document.createElement('template');
 template.innerHTML = HTML`
-  <div class="card">
-    <div class="card-title" id="title"></div>
-    <div class="card-desc" id="desc"></div>
-    <div class="card-footer">
+  <div class="card" style="position:relative">
+    <div class="card-actions">
+      <button class="edit-btn" title="Edit card">✏️</button>
       <button class="delete-btn" title="Delete card">✕</button>
     </div>
+    <div class="card-title" id="title"></div>
+    <div class="card-desc" id="desc"></div>
   </div>
 `;
 
@@ -86,9 +93,11 @@ class KanbanCard extends HTMLElement {
   #shadow;
   #titleEl;
   #descEl;
+  #editBtn;
   #deleteBtn;
   #cardId;
   #columnId;
+  #cardData = null;
 
   constructor() {
     super();
@@ -98,6 +107,7 @@ class KanbanCard extends HTMLElement {
 
     this.#titleEl  = this.#shadow.getElementById('title');
     this.#descEl   = this.#shadow.getElementById('desc');
+    this.#editBtn   = this.#shadow.querySelector('.edit-btn');
     this.#deleteBtn = this.#shadow.querySelector('.delete-btn');
   }
 
@@ -114,6 +124,7 @@ class KanbanCard extends HTMLElement {
     FlowState.watch(this, 'columnData', (columnData) => {
       const card = columnData?.cards?.find(c => c.id === this.#cardId);
       if (!card) return;
+      this.#cardData = card;
       this.#titleEl.textContent = card.title;
       this.#descEl.textContent  = card.desc || '';
     });
@@ -125,9 +136,17 @@ class KanbanCard extends HTMLElement {
 
     this.#shadow.querySelector('.card').addEventListener('click', () => {
       selectCard?.(this.#cardId);
-      // Notify the parent column to update its local selectedCardId
       this.dispatchEvent(new CustomEvent('kanban-card-select', {
         detail: { cardId: this.#cardId },
+        bubbles: true,
+        composed: true,
+      }));
+    });
+
+    this.#editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.dispatchEvent(new CustomEvent('kanban-card-edit', {
+        detail: { card: this.#cardData, columnId: this.#columnId },
         bubbles: true,
         composed: true,
       }));

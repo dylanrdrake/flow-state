@@ -64,39 +64,6 @@ class KanbanColumn extends FlowStateComponent {
       text-align: center;
       padding: 20px 0;
     }
-
-    .move-form {
-      display: flex;
-      gap: 6px;
-      padding: 8px 10px;
-      border-top: 1px solid #334155;
-      flex-shrink: 0;
-    }
-
-    .move-form select {
-      flex: 1;
-      padding: 5px 8px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #94a3b8;
-      font: inherit;
-      font-size: 12px;
-    }
-
-    .move-form button {
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: none;
-      background: #334155;
-      color: #e2e8f0;
-      font: inherit;
-      font-size: 12px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .move-form button:hover { background: #475569; }
   `;
 
   template = HTML`
@@ -105,10 +72,6 @@ class KanbanColumn extends FlowStateComponent {
       <span class="card-count" id="card-count">0</span>
     </div>
     <div class="cards-list" id="cards-list"></div>
-    <div class="move-form">
-      <select id="move-target"></select>
-      <button id="move-selected-btn">Move selected →</button>
-    </div>
   `;
 
   // Local state: which card in this column is selected, and the full columns list
@@ -121,9 +84,6 @@ class KanbanColumn extends FlowStateComponent {
     options: { label: 'KanbanColumn' },
   };
 
-  constructor() {
-    super();
-  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -133,8 +93,6 @@ class KanbanColumn extends FlowStateComponent {
     const cardsList  = shadow.getElementById('cards-list');
     const colTitle   = shadow.getElementById('col-title');
     const cardCount  = shadow.getElementById('card-count');
-    const moveTarget = shadow.getElementById('move-target');
-    const moveBtn    = shadow.getElementById('move-selected-btn');
 
     // Get shared hooks from parent KanbanApp scope
     const moveCard   = FlowState.get(this, 'moveCard');
@@ -149,14 +107,6 @@ class KanbanColumn extends FlowStateComponent {
 
       // Update local columnData so kanban-cards can watch it
       this.state.update({ columnData: col });
-
-      // Sync move-target options (all other columns)
-      const current = moveTarget.value;
-      moveTarget.innerHTML = columns
-        .filter(c => c.id !== columnId)
-        .map(c => `<option value="${c.id}">${c.title}</option>`)
-        .join('');
-      if (current) moveTarget.value = current;
 
       // Update header
       colTitle.textContent  = col.title;
@@ -197,18 +147,7 @@ class KanbanColumn extends FlowStateComponent {
     shadow.addEventListener('kanban-card-select', (e) => {
       const { cardId } = e.detail;
       const current = this.state.get('selectedCardId');
-      // Toggle off if already selected, otherwise select
       this.state.update({ selectedCardId: current === cardId ? null : cardId });
-    });
-
-    // Move selected card button
-    moveBtn.addEventListener('click', () => {
-      const selectedId = this.state.get('selectedCardId');
-      if (selectedId === null) return;
-      const targetColumnId = moveTarget.value;
-      if (!targetColumnId) return;
-      moveCard?.(selectedId, columnId, targetColumnId);
-      this.state.update({ selectedCardId: null });
     });
   }
 }
