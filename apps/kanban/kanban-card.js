@@ -98,6 +98,9 @@ class KanbanCard extends HTMLElement {
   #cardId;
   #columnId;
   #cardData = null;
+  #selectCard = () => {};
+  #deleteCard = () => {};
+  #editCard = () => {};
 
   constructor() {
     super();
@@ -116,8 +119,9 @@ class KanbanCard extends HTMLElement {
     this.#columnId = this.dataset.columnId;
 
     // Get hooks from the nearest parent scope (KanbanColumn or KanbanApp)
-    const deleteCard = FlowState.get(this, 'deleteCard');
-    const selectCard = FlowState.get(this, 'selectCard');
+    this.#deleteCard = FlowState.get(this, 'deleteCard');
+    this.#selectCard = FlowState.get(this, 'selectCard');
+    this.#editCard   = FlowState.get(this, 'editCard');
 
     // Watch the parent column's local `columnData` to get this card's data.
     // KanbanColumn owns columnData in its own FlowState scope.
@@ -134,27 +138,21 @@ class KanbanCard extends HTMLElement {
       this.toggleAttribute('selected', selectedCardId === this.#cardId);
     });
 
-    this.#shadow.querySelector('.card').addEventListener('click', () => {
-      selectCard?.(this.#cardId);
-      this.dispatchEvent(new CustomEvent('kanban-card-select', {
-        detail: { cardId: this.#cardId },
-        bubbles: true,
-        composed: true,
-      }));
+    this.#shadow.querySelector('.card').addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.#selectCard?.(this.#cardId);
     });
 
     this.#editBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      this.dispatchEvent(new CustomEvent('kanban-card-edit', {
-        detail: { card: this.#cardData, columnId: this.#columnId },
-        bubbles: true,
-        composed: true,
-      }));
+      this.#editCard?.(this.#cardData, this.#columnId);
     });
 
     this.#deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      deleteCard?.(this.#cardId, this.#columnId);
+      const title = this.#cardData?.title ? `"${this.#cardData.title}"` : 'this card';
+      if (!confirm(`Delete ${title}? This cannot be undone.`)) return;
+      this.#deleteCard?.(this.#cardId, this.#columnId);
     });
   }
 }

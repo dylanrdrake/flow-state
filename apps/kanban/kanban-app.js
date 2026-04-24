@@ -157,6 +157,8 @@ const template = HTML`
     <button class="new-card-btn" id="new-card-btn">+ New Card</button>
   </header>
   <div class="board" id="board"></div>
+
+  <!-- Edit Modal -->
   <div class="modal-backdrop" id="modal-backdrop">
     <div class="modal">
       <h2>Edit Card</h2>
@@ -222,11 +224,6 @@ class KanbanApp extends FlowStateComponent {
     });
     this.shadowRoot.getElementById('modal-cancel').addEventListener('click', () => this.#closeModal());
     this.shadowRoot.getElementById('modal-save').addEventListener('click', () => this.#saveModal());
-
-    // Listen for edit events bubbling up from kanban-card (through column shadow)
-    this.shadowRoot.addEventListener('kanban-card-edit', (e) => {
-      this.#openModal(e.detail.card, e.detail.columnId);
-    });
 
     // Close on Escape
     window.addEventListener('keydown', (e) => {

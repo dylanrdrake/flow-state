@@ -4,11 +4,6 @@
     "title": "Backlog",
     "cards": [
       {
-        "id": 104,
-        "title": "🔴 #get skips falsy hook values",
-        "desc": "if (this.#hooks[key]) is falsy for hooks whose value is 0, false, null, or \"\". Those hooks are silently ignored and undefined is returned instead.\n\nFix: Change to if (key in this.#hooks) — the same pattern already used correctly in #watch."
-      },
-      {
         "id": 105,
         "title": "🟡 Computed dependency tracking is top-level only",
         "desc": "The Proxy in #getComputedDependencies records only the first property accessed. (s) => s.user.name tracks \"user\", so any change to user — even unrelated nested keys — triggers recomputation.\n\nFix: Track full dot-separated paths recursively through the Proxy using a path-accumulating handler."
@@ -63,7 +58,13 @@
   {
     "id": "in-progress",
     "title": "In Progress",
-    "cards": []
+    "cards": [
+      {
+        "id": 104,
+        "title": "🔴 #get skips falsy hook values",
+        "desc": "if (this.#hooks[key]) is falsy for hooks whose value is 0, false, null, or \"\". Those hooks are silently ignored and undefined is returned instead.\n\nFix: Change to if (key in this.#hooks) — the same pattern already used correctly in #watch."
+      }
+    ]
   },
   {
     "id": "review",

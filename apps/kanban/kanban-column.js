@@ -5,6 +5,11 @@ const HTML = String.raw;
 const CSS = String.raw;
 
 class KanbanColumn extends FlowStateComponent {
+  #columnId = null; // set from dataset by parent
+  #cardsList = null;
+  #colTitle = null;
+  #cardCount = null;
+
   shadowMode = 'open';
 
   styles = CSS`
@@ -81,18 +86,18 @@ class KanbanColumn extends FlowStateComponent {
       columnData: null,    // { id, title, cards[] } — set by parent watcher
       selectedCardId: null,
     },
-    options: { label: 'KanbanColumn' },
+    options: { label: 'KanbanColumn' }
   };
 
 
   connectedCallback() {
     super.connectedCallback();
 
-    const columnId = this.dataset.columnId;
+    this.#columnId = this.dataset.columnId;
     const shadow = this.shadowRoot;
-    const cardsList  = shadow.getElementById('cards-list');
-    const colTitle   = shadow.getElementById('col-title');
-    const cardCount  = shadow.getElementById('card-count');
+    this.#cardsList  = shadow.getElementById('cards-list');
+    this.#colTitle   = shadow.getElementById('col-title');
+    this.#cardCount  = shadow.getElementById('card-count');
 
     // Get shared hooks from parent KanbanApp scope
     const moveCard   = FlowState.get(this, 'moveCard');
@@ -101,54 +106,49 @@ class KanbanColumn extends FlowStateComponent {
 
     // Watch the full columns list from the parent to extract this column's data
     // and keep the move-target selector up to date.
-    FlowState.watch(this, 'columns', (columns) => {
-      const col = columns?.find(c => c.id === columnId);
-      if (!col) return;
+    FlowState.watch(this, 'columns', this.#render.bind(this));
+  }
 
-      // Update local columnData so kanban-cards can watch it
-      this.state.update({ columnData: col });
+  #render(columns) {
+    const col = columns?.find(c => c.id === this.#columnId);
+    if (!col) return;
 
-      // Update header
-      colTitle.textContent  = col.title;
-      cardCount.textContent = col.cards.length;
+    // Update local columnData so kanban-cards can watch it
+    this.state.update({ columnData: col });
 
-      // Sync kanban-card elements
-      const existing = new Map(
-        [...cardsList.querySelectorAll('kanban-card')].map(el => [Number(el.dataset.cardId), el])
-      );
+    // Update header
+    this.#colTitle.textContent  = col.title;
+    this.#cardCount.textContent = col.cards.length;
 
-      // Remove cards no longer in this column
-      for (const [id, el] of existing) {
-        if (!col.cards.find(c => c.id === id)) el.remove();
+    // Sync kanban-card elements
+    const existing = new Map(
+      [...this.#cardsList.querySelectorAll('kanban-card')].map(el => [Number(el.dataset.cardId), el])
+    );
+
+    // Remove cards no longer in this column
+    for (const [id, el] of existing) {
+      if (!col.cards.find(c => c.id === id)) el.remove();
+    }
+
+    if (col.cards.length === 0) {
+      if (!this.#cardsList.querySelector('.empty')) {
+        this.#cardsList.innerHTML = '<p class="empty">No cards</p>';
       }
+    } else {
+      const emptyEl = this.#cardsList.querySelector('.empty');
+      if (emptyEl) emptyEl.remove();
 
-      if (col.cards.length === 0) {
-        if (!cardsList.querySelector('.empty')) {
-          cardsList.innerHTML = '<p class="empty">No cards</p>';
+      col.cards.forEach((card, i) => {
+        let el = existing.get(card.id);
+        if (!el) {
+          el = document.createElement('kanban-card');
+          el.dataset.cardId = card.id;
+          el.dataset.columnId = this.#columnId;
+          this.#cardsList.appendChild(el);
         }
-      } else {
-        const emptyEl = cardsList.querySelector('.empty');
-        if (emptyEl) emptyEl.remove();
-
-        col.cards.forEach((card, i) => {
-          let el = existing.get(card.id);
-          if (!el) {
-            el = document.createElement('kanban-card');
-            el.dataset.cardId = card.id;
-            el.dataset.columnId = columnId;
-            cardsList.appendChild(el);
-          }
-          if (cardsList.children[i] !== el) cardsList.insertBefore(el, cardsList.children[i]);
-        });
-      }
-    });
-
-    // Track which card is selected within this column via event from kanban-card
-    shadow.addEventListener('kanban-card-select', (e) => {
-      const { cardId } = e.detail;
-      const current = this.state.get('selectedCardId');
-      this.state.update({ selectedCardId: current === cardId ? null : cardId });
-    });
+        if (this.#cardsList.children[i] !== el) this.#cardsList.insertBefore(el, this.#cardsList.children[i]);
+      });
+    }
   }
 }
 
