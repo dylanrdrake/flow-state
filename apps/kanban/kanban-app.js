@@ -1,7 +1,7 @@
 import { FlowState, FlowStateComponent } from 'flow-state';
 import './kanban-column.js';
 
-FlowState.devtools();
+// FlowState.devtools();
 
 const HTML = String.raw;
 const CSS = String.raw;

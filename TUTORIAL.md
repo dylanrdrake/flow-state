@@ -8,7 +8,9 @@ FlowState is a lightweight, DOM-native reactive state library. It lives entirely
 
 ### The Scope
 
-Every FlowState instance is anchored to a **root element** — either an `HTMLElement` or a `ShadowRoot`. The root defines the **scope**: only elements that are DOM descendants of the root can receive state from that instance.
+Every FlowState instance is anchored to a **root element** — a light DOM `HTMLElement`. The root defines the **scope**: only elements that are DOM descendants of the root can receive state from that instance.
+
+> **Always mount FlowState on a host element, not a ShadowRoot.**  To extend a specific state scope into a closed shadow, use `state.through(shadowRoot)` after mounting on the host. To connect the shadow to the overall FlowState scope of that shadow, use the static method: `FlowState.through(shadowRoot)`
 
 ```
 <my-app>          ← FlowState root
@@ -36,13 +38,13 @@ state.update({ name: 'Alice' }); // batched — one notification fires
 
 ### Watchers fire immediately
 
-When you register a watcher with `state.watch()` or `FlowState.watch()`, it **calls your callback immediately** with the current value. There is no "subscribe and wait" — you always get the current value on registration.
+When you register a watcher with `state.watch()` or `FlowState.watch()`, it **calls your callback immediately** with the current value.
 
 ---
 
 ## Two Ways to Use FlowState
 
-### 1. Vanilla — `new FlowState(root, config)` / `FlowState.create()`
+### 1. Manually — `new FlowState(root, config)` / `FlowState.create()`
 
 For plain `HTMLElement` classes where you manage everything manually.
 
@@ -108,6 +110,23 @@ customElements.define('my-counter', MyCounter);
 ```
 
 `FlowStateComponent` exposes `this.state` — the instance API returned by the FlowState constructor.
+
+**Light DOM mode**: omit `shadowMode` entirely to render the template into the element itself (no shadow root). Styles are injected as a `<style>` tag into `document.head` (deduplicated per tag name). Use `this.querySelector()` instead of `this.shadowRoot.getElementById()` when querying elements.
+
+```js
+class MyBanner extends FlowStateComponent {
+  // no shadowMode — renders into light DOM
+  template = `<p id="msg"></p>`;
+  flowConfig = { init: { message: 'Hello' } };
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.state.watch('message', v => {
+      this.querySelector('#msg').textContent = v;
+    });
+  }
+}
+```
 
 ---
 
@@ -247,13 +266,13 @@ deleteItem(this.#itemId);
 
 ### `FlowState.through(shadowRoot)`
 
-Used when constructing FlowState manually — tells any parent FlowState instance to pierce its scope through a closed shadow root if you want to use get/watch or bind state under the closed shadow. Called from inside `connectedCallback`.
+Registers a closed shadow root with the nearest ancestor FlowState scope so that **declarative bindings** inside it receive updates. This is not needed for `FlowState.watch()` / `FlowState.get()` — those dispatch `composed: true` events that already cross shadow boundaries automatically.
 
 ```js
 connectedCallback() {
   const shadow = this.attachShadow({ mode: 'closed' });
-  FlowState.through(shadow); // bubbles up to parent instance
-  // or: this.#state.through(shadow) if you own the instance
+  // Declarative bindings (flow-watch-*) inside this shadow will now update
+  FlowState.through(shadow); // dispatches event that bubbles to nearest ancestor scope
 }
 ```
 

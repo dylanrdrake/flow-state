@@ -68,6 +68,16 @@
         "id": 104,
         "title": "🔴 #get skips falsy hook values",
         "desc": "if (this.#hooks[key]) is falsy for hooks whose value is 0, false, null, or \"\". Those hooks are silently ignored and undefined is returned instead.\n\nFix: Change to if (key in this.#hooks) — the same pattern already used correctly in #watch."
+      },
+      {
+        "id": 1777009244749,
+        "title": "Minification for publishing/distribution",
+        "desc": ""
+      },
+      {
+        "id": 1777012490505,
+        "title": "FlowState.init",
+        "desc": "...\nthis.appendChild('<div flow-watch-test-to-prop=\"innerHTML\">')\nFlowState.init(this)"
       }
     ]
   },
