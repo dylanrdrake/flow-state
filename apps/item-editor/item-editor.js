@@ -44,8 +44,7 @@ class ItemEditor extends HTMLElement {
     this.#state = Flow.create(this, {
       state: { edits: null },
       options: { label: 'ItemEditor' }
-    });
-    this.#state.through(this.#shadow);
+    }).through(this.#shadow);
 
     this.#saveBtn.addEventListener('click', () => {
       const edits = this.#state.get('edits');
