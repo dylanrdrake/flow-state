@@ -181,7 +181,7 @@ class TodoApp extends HTMLElement {
     this.#clearDoneBtn = shadow.getElementById('clear-done-btn');
 
     this.#state = Flow.create(this, {
-      init: {
+      state: {
         todos: [],
         filter: 'all',
 

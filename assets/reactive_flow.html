@@ -177,11 +177,13 @@
         addAnn('editormsg2', "user saves item edits.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 30, { hold: 3.3, align: 'left' });
         addAnn('editormsg3', "Watch for changes to selectedItem", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 33}] });
         addAnn('editormsg4', "state and handle with renderEditor.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 22, end: 34}] });
-        spawnUp('sidebar', 'app', { delay: 0.2 });
+        spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
+          addAnn('rootmsg1', 'Watchers registered.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 3.0, align: 'left' });
+        }});
         spawnUp('editor',  'app', { delay: 0.35 });
       });
       at('reg_done', 5.5, () => {
-        for (const k of ['sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'sidebarmsg4', 'editormsg1', 'editormsg2', 'editormsg3', 'editormsg4']) {
+        for (const k of ['rootmsg1', 'sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'sidebarmsg4', 'editormsg1', 'editormsg2', 'editormsg3', 'editormsg4']) {
           if (anns[k]) anns[k].alpha = 0;
         }
         boldActionIndices.sidebar = new Set([3, 4, 5]); // watch callback
@@ -191,8 +193,7 @@
         partialBold.editor = { 1: { start: 0, end: 8 } };   // "saveItem" in get() line at index 1
         partialBold.app = {};
         glows.app = 1;
-        addAnn('rootmsg1', 'Watchers registered.',                              nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 41, { hold: 2.3, align: 'left' });
-        addAnn('rootmsg2', 'Watchers and getters fired with initial values.',   nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 13, { hold: 2.3, align: 'left' });
+        addAnn('rootmsg2', 'Watchers and getters fired with initial values.',   nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         addAnn('sidebarmsg', 'Save received selectItem hook.',                  nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left', bold: [{start: 14, end: 24}] });
         addAnn('sidebarmsg2', 'Render list of items when watch',                nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
         addAnn('sidebarmsg3', 'handler fires with initial values.',             nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 2.3, align: 'left' });

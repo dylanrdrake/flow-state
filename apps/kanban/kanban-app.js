@@ -192,7 +192,7 @@ class KanbanApp extends FlowStateComponent {
   template = template;
 
   flowConfig = {
-    init: {
+    state: {
       columns: [],
       selectedCard: null,
     },

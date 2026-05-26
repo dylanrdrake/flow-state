@@ -8,7 +8,7 @@ describe('FlowState – computed values', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      init: {
+      state: {
         price: 10,
         qty: 3,
         name: 'alice',
@@ -78,7 +78,7 @@ describe('FlowState – computed values', () => {
     const root2 = document.createElement('div');
     document.body.appendChild(root2);
     const s = new FlowState(root2, {
-      init: {
+      state: {
         x: 4,
         double: (s) => s.x * 2,
         triple: (s) => s.x * 3,

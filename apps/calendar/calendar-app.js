@@ -67,7 +67,7 @@ class CalendarApp extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      init: {
+      state: {
 
         today,
         viewYear:     now.getFullYear(),

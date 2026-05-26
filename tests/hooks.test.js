@@ -10,7 +10,7 @@ describe('FlowState – hooks', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      init: {
+      state: {
         count: 0
       },
       hooks: {

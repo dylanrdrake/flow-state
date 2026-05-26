@@ -228,6 +228,27 @@
       height: 100%;
     }
 
+    .resize-handle-x {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 10px;
+      height: 100%;
+      cursor: ew-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .resize-handle-x::before {
+      content: '';
+      width: 3px;
+      height: 36px;
+      border-radius: 2px;
+      background: var(--border);
+    }
+    .resize-handle-x:hover::before { background: var(--accent); }
+
     .resize-handle {
       height: 10px;
       background: var(--surface2);
@@ -793,6 +814,7 @@ this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
         </p>
         <div class="anim-embed resizable" id="demo-embed">
           <iframe src="../../apps/item-editor/demo.html" title="FlowState item editor demo"></iframe>
+          <div class="resize-handle-x" id="demo-resize-handle-x"></div>
         </div>
         <div class="resize-handle" id="demo-resize-handle"></div>
 
@@ -1080,8 +1102,9 @@ console.log(state.get('count')); // still old value!</code></pre></div>
   sections.forEach(s => observer.observe(s));
 
   // ── Resizable demo embed ────────────────────────────────
-  const demoEmbed  = document.getElementById('demo-embed');
-  const demoHandle = document.getElementById('demo-resize-handle');
+  const demoEmbed   = document.getElementById('demo-embed');
+  const demoHandle  = document.getElementById('demo-resize-handle');
+  const demoHandleX = document.getElementById('demo-resize-handle-x');
 
   if (demoEmbed && demoHandle) {
     let dragging = false, startY = 0, startH = 0;
@@ -1103,6 +1126,32 @@ console.log(state.get('count')); // still old value!</code></pre></div>
     window.addEventListener('mouseup', () => {
       if (!dragging) return;
       dragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  }
+
+  if (demoEmbed && demoHandleX) {
+    let draggingX = false, startX = 0, startW = 0;
+
+    demoHandleX.addEventListener('mousedown', e => {
+      draggingX = true;
+      startX = e.clientX;
+      startW = demoEmbed.offsetWidth;
+      document.body.style.cursor = 'ew-resize';
+      document.body.style.userSelect = 'none';
+      e.stopPropagation();
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!draggingX) return;
+      const w = Math.max(300, startW + (e.clientX - startX));
+      demoEmbed.style.width = w + 'px';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!draggingX) return;
+      draggingX = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     });

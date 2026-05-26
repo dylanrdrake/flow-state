@@ -82,7 +82,7 @@ class KanbanColumn extends FlowStateComponent {
   // Local state: which card in this column is selected, and the full columns list
   // (needed to populate the move-target select and render cards).
   flowConfig = {
-    init: {
+    state: {
       columnData: null,    // { id, title, cards[] } — set by parent watcher
     },
     options: { label: 'KanbanColumn' }

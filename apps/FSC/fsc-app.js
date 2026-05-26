@@ -21,7 +21,7 @@ class FSCApp extends FlowStateComponent {
   `;
 
   flowConfig = {
-    init: {
+    state: {
       title: 'Hello, FlowStateComponent!',
       message: 'This message is stored in FlowState and can be read with the button below.',
     },

@@ -18,7 +18,7 @@ describe('FlowState – declarative bindings (to-prop)', () => {
     `;
 
     state = new FlowState(root, {
-      init: { name: 'Alice', active: false },
+      state: { name: 'Alice', active: false },
     });
 
     await waitForInitialBindings();
@@ -58,7 +58,7 @@ describe('FlowState – declarative bindings (to-attr)', () => {
     `;
 
     state = new FlowState(root, {
-      init: { count: 0, avatar: '/img/default.png' },
+      state: { count: 0, avatar: '/img/default.png' },
     });
 
     await waitForInitialBindings();
@@ -96,7 +96,7 @@ describe('FlowState – declarative bindings (dot-notation keys)', () => {
     `;
 
     state = new FlowState(root, {
-      init: { user: { city: 'NY', role: 'admin' } },
+      state: { user: { city: 'NY', role: 'admin' } },
     });
 
     await waitForInitialBindings();

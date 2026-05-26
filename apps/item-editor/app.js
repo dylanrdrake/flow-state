@@ -33,7 +33,7 @@ class ItemEditorApp extends HTMLElement {
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
     this.#state = new Flow(this, {
-      init: {
+      state: {
         items,
         selectedItem: null
       },

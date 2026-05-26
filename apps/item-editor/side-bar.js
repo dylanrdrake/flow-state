@@ -8,7 +8,14 @@ const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="header">Work Items</div>
   <input id="filter-input" type="text" placeholder="Filter items…" />
-  <div id="list"></div>
+  <div id="list" flow-list="filteredItems">
+    <template>
+      <div flow-item-to-prop="itemClass:className" flow-item-to-attr="id:data-id">
+        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
+        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      </div>
+    </template>
+  </div>
 `;
 
 class SideBar extends HTMLElement {
@@ -25,7 +32,7 @@ class SideBar extends HTMLElement {
 
     // Create local FlowState for filter before children connect
     this.#state = Flow.create(this, {
-      init: { filter: '' },
+      state: { filter: '', filteredItems: [] },
       options: { label: 'SideBar' }
     });
   }
@@ -33,16 +40,17 @@ class SideBar extends HTMLElement {
   connectedCallback() {
     this.#selectWorkItem = Flow.get(this, 'selectItem');
 
-    Flow.watch(this, 'items', () => {
-      this.#render();
+    Flow.watch(this, 'items', items => {
+      this.#updateFilteredItems(items, this.#state.get('filter'), Flow.get(this, 'selectedItem'));
     });
 
-    Flow.watch(this, 'selectedItem', item => {
-      this.#renderSelection(item?.id ?? null);
+    Flow.watch(this, 'selectedItem', selected => {
+      this.#updateFilteredItems(Flow.get(this, 'items'), this.#state.get('filter'), selected);
     });
 
-    // Local state — re-render list when filter changes
-    this.#state.watch('filter', () => this.#render());
+    this.#state.watch('filter', filter => { // Could also use static Flow.watch(this, 'filter', ...)
+      this.#updateFilteredItems(Flow.get(this, 'items'), filter, Flow.get(this, 'selectedItem'));
+    });
 
     this.shadowRoot.getElementById('filter-input').addEventListener('input', e => {
       this.#state.update({ filter: e.target.value });
@@ -56,30 +64,14 @@ class SideBar extends HTMLElement {
     });
   }
 
-  #render() {
-    const filter = this.#state.get('filter').toLowerCase();
-    const items = Flow.get(this, 'items');
-    const selectedId = Flow.get(this, 'selectedItem')?.id ?? null;
-    const filtered = filter
-      ? items.filter(i => i.name.toLowerCase().includes(filter))
-      : items;
-
-    if (!filtered.length) {
-      this.#list.innerHTML = `<div class="empty-state">No items match.</div>`;
-      return;
-    }
-
-    this.#list.innerHTML = filtered.map(item => `
-      <div class="work-item${item.id === selectedId ? ' selected' : ''}" data-id="${item.id}">
-        <span class="work-item-avatar">${item.initial}</span>
-        <span class="work-item-name">${item.name}</span>
-      </div>
-    `).join('');
-  }
-
-  #renderSelection(id) {
-    this.#list.querySelectorAll('.work-item').forEach(el => {
-      el.classList.toggle('selected', +el.dataset.id === id);
+  #updateFilteredItems(items, filter, selected) {
+    const f = (filter ?? '').toLowerCase();
+    const filtered = f ? items.filter(i => i.name.toLowerCase().includes(f)) : items;
+    this.#state.update({
+      filteredItems: filtered.map(i => ({
+        ...i,
+        itemClass: `work-item${i.id === selected?.id ? ' selected' : ''}`
+      }))
     });
   }
 }

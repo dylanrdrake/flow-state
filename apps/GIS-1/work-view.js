@@ -178,7 +178,7 @@ class WorkView extends HTMLElement {
     shadowRoot.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      init: {
+      state: {
         edits: null
       },
       options: {

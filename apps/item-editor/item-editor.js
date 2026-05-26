@@ -21,6 +21,7 @@ const STATUS_OPTIONS = ['Active', 'On Hold', 'Planning', 'Complete'];
 
 class ItemEditor extends HTMLElement {
   #state;
+  #shadow;
   #saveWorkItem;
   #placeholder;
   #editor;
@@ -29,20 +30,22 @@ class ItemEditor extends HTMLElement {
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.adoptedStyleSheets = [sheet];
-    this.shadowRoot.appendChild(template.content.cloneNode(true));
+    this.#shadow = this.attachShadow({ mode: 'closed' });
+    this.#shadow.adoptedStyleSheets = [sheet];
+    this.#shadow.appendChild(template.content.cloneNode(true));
 
-    this.#placeholder = this.shadowRoot.getElementById('placeholder');
-    this.#editor      = this.shadowRoot.getElementById('editor');
-    this.#editorFields = this.shadowRoot.getElementById('editor-fields');
-    this.#saveBtn     = this.shadowRoot.getElementById('save-btn');
+    this.#placeholder = this.#shadow.getElementById('placeholder');
+    this.#editor      = this.#shadow.getElementById('editor');
+    this.#editorFields = this.#shadow.getElementById('editor-fields');
+    this.#saveBtn     = this.#shadow.getElementById('save-btn');
 
-    // Create local FlowState for edits before children connect
+    // Create local FlowState and register the closed shadow so parent
+    // bindings can reach elements inside it.
     this.#state = Flow.create(this, {
-      init: { edits: null },
+      state: { edits: null },
       options: { label: 'ItemEditor' }
     });
+    this.#state.through(this.#shadow);
 
     this.#saveBtn.addEventListener('click', () => {
       const edits = this.#state.get('edits');
@@ -111,9 +114,8 @@ class ItemEditor extends HTMLElement {
       }
 
       input.addEventListener('input', e => {
-        const value = e.target.value; // capture before shadow-DOM retargeting in Firefox
         this.#state.update(prev => ({
-          edits: { ...prev.edits, [key]: value }
+          edits: { ...prev.edits, [key]: e.target.value }
         }));
       });
 

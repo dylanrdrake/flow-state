@@ -347,7 +347,7 @@ class StressApp extends HTMLElement {
     this.#shadow.appendChild(template.content.cloneNode(true));
 
     this.#state = Flow.create(this, {
-      init: {
+      state: {
         tick: 0,
         ...initialCells,
         ...initialList,
