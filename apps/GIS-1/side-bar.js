@@ -92,9 +92,23 @@ const styles = CSS`
 const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="section-label">Work Items</div>
-  <div id="work-items-container"></div>
+  <div id="work-items-container" flow-list="workItems">
+    <template>
+      <div class="work-item" flow-item-to-attr="id:data-work-item-id">
+        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
+        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      </div>
+    </template>
+  </div>
   <div class="section-label">Recent</div>
-  <div id="work-history"></div>
+  <div id="work-history" flow-list="history">
+    <template>
+      <div class="work-item" flow-item-to-attr="id:data-work-item-id">
+        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
+        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      </div>
+    </template>
+  </div>
 `;
 
 const sheet = new CSSStyleSheet();
@@ -131,30 +145,21 @@ class SideBar extends HTMLElement {
   connectedCallback() {
     this.#selectWorkItem = Flow.get(this, 'selectWorkItem');
     Flow.watch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
-    Flow.watch(this, 'workItems', this.#renderWorkItems.bind(this));
-    Flow.watch(this, 'history', this.#renderWorkHistory.bind(this));
-  }
 
+    this.#workItemsContainer.addEventListener('click', e => {
+      const el = e.target.closest('[data-work-item-id]');
+      if (!el) return;
+      const id = parseInt(el.getAttribute('data-work-item-id'));
+      const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
+      if (workItem) this.#selectWorkItem(workItem);
+    });
 
-  #renderWorkItems(workItems) {
-    if (!workItems) {
-      this.#workItemsContainer.innerHTML = '<div class="empty-state">No work items</div>';
-      return;
-    }
-    this.#workItemsContainer.innerHTML = '';
-    workItems.forEach((item) => {
-      const div = document.createElement('div');
-      div.setAttribute('data-work-item-id', item.id);
-      div.classList.add('work-item');
-      if (this.#selectedWorkItem && item.id === this.#selectedWorkItem.id) {
-        div.classList.add('selected');
-      }
-      div.innerHTML = `
-        <span class="work-item-avatar">${String(item.name).charAt(0).toUpperCase()}</span>
-        <span class="work-item-name">${item.name}</span>
-      `;
-      div.addEventListener('click', () => this.#selectWorkItem(item));
-      this.#workItemsContainer.appendChild(div);
+    this.#workHistoryContainer.addEventListener('click', e => {
+      const el = e.target.closest('[data-work-item-id]');
+      if (!el) return;
+      const id = parseInt(el.getAttribute('data-work-item-id'));
+      const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
+      if (workItem) this.#selectWorkItem(workItem);
     });
   }
 
@@ -167,7 +172,8 @@ class SideBar extends HTMLElement {
         return { history: newHistory };
       });
     }
-    this.#visuallySelectWorkItem(workItem);
+    // Defer visual update so flow-list bindings have already re-rendered
+    queueMicrotask(() => this.#visuallySelectWorkItem(workItem));
   }
 
 
@@ -183,24 +189,6 @@ class SideBar extends HTMLElement {
     });
   }
 
-  #renderWorkHistory(history) {
-    if (!history || history.length === 0) {
-      this.#workHistoryContainer.innerHTML = '<div class="empty-state">None yet</div>';
-      return;
-    }
-    this.#workHistoryContainer.innerHTML = '';
-    history.forEach((item) => {
-      const div = document.createElement('div');
-      div.classList.add('work-item');
-      div.setAttribute('data-work-item-id', item.id);
-      div.innerHTML = `
-        <span class="work-item-avatar">${String(item.name).charAt(0).toUpperCase()}</span>
-        <span class="work-item-name">${item.name}</span>
-      `;
-      div.addEventListener('click', () => this.#selectWorkItem(item));
-      this.#workHistoryContainer.appendChild(div);
-    });
-  }
 }
 
 customElements.define('side-bar', SideBar); 

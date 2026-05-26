@@ -7,6 +7,7 @@ A simple, lightweight, zero-dependency state library for web components and vani
 - **Reactive state** — scoped to a DOM element and its descendants
 - **Computed values** — derived state with automatic dependency tracking
 - **Declarative DOM bindings** — bind state to element properties or attributes via HTML attributes
+- **List rendering** — render arrays declaratively with `flow-list` and HTML `<template>`; no JavaScript required
 - **Watchers** — subscribe to granular key changes with dot-notation support
 - **Shadow DOM aware** — opt-in to state updates through closed shadowRoot boundaries with `FlowState.through()`
 - **Built-in devtools** — inspect all live state instances in a separate browser tab
@@ -250,6 +251,23 @@ Bind state to element properties or attributes directly in HTML — no JavaScrip
 > **Key format:** dots in state key names are replaced with dashes in attribute names.
 > `user.address.city` → `flow-watch-user-address-city-to-prop`
 
+### Render a list
+
+Place `flow-list="key"` on a container with a `<template>` child. When the state key (an array) changes, FlowState clears the container and clones the template once per item. Use `flow-item-to-prop` and `flow-item-to-attr` inside the template to bind item fields:
+
+```html
+<div flow-list="users">
+  <template>
+    <div flow-item-to-attr="id:data-user-id">
+      <span flow-item-to-prop="name:textContent"></span>
+      <span flow-item-to-prop="role:textContent"></span>
+    </div>
+  </template>
+</div>
+```
+
+The binding format is `"itemField:target"` — item field name, colon, then the DOM property name or attribute name.
+
 ---
 
 ## Shadow DOM — `FlowState.through()`
@@ -449,7 +467,7 @@ The `apps/` directory contains fully functional example applications built with 
 
 | App | Entry | Description |
 |-----|-------|-------------|
-| `apps/app1/` | [index.html](apps/app1/index.html) | Work/map view with ArcGIS integration |
+| `apps/GIS-1/` | [index.html](apps/GIS-1/index.html) | Work/map view with ArcGIS integration |
 | `apps/budget/` | [index.html](apps/budget/index.html) | Personal budget tracker with transactions |
 | `apps/calendar/` | [index.html](apps/calendar/index.html) | Monthly calendar with sidebar |
 | `apps/stress/` | [index.html](apps/stress/index.html) | Stress tracker |

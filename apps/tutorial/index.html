@@ -668,6 +668,38 @@ deleteItem(this.#itemId);</code></pre></div>
           Dots in key names become dashes in attribute names:
           <code>user.name</code> → <code>flow-watch-user-name-to-prop</code>
         </blockquote>
+        <blockquote>
+          <strong>Descendants only.</strong> Declarative bindings on the root element itself are
+          ignored. Use <code>state.watch()</code> to reactively bind the root's
+          properties/attributes, or <code>state.get()</code> to set initial values.
+        </blockquote>
+
+        <h3>Render a list — <code>flow-list</code></h3>
+        <p>
+          Place <code>flow-list="key"</code> on a container with a <code>&lt;template&gt;</code>
+          child. When the array state key updates, FlowState re-renders the container by cloning
+          the template once per item. Inside the template, bind item fields with
+          <code>flow-item-to-prop</code> and <code>flow-item-to-attr</code>:
+        </p>
+        <div class="cb"><pre><code data-nohl>&lt;div flow-list="users"&gt;
+  &lt;template&gt;
+    &lt;div flow-item-to-attr="id:data-user-id"&gt;
+      &lt;span flow-item-to-prop="name:textContent"&gt;&lt;/span&gt;
+      &lt;span flow-item-to-prop="role:textContent"&gt;&lt;/span&gt;
+    &lt;/div&gt;
+  &lt;/template&gt;
+&lt;/div&gt;</code></pre></div>
+        <p>
+          The binding format is <code>"itemField:target"</code> — item field name, colon, then the
+          DOM property name (<code>flow-item-to-prop</code>) or attribute name
+          (<code>flow-item-to-attr</code>).
+        </p>
+        <blockquote>
+          <strong>Timing note</strong>: If a <code>state.watch()</code> watcher on the same array
+          key also updates visual state (e.g. adding a <code>.selected</code> class), wrap that
+          update in <code>queueMicrotask()</code> to defer it until after <code>flow-list</code>
+          has re-rendered the DOM.
+        </blockquote>
       </section>
 
       <!-- ──────────────────────────────────── -->

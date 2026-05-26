@@ -28,7 +28,7 @@ appTemplate.innerHTML = HTML`
 `;
 
 
-class App1 extends HTMLElement {
+class GIS1 extends HTMLElement {
   #state;
   #shadow;
 
@@ -59,5 +59,5 @@ class App1 extends HTMLElement {
   }
 }
 
-customElements.define('app-1', App1);
+customElements.define('app-1', GIS1);
 
