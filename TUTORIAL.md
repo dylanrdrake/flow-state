@@ -297,6 +297,19 @@ FlowState queries for these attributes inside its scope and updates them automat
 
 > Dots in key names become dashes in attribute names: `user.name` → `flow-watch-user-name-to-prop`.
 
+> **Descendants only.** Declarative bindings on the root element itself are ignored. When mounting, you already have a reference to the root — use `state.watch()` to reactively bind its attributes/properties, or `state.get()` to set initial values.
+>
+> ```js
+> const root = document.getElementById('app');
+> const state = new FlowState(root, { init: { status: 'idle', count: 0 } });
+>
+> // Reactively update a root attribute
+> state.watch('status', value => root.setAttribute('data-status', value));
+>
+> // Set an initial value once
+> root.setAttribute('data-count', state.get('count'));
+> ```
+
 ---
 
 ## Hooks

@@ -230,6 +230,17 @@ describe('FlowState – state.watch()', () => {
     expect(spy.mock.calls[0][0]).toMatchObject({ name: 'Alice', age: 31 });
   });
 
+  it('notifies a deep key watcher when the whole parent object is replaced', async () => {
+    const spy = vi.fn();
+    state.watch('user.name', spy);
+    spy.mockClear();
+
+    // Replace the entire user object — user.name changes as part of the replacement
+    await state.update({ user: { name: 'Bob', age: 31 } });
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith('Bob');
+  });
+
   it('does NOT notify a sibling key watcher when a different child updates', async () => {
     const spy = vi.fn();
     state.watch('user.age', spy);

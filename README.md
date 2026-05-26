@@ -217,6 +217,19 @@ Alias for `new FlowState(...)`.
 
 Bind state to element properties or attributes directly in HTML — no JavaScript required on the receiving element.
 
+> **Descendants only.** Declarative bindings are ignored on the root element itself. When mounting, you already have a reference to the root — use `state.watch()` to reactively bind its attributes/properties, or `state.get()` to set initial values.
+>
+> ```js
+> const root = document.getElementById('app');
+> const state = new FlowState(root, { init: { status: 'idle', count: 0 } });
+>
+> // Reactively update a root attribute
+> state.watch('status', value => root.setAttribute('data-status', value));
+>
+> // Set an initial value once
+> root.setAttribute('data-count', state.get('count'));
+> ```
+
 ### Bind to a property
 
 ```html

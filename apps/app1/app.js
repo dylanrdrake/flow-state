@@ -29,12 +29,35 @@ appTemplate.innerHTML = HTML`
 
 
 class App1 extends HTMLElement {
+  #state;
+  #shadow;
+
   constructor() {
     super();
-    const shadow = this.attachShadow({ mode: 'closed' });
-    shadow.appendChild(appTemplate.content.cloneNode(true));
-    shadow.adoptedStyleSheets = [appSheet];
+    this.#shadow = this.attachShadow({ mode: 'closed' });
+    this.#shadow.adoptedStyleSheets = [appSheet];
+  }
+
+  async connectedCallback() {
+    if (this.#state) return;
+
+    const config = await fetch(new URL('./config.json', import.meta.url)).then(r => r.json());
+
+    // Initialize FlowState BEFORE stamping the template so the listener
+    // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
+    this.#state = new Flow(this, {
+      init: { config },
+      options: {
+        label: 'App'
+      }
+    });
+
+    // Allow declarative bindings inside the closed shadow to receive updates
+    this.#state.through(this.#shadow);
+
+    this.#shadow.appendChild(appTemplate.content.cloneNode(true));
   }
 }
 
 customElements.define('app-1', App1);
+

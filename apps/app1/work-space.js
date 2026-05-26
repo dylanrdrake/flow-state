@@ -59,35 +59,24 @@ sheet.replaceSync(styles);
 class Workspace extends HTMLElement {
   #state;
   minWidth = 10;
- 
+
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.isDragging = false;
+  }
+
+  connectedCallback() {
+    if (this.#state) return;
+
+    const workItems = Flow.get(this, 'config.workItems');
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
     this.#state = new Flow(this, {
       init: {
-        workItems: [
-          { id: 1,  name: 'Seattle Waterfront',       longitude: -122.3321, latitude: 47.6062  },
-          { id: 2,  name: 'Portland Transit Hub',      longitude: -122.6765, latitude: 45.5051  },
-          { id: 3,  name: 'San Francisco Bay Area',    longitude: -122.4194, latitude: 37.7749  },
-          { id: 4,  name: 'Los Angeles Metro',         longitude: -118.2437, latitude: 34.0522  },
-          { id: 5,  name: 'Phoenix Urban Core',        longitude: -112.0740, latitude: 33.4484  },
-          { id: 6,  name: 'Denver Highlands',          longitude: -104.9903, latitude: 39.7392  },
-          { id: 7,  name: 'Dallas Corridor',           longitude:  -96.7970, latitude: 32.7767  },
-          { id: 8,  name: 'Minneapolis Riverfront',    longitude:  -93.2650, latitude: 44.9778  },
-          { id: 9,  name: 'Chicago Lakefront',         longitude:  -87.6298, latitude: 41.8781  },
-          { id: 10, name: 'Nashville Midtown',         longitude:  -86.7816, latitude: 36.1627  },
-          { id: 11, name: 'Atlanta Beltline',          longitude:  -84.3880, latitude: 33.7490  },
-          { id: 12, name: 'Miami Brickell',            longitude:  -80.1918, latitude: 25.7617  },
-          { id: 13, name: 'Charlotte Uptown',          longitude:  -80.8431, latitude: 35.2271  },
-          { id: 14, name: 'Washington DC Capitol',     longitude:  -77.0369, latitude: 38.9072  },
-          { id: 15, name: 'New York Hudson Yards',     longitude:  -74.0060, latitude: 40.7128  },
-          { id: 16, name: 'Boston Seaport',            longitude:  -71.0589, latitude: 42.3601  },
-        ],
+        workItems,
         selectedWorkItem: null
       },
       hooks: {
