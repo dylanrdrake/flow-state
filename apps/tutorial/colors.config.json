@@ -1,0 +1,23 @@
+{
+  "bg":            "#ffffff",
+  "surface":       "#ffffff",
+  "surface2":      "#ffffff",
+  "border":        "#dcdcdc",
+  "text":          "#0e1b1b",
+  "muted":         "#636363",
+  "accent":        "#4a4a4a",
+  "ink":           "#0e1b1b",
+  "mid":           "#4a4a4a",
+  "yellow":        "#8a7820",
+  "red":           "#a83838",
+  "code-bg":       "#f6f6f6",
+  "nav-link":      "#0e1b1b",
+  "nav-active-bg": "rgba(14,27,27,0.06)",
+  "hero-from":     "#4a4a4a",
+  "hero-to":       "#0e1b1b",
+  "brand":         "#4a4a4a",
+  "syntax-kw":     "#4a4a4a",
+  "syntax-str":    "#c97b3a",
+  "syntax-cmt":    "#aaaaaa",
+  "syntax-num":    "#a04060"
+}

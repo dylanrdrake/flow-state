@@ -4,23 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlowState Tutorial</title>
+  <script>
+    fetch('./colors.config.json').then(r => r.json()).then(c => {
+      const s = document.documentElement.style;
+      Object.entries(c).forEach(([k, v]) => s.setProperty('--' + k, v));
+    });
+  </script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --bg:       #020617;
-      --surface:  #0f172a;
-      --surface2: #07111f;
-      --border:   #1e293b;
-      --text:     #e2e8f0;
-      --muted:    #64748b;
-      --accent:   #6366f1;
-      --purple:   #a5b4fc;
-      --blue:     #60a5fa;
-      --green:    #86efac;
-      --yellow:   #fde68a;
-      --teal:     #5eead4;
-      --red:      #fca5a5;
+      --bg:            #ffffff;
+      --surface:       #ffffff;
+      --surface2:      #ffffff;
+      --border:        #dcdcdc;
+      --text:          #0e1b1b;
+      --muted:         #636363;
+      --accent:        #4a4a4a;
+      --ink:           #0e1b1b;
+      --mid:           #4a4a4a;
+      --yellow:        #8a7820;
+      --red:           #a83838;
+      --code-bg:       #f6f6f6;
+      --nav-link:      #0e1b1b;
+      --nav-active-bg: rgba(14,27,27,0.06);
+      --hero-from:     #4a4a4a;
+      --hero-to:       #0e1b1b;
+      --brand:         #4a4a4a;
+      --syntax-kw:     #4a4a4a;
+      --syntax-str:    #c97b3a;
+      --syntax-cmt:    #aaaaaa;
+      --syntax-num:    #a04060;
     }
 
     html { scroll-behavior: smooth; }
@@ -41,33 +55,51 @@
       position: sticky;
       top: 0;
       height: 100vh;
-      width: 232px;
+      width: 256px;
       flex-shrink: 0;
       overflow-y: auto;
       background: var(--surface2);
       border-right: 1px solid var(--border);
-      padding: 1.75rem 0 3rem;
+      padding: 0 0 3rem;
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
 
-    .sidebar-brand {
-      padding: 0 1.25rem 1.4rem;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 1.25rem;
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 1.5rem 1.25rem 1.75rem;
     }
 
-    .sidebar-brand strong {
-      display: block;
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
       font-size: 1rem;
+      flex-shrink: 0;
+      letter-spacing: -0.05em;
+    }
+
+    .logo-name {
+      display: block;
+      font-size: 1.2rem;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.01em;
     }
 
-    .sidebar-brand span {
-      font-size: 0.72rem;
+    .logo-tag {
+      display: block;
+      font-size: 0.68rem;
       color: var(--muted);
+      margin-top: 0.05rem;
     }
 
     .nav-section { margin-bottom: 0.25rem; }
@@ -85,67 +117,28 @@
       display: block;
       padding: 0.3rem 1.5rem;
       font-size: 0.83rem;
-      color: #94a3b8;
+      color: var(--nav-link);
       text-decoration: none;
       border-left: 2px solid transparent;
       transition: color 0.12s, border-color 0.12s, background 0.12s;
     }
 
-    .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+    .nav-link:hover { color: var(--text); background: rgba(0,0,0,0.04); }
 
     .nav-link.active {
-      color: var(--purple);
+      color: var(--accent);
+      background: var(--nav-active-bg);
       border-left-color: var(--accent);
-      background: rgba(99,102,241,0.07);
+      font-weight: 500;
     }
 
     /* ── Main ── */
     .main { flex: 1; min-width: 0; }
 
-    /* ── Hero ── */
-    .hero { border-bottom: 1px solid var(--border); }
-
-    .hero-text {
-      text-align: center;
-      padding: 3rem 2rem 2rem;
-    }
-
-    .hero-text h1 {
-      font-size: 2.8rem;
-      font-weight: 800;
-      letter-spacing: -0.035em;
-      line-height: 1.1;
-      margin-bottom: 0.65rem;
-      background: linear-gradient(135deg, #f8fafc 35%, #a5b4fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .hero-text p {
-      color: #64748b;
-      font-size: 1rem;
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    .animation-wrapper {
-      overflow: hidden;
-      position: relative;
-    }
-
-    .animation-wrapper iframe {
-      display: block;
-      width: 900px;
-      height: 530px;
-      border: none;
-      transform-origin: top left;
-    }
-
     /* ── Content ── */
     .content {
       max-width: 800px;
-      padding: 3rem 2.5rem 6rem;
+      padding: 2.5rem 2.5rem 6rem;
     }
 
     /* ── Typography ── */
@@ -153,7 +146,7 @@
       font-size: 1.5rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      color: #f8fafc;
+      color: var(--text);
       margin: 3.5rem 0 1rem;
       padding-bottom: 0.6rem;
       border-bottom: 1px solid var(--border);
@@ -165,51 +158,106 @@
     h3 {
       font-size: 1rem;
       font-weight: 600;
-      color: var(--purple);
+      color: var(--ink);
       margin: 2rem 0 0.5rem;
       scroll-margin-top: 1.5rem;
     }
 
-    p { margin-bottom: 0.9rem; color: #cbd5e1; }
+    p { margin-bottom: 0.9rem; color: var(--text); }
 
-    strong { color: #e2e8f0; font-weight: 600; }
+    strong { color: var(--text); font-weight: 600; }
 
-    em { color: #94a3b8; font-style: italic; }
+    em { color: var(--muted); font-style: italic; }
 
     blockquote {
       border-left: 3px solid var(--accent);
       margin: 1.25rem 0;
       padding: 0.85rem 1.1rem;
-      background: rgba(99,102,241,0.07);
-      border-radius: 0 6px 6px 0;
-      color: #a5b4fc;
+      background: rgba(0,0,0,0.03);
+      color: var(--text);
       font-size: 0.875rem;
       line-height: 1.65;
     }
 
-    blockquote strong { color: #c7d2fe; }
-    blockquote code { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.25); }
+    blockquote strong { color: var(--text); }
+    blockquote code { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
 
     ul, ol { padding-left: 1.4rem; margin-bottom: 0.9rem; }
-    li { color: #cbd5e1; margin-bottom: 0.25rem; }
+    li { color: var(--text); margin-bottom: 0.25rem; }
 
     code:not(pre code) {
       font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
       font-size: 0.82em;
-      background: rgba(99,102,241,0.1);
-      border: 1px solid rgba(99,102,241,0.18);
-      color: var(--purple);
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: var(--ink);
       padding: 0.1em 0.38em;
       border-radius: 4px;
     }
 
     hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
 
+    /* ── Animation embed ── */
+    .anim-embed {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin: 1.75rem 0;
+      background: #ffffff;
+    }
+
+    .anim-embed iframe {
+      display: block;
+      width: 100%;
+      height: 625px;
+      border: none;
+    }
+
+    /* ── Resizable demo embed ── */
+    .anim-embed.resizable {
+      overflow: hidden;
+      position: relative;
+      height: 520px;
+      min-height: 260px;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .anim-embed.resizable iframe {
+      height: 100%;
+    }
+
+    .resize-handle {
+      height: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      margin: 0 0 1.75rem;
+      cursor: ns-resize;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .resize-handle::before {
+      content: '';
+      width: 36px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border);
+    }
+
+    .resize-handle:hover::before { background: var(--accent); }
+
     /* ── Code blocks ── */
     .cb { position: relative; margin: 1.1rem 0; }
 
     pre {
-      background: var(--surface);
+      background: var(--code-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow-x: auto;
@@ -225,7 +273,7 @@
       background: none;
       border: none;
       padding: 0;
-      color: #e2e8f0;
+      color: var(--text);
     }
 
     .copy-btn {
@@ -235,24 +283,24 @@
       padding: 0.2rem 0.55rem;
       font-size: 0.7rem;
       font-family: system-ui, sans-serif;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid #334155;
-      color: #64748b;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--border);
+      color: var(--muted);
       border-radius: 4px;
       cursor: pointer;
       transition: color 0.15s, border-color 0.15s;
       line-height: 1.5;
     }
 
-    .copy-btn:hover { color: #e2e8f0; border-color: #475569; }
-    .copy-btn.ok { color: var(--green); border-color: var(--green); }
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+    .copy-btn.ok { color: var(--mid); border-color: var(--mid); }
 
     /* ── Syntax highlight colors ── */
-    .kw  { color: #c084fc; }
-    .str { color: #86efac; }
-    .tpl { color: #fde68a; }
-    .cmt { color: #4b5563; font-style: italic; }
-    .num { color: #5eead4; }
+    .kw  { color: var(--syntax-kw); font-weight: 600; }
+    .str { color: var(--syntax-str); }
+    .tpl { color: var(--syntax-str); }
+    .cmt { color: var(--syntax-cmt); font-style: italic; }
+    .num { color: var(--syntax-num); }
 
     /* ── Table ── */
     .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
@@ -273,21 +321,21 @@
 
     td {
       padding: 0.5rem 0.8rem;
-      border-bottom: 1px solid rgba(30,41,59,0.5);
-      color: #cbd5e1;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      color: var(--text);
       vertical-align: top;
     }
 
     td:first-child { white-space: nowrap; }
     tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: rgba(255,255,255,0.02); }
+    tbody tr:hover td { background: rgba(0,0,0,0.03); }
+
+    .brand { color: var(--brand); font-weight: 700; }
 
     /* ── Responsive ── */
     @media (max-width: 860px) {
       .sidebar { display: none; }
       .content { padding: 2rem 1.25rem 4rem; }
-      .hero-text { padding: 2rem 1.25rem 1.5rem; }
-      .hero-text h1 { font-size: 2rem; }
     }
   </style>
 </head>
@@ -296,9 +344,12 @@
 
   <!-- ── Sidebar ── -->
   <nav class="sidebar" aria-label="Tutorial navigation">
-    <div class="sidebar-brand">
-      <strong>FlowState</strong>
-      <span>Tutorial &amp; Reference</span>
+    <div class="sidebar-logo">
+      <div class="logo-icon">FS</div>
+      <div>
+        <span class="logo-name">FlowState</span>
+        <span class="logo-tag">Tutorial &amp; Reference</span>
+      </div>
     </div>
 
     <div class="nav-section">
@@ -329,22 +380,6 @@
   <!-- ── Main ── -->
   <div class="main">
 
-    <!-- Hero -->
-    <header class="hero">
-      <div class="hero-text">
-        <h1>FlowState</h1>
-        <p>Lightweight, DOM-native reactive state. Zero dependencies, built on browser primitives.</p>
-      </div>
-      <div class="animation-wrapper" id="animWrap">
-        <iframe
-          id="animFrame"
-          src="../../assets/flow_state_animation.html"
-          title="FlowState reactive state tree animation"
-          loading="lazy"
-        ></iframe>
-      </div>
-    </header>
-
     <!-- Tutorial Content -->
     <article class="content">
 
@@ -354,7 +389,7 @@
 
         <h3>The Scope</h3>
         <p>
-          Every FlowState instance is anchored to a <strong>root element</strong> — a light DOM
+          Every FlowState instance is scoped to a DOM <strong>node</strong> — a light DOM
           <code>HTMLElement</code>. The root defines the <strong>scope</strong>: only elements that
           are DOM descendants of the root can receive state from that instance.
         </p>
@@ -374,6 +409,10 @@
           ancestor that owns that key intercepts it. Scopes nest naturally — a child component can
           shadow a key from a parent without affecting siblings.
         </p>
+
+        <div class="anim-embed">
+          <iframe src="../../assets/reactive_flow.html" title="FlowState reactive flow animation"></iframe>
+        </div>
 
         <h3>State is Immutable Between Updates</h3>
         <p>
@@ -744,6 +783,19 @@ FlowState.watch(this, 'items', items => this.#render(items));
 const remove = FlowState.get(this, 'removeItem');
 this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
 
+        <p>
+          The demo below shows this pattern in action. A <code>work-space</code> root owns
+          <code>workItems</code> and <code>selectedWorkItem</code> state, and exposes
+          <code>selectWorkItem</code> and <code>saveWorkItem</code> hooks. The sidebar uses
+          <code>FlowState.watch</code> and <code>FlowState.get</code> to connect to the shared
+          scope, while managing its own <code>filter</code> state locally with a nested
+          <code>FlowState</code> instance.
+        </p>
+        <div class="anim-embed resizable" id="demo-embed">
+          <iframe src="../../apps/item-editor/demo.html" title="FlowState item editor demo"></iframe>
+        </div>
+        <div class="resize-handle" id="demo-resize-handle"></div>
+
         <h3>Component-local state</h3>
         <p>
           Each component can have its own FlowState scope for state that shouldn't leak to
@@ -942,19 +994,27 @@ console.log(state.get('count')); // still old value!</code></pre></div>
 </div>
 
 <script>
-  // ── Animation scaling ──────────────────────────────────
-  const animWrap  = document.getElementById('animWrap');
-  const animFrame = document.getElementById('animFrame');
-
-  function scaleAnim() {
-    const w = animWrap.clientWidth;
-    const scale = w / 900;
-    animFrame.style.transform = `scale(${scale})`;
-    animWrap.style.height = Math.round(530 * scale) + 'px';
-  }
-
-  scaleAnim();
-  window.addEventListener('resize', scaleAnim);
+  // ── Brand name highlighting ────────────────────────────
+  const SKIP = new Set(['CODE', 'PRE', 'SCRIPT', 'STYLE', 'TITLE']);
+  (function brandWalk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      if (!node.textContent.includes('FlowState')) return;
+      const frag = document.createDocumentFragment();
+      node.textContent.split(/(FlowState)/g).forEach(part => {
+        if (part === 'FlowState') {
+          const s = document.createElement('span');
+          s.className = 'brand';
+          s.textContent = 'FlowState';
+          frag.appendChild(s);
+        } else if (part) {
+          frag.appendChild(document.createTextNode(part));
+        }
+      });
+      node.replaceWith(frag);
+    } else if (node.nodeType === Node.ELEMENT_NODE && !SKIP.has(node.tagName)) {
+      Array.from(node.childNodes).forEach(brandWalk);
+    }
+  })(document.body);
 
   // ── Copy buttons ───────────────────────────────────────
   document.querySelectorAll('.cb').forEach(wrap => {
@@ -1018,6 +1078,35 @@ console.log(state.get('count')); // still old value!</code></pre></div>
   }, { rootMargin: '-15% 0px -65% 0px', threshold: 0 });
 
   sections.forEach(s => observer.observe(s));
+
+  // ── Resizable demo embed ────────────────────────────────
+  const demoEmbed  = document.getElementById('demo-embed');
+  const demoHandle = document.getElementById('demo-resize-handle');
+
+  if (demoEmbed && demoHandle) {
+    let dragging = false, startY = 0, startH = 0;
+
+    demoHandle.addEventListener('mousedown', e => {
+      dragging = true;
+      startY = e.clientY;
+      startH = demoEmbed.offsetHeight;
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      const h = Math.max(260, startH + (e.clientY - startY));
+      demoEmbed.style.height = h + 'px';
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    });
+  }
 </script>
 </body>
 </html>

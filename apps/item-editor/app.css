@@ -1,0 +1,21 @@
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+item-editor-app {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  background: #fafafa;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ── item-editor-app shadow DOM ── */#side-bar-container {
+  width: 260px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+side-bar    { flex: 1; overflow: hidden; }
+item-editor { flex: 1; overflow: hidden; }

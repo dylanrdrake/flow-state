@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #020617;
+      background: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -24,7 +24,7 @@
     const canvas = document.getElementById('c');
     const ctx    = canvas.getContext('2d');
     const DPR    = Math.min(window.devicePixelRatio || 1, 2);
-    const W = 900, H = 530;
+    const W = 2250, H = 1325;
 
     canvas.width  = W * DPR;
     canvas.height = H * DPR;
@@ -33,19 +33,19 @@
     ctx.scale(DPR, DPR);
 
     const N = {
-      app:  { label: 'KanbanApp',  sub: 'FlowState', x: 450, y: 72,  r: 34, fill: '#4338ca', rim: '#818cf8', level: 0 },
-      col1: { label: 'Column',     sub: 'FlowState',       x: 150, y: 232, r: 25, fill: '#1d4ed8', rim: '#60a5fa', level: 1 },
-      col2: { label: 'Column',     sub: 'FlowState',       x: 450, y: 232, r: 25, fill: '#1d4ed8', rim: '#60a5fa', level: 1 },
-      col3: { label: 'Column',     sub: 'FlowState',       x: 750, y: 232, r: 25, fill: '#1d4ed8', rim: '#60a5fa', level: 1 },
-      c11:  { label: 'Card', x: 66,  y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c12:  { label: 'Card', x: 150, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c13:  { label: 'Card', x: 234, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c21:  { label: 'Card', x: 366, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c22:  { label: 'Card', x: 450, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c23:  { label: 'Card', x: 534, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c31:  { label: 'Card', x: 666, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c32:  { label: 'Card', x: 750, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
-      c33:  { label: 'Card', x: 834, y: 400, r: 17, fill: '#075985', rim: '#38bdf8', level: 2 },
+      app:  { label: 'KanbanApp',  sub: 'FlowState', x: 1125, y: 180,  r: 85, fill: '#3f9c5d', rim: '#5ab77e', level: 0 },
+      col1: { label: 'Column',     sub: 'FlowState',  x: 375,  y: 580, r: 63, fill: '#dcdcdc', rim: '#88cba0', level: 1 },
+      col2: { label: 'Column',     sub: 'FlowState',  x: 1125, y: 580, r: 63, fill: '#dcdcdc', rim: '#88cba0', level: 1 },
+      col3: { label: 'Column',     sub: 'FlowState',  x: 1875, y: 580, r: 63, fill: '#dcdcdc', rim: '#88cba0', level: 1 },
+      c11:  { label: 'Card', x: 165,  y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c12:  { label: 'Card', x: 375,  y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c13:  { label: 'Card', x: 585,  y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c21:  { label: 'Card', x: 915,  y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c22:  { label: 'Card', x: 1125, y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c23:  { label: 'Card', x: 1335, y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c31:  { label: 'Card', x: 1665, y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c32:  { label: 'Card', x: 1875, y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
+      c33:  { label: 'Card', x: 2085, y: 1000, r: 43, fill: '#f2f2f2', rim: '#dcdcdc', level: 2 },
     };
 
     const EDGES = [
@@ -64,7 +64,7 @@
     const particles = [];
 
     function cp(a, b) {
-      return { x: (a.x + b.x) / 2 + (a.x < b.x ? -18 : 18), y: (a.y + b.y) / 2 };
+      return { x: (a.x + b.x) / 2 + (a.x < b.x ? -45 : 45), y: (a.y + b.y) / 2 };
     }
     function bpt(fId, tId, t) {
       const f = N[fId], to = N[tId], c = cp(f, to), u = 1 - t;
@@ -92,12 +92,12 @@
       });
     }
 
-    function triggerUpdate() { pulse['app'] = 1.0; spawnDown('app', '#a5b4fc', 6.5, 100); }
+    function triggerUpdate() { pulse['app'] = 1.0; spawnDown('app', '#5898c8', 16, 100); }
     function triggerHook() {
       const cards = Object.keys(N).filter(id => N[id].level === 2);
       const src   = cards[Math.floor(Math.random() * cards.length)];
       pulse[src]  = 1.0;
-      spawnUp(src, '#fbbf24', 5);
+      spawnUp(src, '#c89050', 13);
     }
 
     let updateInterval, hookInterval;
@@ -129,13 +129,13 @@
     }
 
     function drawEdges() {
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 4;
       for (const [fId, tId] of EDGES) {
-        const f = N[fId], t = N[tId], c = cp(f, t);
+        const f = N[fId], t = N[tId];
         ctx.beginPath();
         ctx.moveTo(f.x, f.y);
-        ctx.quadraticCurveTo(c.x, c.y, t.x, t.y);
-        ctx.strokeStyle = '#1e293b';
+        ctx.lineTo(t.x, t.y);
+        ctx.strokeStyle = '#dcdcdc';
         ctx.stroke();
       }
     }
@@ -149,7 +149,7 @@
         ctx.fillStyle = `rgba(${rgb(p.color)},${(1-i/8)*0.3})`;
         ctx.fill();
       }
-      ctx.shadowBlur = 16; ctx.shadowColor = p.color;
+      ctx.shadowBlur = 40; ctx.shadowColor = p.color;
       ctx.beginPath(); ctx.arc(pos.x, pos.y, p.size, 0, Math.PI*2);
       ctx.fillStyle = p.color; ctx.fill();
       ctx.shadowBlur = 0;
@@ -159,55 +159,55 @@
       const n = N[id], p = pulse[id];
       if (p > 0.02) {
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r + (1 - p) * 28, 0, Math.PI*2);
+        ctx.arc(n.x, n.y, n.r + (1 - p) * 70, 0, Math.PI*2);
         ctx.strokeStyle = `rgba(${rgb(n.rim)},${p * 0.65})`;
-        ctx.lineWidth = 2; ctx.stroke();
+        ctx.lineWidth = 5; ctx.stroke();
       }
-      ctx.shadowBlur = 8 + p * 22; ctx.shadowColor = n.rim;
+      ctx.shadowBlur = 20 + p * 55; ctx.shadowColor = n.rim;
       ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
       ctx.fillStyle = n.fill; ctx.fill();
       ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
       ctx.strokeStyle = `rgba(${rgb(n.rim)},${0.45 + p * 0.55})`;
-      ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.lineWidth = 4; ctx.stroke();
       ctx.shadowBlur = 0;
 
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       if (n.level === 0) {
-        ctx.font = 'bold 12px system-ui'; ctx.fillStyle = '#f1f5f9';
-        ctx.fillText(n.label, n.x, n.y - 7);
-        ctx.font = '9px system-ui'; ctx.fillStyle = '#a5b4fc';
-        ctx.fillText(n.sub, n.x, n.y + 7);
+        ctx.font = 'bold 30px system-ui'; ctx.fillStyle = '#ffffff';
+        ctx.fillText(n.label, n.x, n.y - 18);
+        ctx.font = '22px system-ui'; ctx.fillStyle = '#b2e1b0';
+        ctx.fillText(n.sub, n.x, n.y + 18);
       } else if (n.level === 1) {
-        ctx.font = 'bold 11px system-ui'; ctx.fillStyle = '#f1f5f9';
-        ctx.fillText(n.label, n.x, n.y - 5);
-        ctx.font = '9px system-ui'; ctx.fillStyle = '#93c5fd';
-        ctx.fillText(n.sub, n.x, n.y + 6);
+        ctx.font = 'bold 28px system-ui'; ctx.fillStyle = '#2e7d4d';
+        ctx.fillText(n.label, n.x, n.y - 13);
+        ctx.font = '22px system-ui'; ctx.fillStyle = '#5ab77e';
+        ctx.fillText(n.sub, n.x, n.y + 15);
       } else {
-        ctx.font = '9px system-ui'; ctx.fillStyle = '#bae6fd';
+        ctx.font = '22px system-ui'; ctx.fillStyle = '#aaaaaa';
         ctx.fillText(n.label, n.x, n.y);
       }
     }
 
     function drawTitle() {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = 'bold 22px system-ui'; ctx.fillStyle = '#e2e8f0';
-      ctx.shadowBlur = 20; ctx.shadowColor = '#6366f1';
-      ctx.fillText('FlowState', W/2, H - 58);
+      ctx.font = 'bold 55px system-ui'; ctx.fillStyle = '#2e7d4d';
+      ctx.shadowBlur = 40; ctx.shadowColor = '#5ab77e';
+      ctx.fillText('FlowState', W/2, H - 145);
       ctx.shadowBlur = 0;
-      ctx.font = '11px system-ui'; ctx.fillStyle = '#475569';
-      ctx.fillText('reactive state cascades from parent scope → child scopes → watchers', W/2, H - 36);
+      ctx.font = '28px system-ui'; ctx.fillStyle = '#88cba0';
+      ctx.fillText('reactive state cascades from parent scope → child scopes → watchers', W/2, H - 90);
     }
 
     function drawLegend() {
-      const lx = 18, ly = H - 72;
-      ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '10px system-ui';
-      for (const [i, [color, label]] of [['#a5b4fc','state update'],['#fbbf24','hook call']].entries()) {
-        const y = ly + i * 18;
-        ctx.shadowBlur = 8; ctx.shadowColor = color;
-        ctx.beginPath(); ctx.arc(lx + 5, y, 4.5, 0, Math.PI*2);
+      const lx = 45, ly = H - 180;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.font = '25px system-ui';
+      for (const [i, [color, label]] of [['#5898c8','state update'],['#c89050','hook call']].entries()) {
+        const y = ly + i * 45;
+        ctx.shadowBlur = 20; ctx.shadowColor = color;
+        ctx.beginPath(); ctx.arc(lx + 13, y, 11, 0, Math.PI*2);
         ctx.fillStyle = color; ctx.fill();
-        ctx.shadowBlur = 0; ctx.fillStyle = '#64748b';
-        ctx.fillText(label, lx + 14, y);
+        ctx.shadowBlur = 0; ctx.fillStyle = '#aaaaaa';
+        ctx.fillText(label, lx + 35, y);
       }
     }
 
@@ -216,10 +216,10 @@
       const dt = lastTs === 0 ? 1 : Math.min((ts - lastTs) / 16.67, 3);
       lastTs = ts;
 
-      ctx.fillStyle = '#020617'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
       const vg = ctx.createRadialGradient(W/2, H/2, H*0.25, W/2, H/2, H*0.85);
       vg.addColorStop(0, 'rgba(0,0,0,0)');
-      vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+      vg.addColorStop(1, 'rgba(0,0,0,0.08)');
       ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
       drawEdges();

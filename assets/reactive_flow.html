@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowState — Reactive Flow</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0.5rem;
+      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+    canvas { display: block; }
+    #controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+    #controls button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #dcdcdc;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #0e1b1b;
+      cursor: pointer;
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-family: system-ui, sans-serif;
+    }
+    #controls button:hover  { background: rgba(14,27,27,0.05); }
+    #controls button:active { background: rgba(14,27,27,0.12); }
+    #controls button:disabled { opacity: 0.28; cursor: default; }
+    #controls button:disabled:hover { background: #ffffff; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="controls">
+    <button id="btn-prev" title="Previous step">&#9664;</button>
+    <button id="btn-play" title="Pause">&#9646;&#9646;</button>
+    <button id="btn-next" title="Next step">&#9654;</button>
+  </div>
+
+  <script>
+    // ── Setup ─────────────────────────────────────────────────────────────
+    const cv  = document.getElementById('c');
+    const ctx = cv.getContext('2d');
+
+    const W = 700, H = 580;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width  = W * dpr;
+    cv.height = H * dpr;
+    cv.style.width  = W + 'px';
+    cv.style.height = H + 'px';
+    ctx.scale(dpr, dpr);
+
+    // ── Palette ───────────────────────────────────────────────────────────
+    const INK    = '#0e1b1b';
+    const BORDER = '#dcdcdc';
+    const MUTED  = '#aaaaaa';
+
+    // ── Graph ─────────────────────────────────────────────────────────────
+    const NODES = [
+      { id: 'app',     x: 350, y: 145,  w: 310, h: 172, label: 'App',
+        stateLines: [
+          'state = {',
+          '  items,',
+          '  selectedItem,',
+          '  selectItem(item) {',
+          '    state.update({ selectedItem: item })',
+          '  },',
+          '  saveItem(edits) {',
+          '    // update items array',
+          '  }',
+          '}'
+        ], root: true },
+      { id: 'sidebar', x: 175, y: 370, w: 250, h: 168, label: 'Sidebar', state: 'state = { filter }',
+        actions: ["", "selectItem = FS.get('selectItem')", "", "FS.watch('items', (items) => {", "  // render list", "})", "", "state.watch('filter', (filter) => {", "  // re-render list", "})"] },
+      { id: 'editor',  x: 525, y: 370, w: 260, h: 130, label: 'Editor',  state: 'state = { edits }',
+        actions: ["", "saveItem = FS.get('saveItem')", "", "FS.watch('selectedItem', (item) => {", "  // render editor", "})"] },
+    ];
+
+    const EDGES = [
+      ['app', 'sidebar'],
+      ['app', 'editor'],
+    ];
+
+    const nm = {};
+    NODES.forEach(n => nm[n.id] = n);
+
+    // ── Animation state ───────────────────────────────────────────────────
+    let glows = {}, particles = [], anns = {}, elapsed = 0, did = {};
+    let boldActionIndices = {}; // Track which action line indices should be bold per node
+    let partialBold = {}; // Track partial bold within specific lines: { nodeId: { lineIdx: { start, end } } }
+    const CYCLE  = 20.5;
+    const DECAY  = 1.0; // glow decay per second
+
+    function reset() {
+      NODES.forEach(n => glows[n.id] = 0);
+      particles = [];
+      anns      = {};
+      elapsed   = 0;
+      did       = {};
+      boldActionIndices = {};
+      partialBold = {};
+    }
+    reset();
+
+    // Add a canvas annotation near a node. hold = seconds before fading.
+    function addAnn(key, text, x, y, { align = 'center', hold = 1.6, decay = 1.3, bold = [] } = {}) {
+      anns[key] = { text, x, y, align, alpha: 1, hold, decay, bold };
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    function nbot(id) { const n = nm[id]; return [n.x, n.y + n.h / 2]; }
+    function ntop(id) { const n = nm[id]; return [n.x, n.y - n.h / 2]; }
+
+    function rrect(x, y, w, h, r = 6) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y,     x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x,     y + h, r);
+      ctx.arcTo(x,     y + h, x,     y,     r);
+      ctx.arcTo(x,     y,     x + w, y,     r);
+      ctx.closePath();
+    }
+
+    function ease(t) { return t < 0.5 ? 4*t*t*t : 1 - (-2*t+2)**3/2; }
+
+    // Particle traveling down (state notification): from bottom of parent to top of child
+    function spawnDown(from, to, { delay = 0, onDone } = {}) {
+      const [x0, y0] = nbot(from), [x1, y1] = ntop(to);
+      particles.push({
+        x0, y0, x1, y1, color: INK, r: 4,
+        delay, progress: 0, duration: Math.hypot(x1-x0, y1-y0) / 200,
+        active: false, done: false, onDone,
+      });
+    }
+
+    // Particle traveling up (event bubbling): from top of child to bottom of parent
+    function spawnUp(from, to, { delay = 0, onDone } = {}) {
+      const [x0, y0] = ntop(from), [x1, y1] = nbot(to);
+      particles.push({
+        x0, y0, x1, y1, color: MUTED, r: 3.5,
+        delay, progress: 0, duration: Math.hypot(x1-x0, y1-y0) / 180,
+        active: false, done: false, onDone,
+      });
+    }
+
+    function at(k, t, fn) {
+      if (elapsed >= t && !did[k]) { did[k] = true; fn(); }
+    }
+
+    // ── Phase sequencing ──────────────────────────────────────────────────
+    function phases() {
+
+      // Phase A — Sidebar watches items; Editor watches selectedItem + gets saveItem
+      at('glow_reg', 2.0, () => {
+        glows.sidebar = 1;
+        glows.editor  = 1;
+        boldActionIndices.sidebar = new Set([1, 3]); // get and watch (indices 1 and 3)
+        boldActionIndices.editor = new Set([1, 3]);   // get and watch (indices 1 and 3)
+        addAnn('sidebarmsg', "Get selectItem hook to use when an", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 3.3, align: 'left', bold: [{start: 4, end: 14}] });
+        addAnn('sidebarmsg2', "item is selected from the list.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 30, { hold: 3.3, align: 'left' });
+        addAnn('sidebarmsg3', "Watch for changes to items state", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 26}] });
+        addAnn('sidebarmsg4', "array and handle with renderItemList.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 22, end: 36}] });
+        addAnn('editormsg1', "Get saveItem hook to use when the", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 3.3, align: 'left', bold: [{start: 4, end: 12}] });
+        addAnn('editormsg2', "user saves item edits.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 30, { hold: 3.3, align: 'left' });
+        addAnn('editormsg3', "Watch for changes to selectedItem", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 33}] });
+        addAnn('editormsg4', "state and handle with renderEditor.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 22, end: 34}] });
+        spawnUp('sidebar', 'app', { delay: 0.2 });
+        spawnUp('editor',  'app', { delay: 0.35 });
+      });
+      at('reg_done', 5.5, () => {
+        for (const k of ['sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'sidebarmsg4', 'editormsg1', 'editormsg2', 'editormsg3', 'editormsg4']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        boldActionIndices.sidebar = new Set([3, 4, 5]); // watch callback
+        boldActionIndices.editor = new Set([3, 4, 5]);   // watch callback
+        boldActionIndices.app = new Set();
+        partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" in get() line at index 1
+        partialBold.editor = { 1: { start: 0, end: 8 } };   // "saveItem" in get() line at index 1
+        partialBold.app = {};
+        glows.app = 1;
+        addAnn('rootmsg1', 'Watchers registered.',                              nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 41, { hold: 2.3, align: 'left' });
+        addAnn('rootmsg2', 'Watchers and getters fired with initial values.',   nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 13, { hold: 2.3, align: 'left' });
+        addAnn('sidebarmsg', 'Save received selectItem hook.',                  nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left', bold: [{start: 14, end: 24}] });
+        addAnn('sidebarmsg2', 'Render list of items when watch',                nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
+        addAnn('sidebarmsg3', 'handler fires with initial values.',             nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 2.3, align: 'left' });
+        addAnn('editormsg1', 'Save received saveItem hook.',                    nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.3, align: 'left', bold: [{start: 14, end: 22}] });
+        addAnn('editormsg2', 'Render empty editor when watch',                  nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 44, { hold: 2.3, align: 'left' });
+        addAnn('editormsg3', 'handler fires with initial values.',              nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 58, { hold: 2.3, align: 'left' });
+        spawnDown('app', 'sidebar', { delay: 0.2 });
+        spawnDown('app', 'editor',  { delay: 0.35 });
+      });
+
+      // Phase B — Sidebar calls selectItem()
+      at('select_item', 8.0, () => {
+        for (const k of ['rootmsg1', 'rootmsg2', 'sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'editormsg1', 'editormsg2', 'editormsg3']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        glows.sidebar = 1;
+        boldActionIndices.sidebar = new Set();
+        boldActionIndices.editor = new Set();
+        boldActionIndices.app = new Set();
+        // Highlight just 'selectItem' in "selectItem = FS.get('selectItem')" now at line 1
+        partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" is chars 0-10 at line 1
+        partialBold.editor = {};
+        partialBold.app = {};
+        addAnn('sidebarmsg', "User selects an item from the list.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
+        spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
+          glows.app = 1;
+          boldActionIndices.app = new Set([3, 4, 5]); // selectItem function lines 3-5
+          addAnn('rootmsg', 'App sets selectedItem state.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
+        }});
+      });
+
+      // Phase C — App updates selectedItem, Editor notified
+      at('selected_item_update', 10.5, () => {
+        for (const k of ['sidebarmsg', 'rootmsg']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        glows.app = 1;
+        boldActionIndices.sidebar = new Set();
+        boldActionIndices.editor = new Set([3, 4, 5]); // watch callback
+        boldActionIndices.app = new Set([4]); // state.update line
+        partialBold.sidebar = {};
+        partialBold.editor = {};
+        partialBold.app = {};
+        spawnDown('app', 'editor', { delay: 0.2, onDone: () => {
+          glows.editor = 1;
+          addAnn('editormsg', 'Render item editor with selected item values.', nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.8, align: 'left' });
+        }});
+      });
+
+      // Phase C — Editor calls saveItem()
+      at('save_item', 13.0, () => {
+        for (const k of ['rootmsg', 'editormsg']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        glows.editor = 1;
+        boldActionIndices.sidebar = new Set();
+        boldActionIndices.editor = new Set();
+        boldActionIndices.app = new Set();
+        // Highlight just 'saveItem' in "saveItem = FS.get('saveItem')" at line 1
+        partialBold.sidebar = {};
+        partialBold.editor = { 1: { start: 0, end: 8 } }; // "saveItem" is chars 0-8 at line 1
+        partialBold.app = {};
+        addAnn('editormsg', 'User edits item and saves.', nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.3, align: 'left' });
+        spawnUp('editor', 'app', { delay: 0.2, onDone: () => {
+          glows.app = 1;
+          boldActionIndices.app = new Set([6, 7, 8]); // saveItem function lines 6-8
+          addAnn('rootmsg', 'App updates the items list with the edited item.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
+        }});
+      });
+
+      // Phase D — App updates state
+      at('update_items', 15.5, () => {
+        for (const k of ['rootmsg', 'editormsg']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        glows.app = 1;
+        boldActionIndices.sidebar = new Set();
+        boldActionIndices.editor = new Set();
+        boldActionIndices.app = new Set();
+        partialBold.sidebar = {};
+        partialBold.editor = {};
+        partialBold.app = {};
+        spawnDown('app', 'sidebar', { delay: 0.2, onDone: () => {
+          glows.sidebar = 1;
+          boldActionIndices.sidebar = new Set([3, 4, 5]); // watch callback
+          addAnn('sidebarmsg', 'Render updated list of items.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.8, align: 'left' });
+        }});
+      });
+
+      // Phase E — User updates filter in Sidebar
+      at('filter_update', 18.0, () => {
+        for (const k of ['sidebarmsg']) {
+          if (anns[k]) anns[k].alpha = 0;
+        }
+        glows.sidebar = 1;
+        boldActionIndices.sidebar = new Set([7, 8, 9]); // state.watch('filter') callback
+        boldActionIndices.editor = new Set();
+        boldActionIndices.app = new Set();
+        partialBold.sidebar = {};
+        partialBold.editor = {};
+        partialBold.app = {};
+        addAnn('sidebarmsg', 'User types in filter input.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
+        addAnn('sidebarmsg2', 'Local-only state update and re-render.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
+        addAnn('sidebarmsg3', 'Re-render filtered list.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 2.3, align: 'left' });
+      });
+    }
+
+    // ── Draw ──────────────────────────────────────────────────────────────
+    function drawEdges() {
+      ctx.save();
+      ctx.strokeStyle = BORDER;
+      ctx.lineWidth = 1;
+      for (const [a, b] of EDGES) {
+        const [ax, ay] = nbot(a), [bx, by] = ntop(b);
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(bx, by);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawNode(n) {
+      const g = Math.min(1, Math.max(0, glows[n.id] || 0));
+      const x = n.x - n.w / 2, y = n.y - n.h / 2;
+      rrect(x, y, n.w, n.h);
+
+      if (n.root) {
+        ctx.fillStyle = INK;
+        ctx.fill();
+        // White inner highlight when glowing
+        if (g > 0.02) {
+          ctx.save();
+          ctx.globalAlpha = g * 0.18;
+          rrect(x, y, n.w, n.h);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const textX = n.x - n.w / 2 + 8; // 8px padding from left edge
+        const topY = n.y - n.h / 2 + 8; // 8px padding from top edge
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px system-ui';
+        ctx.fillText(n.label, textX, topY + 8);
+        ctx.fillStyle = `rgba(255,255,255,${0.5 + g * 0.5})`;
+        ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+        const lines = n.stateLines || (n.state ? [n.state] : []);
+        const startY = topY + 24;
+        const boldIndices = boldActionIndices[n.id] || new Set();
+        const partialBoldLines = partialBold[n.id] || {};
+        lines.forEach((ln, i) => {
+          const y = startY + i * 12;
+          // Check for partial bold
+          if (partialBoldLines[i]) {
+            const { start, end } = partialBoldLines[i];
+            const before = ln.substring(0, start);
+            const bold = ln.substring(start, end);
+            const after = ln.substring(end);
+            ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(before, textX, y);
+            const beforeW = ctx.measureText(before).width;
+            ctx.font = `600 9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(bold, textX + beforeW, y);
+            const boldW = ctx.measureText(bold).width;
+            ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(after, textX + beforeW + boldW, y);
+          } else {
+            // Full line bold or normal
+            ctx.font = boldIndices.has(i) ? `600 9.5px 'Cascadia Code','JetBrains Mono',monospace` : `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(ln, textX, y);
+          }
+        });
+      } else {
+        ctx.fillStyle = g > 0.01 ? `rgba(14,27,27,${g * 0.055})` : '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = g > 0.02 ? `rgba(14,27,27,${0.15 + g * 0.72})` : BORDER;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const textX = n.x - n.w / 2 + 8; // 8px padding from left edge
+        const topY = n.y - n.h / 2 + 8; // 8px padding from top edge
+        ctx.fillStyle = INK;
+        ctx.font = '600 12px system-ui';
+        ctx.fillText(n.label, textX, topY + 8);
+        if (n.state) {
+          ctx.fillStyle = MUTED;
+          ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+          ctx.fillText(n.state, textX, topY + 24);
+        }
+        if (n.actions) {
+          ctx.fillStyle = MUTED;
+          const startY = topY + (n.state ? 38 : 22);
+          const boldIndices = boldActionIndices[n.id] || new Set();
+          const partialBoldLines = partialBold[n.id] || {};
+          n.actions.forEach((action, i) => {
+            const y = startY + i * 12;
+            // Check for partial bold
+            if (partialBoldLines[i]) {
+              const { start, end } = partialBoldLines[i];
+              const before = action.substring(0, start);
+              const bold = action.substring(start, end);
+              const after = action.substring(end);
+              ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.fillText(before, textX, y);
+              const beforeW = ctx.measureText(before).width;
+              ctx.font = `600 9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.fillText(bold, textX + beforeW, y);
+              const boldW = ctx.measureText(bold).width;
+              ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.fillText(after, textX + beforeW + boldW, y);
+            } else {
+              // Full line bold or normal
+              ctx.font = boldIndices.has(i) ? `600 9.5px 'Cascadia Code','JetBrains Mono',monospace` : `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.fillText(action, textX, y);
+            }
+          });
+        }
+      }
+    }
+
+    function drawParticles() {
+      for (const p of particles) {
+        if (!p.active || p.done) continue;
+        const e = ease(p.progress);
+        ctx.beginPath();
+        ctx.arc(
+          p.x0 + (p.x1 - p.x0) * e,
+          p.y0 + (p.y1 - p.y0) * e,
+          p.r, 0, Math.PI * 2
+        );
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+    }
+
+    function drawAnnotations() {
+      ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+      ctx.textBaseline = 'middle';
+      for (const k in anns) {
+        const a = anns[k];
+        if (a.alpha <= 0.01) continue;
+        ctx.save();
+        ctx.globalAlpha = a.alpha;
+        ctx.fillStyle = MUTED;
+        ctx.textAlign = a.align;
+        
+        // Handle bold segments if present
+        if (a.bold && a.bold.length > 0) {
+          // Sort bold ranges by start position
+          const ranges = [...a.bold].sort((x, y) => x.start - y.start);
+          let currentX = a.x;
+          let lastEnd = 0;
+          
+          // Adjust starting X based on text alignment
+          if (a.align === 'center') {
+            const totalWidth = ctx.measureText(a.text).width;
+            currentX = a.x - totalWidth / 2;
+          } else if (a.align === 'right') {
+            const totalWidth = ctx.measureText(a.text).width;
+            currentX = a.x - totalWidth;
+          }
+          
+          ctx.textAlign = 'left'; // Always use left align when rendering segments
+          
+          for (const range of ranges) {
+            // Render normal text before this bold segment
+            if (range.start > lastEnd) {
+              const segment = a.text.substring(lastEnd, range.start);
+              ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+              ctx.fillText(segment, currentX, a.y);
+              currentX += ctx.measureText(segment).width;
+            }
+            // Render bold segment
+            const boldSegment = a.text.substring(range.start, range.end);
+            ctx.font = '600 9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+            ctx.fillText(boldSegment, currentX, a.y);
+            currentX += ctx.measureText(boldSegment).width;
+            lastEnd = range.end;
+          }
+          // Render remaining normal text after last bold segment
+          if (lastEnd < a.text.length) {
+            const segment = a.text.substring(lastEnd);
+            ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+            ctx.fillText(segment, currentX, a.y);
+          }
+        } else {
+          // No bold segments, render normally
+          ctx.fillText(a.text, a.x, a.y);
+        }
+        ctx.restore();
+      }
+    }
+
+    // ── Main loop ─────────────────────────────────────────────────────────
+    let last = null;
+    let paused = false;
+
+    function frame(ts) {
+      if (!last) last = ts;
+      const rawDt = Math.min((ts - last) / 1000, 0.05);
+      last = ts;
+      const dt = paused ? 0 : rawDt; // timeline only advances when playing
+      elapsed += dt;
+      if (!paused && elapsed >= CYCLE) reset();
+
+      phases(); // always called so retrigger'd events fire while paused
+
+      // Decay glows (always — so step previews animate while paused)
+      for (const id in glows) {
+        if (glows[id] > 0) glows[id] = Math.max(0, glows[id] - rawDt * DECAY);
+      }
+
+      // Decay annotations only while playing (text persists when stepping)
+      if (!paused) {
+        for (const k in anns) {
+          const a = anns[k];
+          if (a.alpha <= 0) continue;
+          if (a.hold > 0) { a.hold -= rawDt; continue; }
+          a.alpha = Math.max(0, a.alpha - rawDt * a.decay);
+        }
+      }
+
+      // Advance particles (always — so they travel even when paused)
+      for (const p of particles) {
+        if (p.done) continue;
+        if (p.delay > 0) { p.delay -= rawDt; continue; }
+        p.active = true;
+        p.progress = Math.min(1, p.progress + rawDt / p.duration);
+        if (p.progress >= 1) { p.done = true; p.onDone?.(); }
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      drawEdges();
+      NODES.forEach(drawNode);
+      drawParticles();
+      drawAnnotations();
+      updateButtons();
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+
+    // ── Step controls ─────────────────────────────────────────────────────
+    // Key moments in the animation timeline
+    const STEPS = [0, 2.0, 5.5, 8.0, 10.5, 13.0, 15.5, 18.0];
+    // The `at()` key to re-trigger after seeking, so its particles re-animate
+    const STEP_KEYS = ['', 'glow_reg', 'reg_done', 'select_item', 'selected_item_update', 'save_item', 'update_items'];
+
+    // Fast-forward the full simulation to time t, then clear in-flight particles
+    function seekTo(targetT) {
+      reset();
+      const DT = 0.05;
+      let t = 0;
+      while (t < targetT) {
+        const step = Math.min(DT, targetT - t);
+        t += step; elapsed = t;
+        phases();
+        for (const p of particles) {
+          if (p.done) continue;
+          if (p.delay > 0) { p.delay -= step; continue; }
+          p.active = true;
+          p.progress = Math.min(1, p.progress + step / p.duration);
+          if (p.progress >= 1) { p.done = true; p.onDone?.(); }
+        }
+        for (const id in glows) {
+          if (glows[id] > 0) glows[id] = Math.max(0, glows[id] - step * DECAY);
+        }
+        for (const k in anns) {
+          const a = anns[k];
+          if (a.alpha <= 0) continue;
+          if (a.hold > 0) { a.hold -= step; continue; }
+          a.alpha = Math.max(0, a.alpha - step * a.decay);
+        }
+      }
+      particles = [];
+      // Re-trigger this step's phase so its particles spawn fresh and animate
+      const s = getCurrentStep();
+      if (STEP_KEYS[s]) delete did[STEP_KEYS[s]];
+    }
+
+    function getCurrentStep() {
+      let s = 0;
+      for (let i = 0; i < STEPS.length; i++) { if (elapsed >= STEPS[i]) s = i; }
+      return s;
+    }
+
+    function updateButtons() {
+      const s = getCurrentStep();
+      btnPrev.disabled = s === 0;
+      btnNext.disabled = s === STEPS.length - 1;
+    }
+
+    const btnPlay = document.getElementById('btn-play');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+
+    btnPlay.addEventListener('click', () => {
+      paused = !paused;
+      btnPlay.innerHTML = paused ? '&#9654;' : '&#9646;&#9646;';
+      last = null;
+    });
+    btnPrev.addEventListener('click', () => {
+      paused = true; btnPlay.innerHTML = '&#9654;';
+      seekTo(STEPS[Math.max(getCurrentStep() - 1, 0)]);
+      last = null; updateButtons();
+    });
+    btnNext.addEventListener('click', () => {
+      paused = true; btnPlay.innerHTML = '&#9654;';
+      seekTo(STEPS[Math.min(getCurrentStep() + 1, STEPS.length - 1)]);
+      last = null; updateButtons();
+    });
+  </script>
+</body>
+</html>

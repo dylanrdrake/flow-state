@@ -17,6 +17,13 @@ A simple, lightweight, zero-dependency state library for web components and vani
 
 ## Installation
 
+> **⚠️ NOTE:** FlowState has not been published to npm or any CDN yet. To use it, you'll need to clone this repository locally:
+> ```bash
+> git clone https://github.com/YOUR_USERNAME/flow-state.git
+> cd flow-state
+> ```
+> Then reference the library files directly in your projects.
+
 ```bash
 npm install flow-state
 ```

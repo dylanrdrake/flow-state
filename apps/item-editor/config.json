@@ -1,0 +1,14 @@
+{
+  "items": [
+    { "id": 1, "name": "Seattle Waterfront",    "status": "Active",   "notes": "Waterfront redevelopment project. Phase 2 pending approval." },
+    { "id": 2, "name": "Portland Transit Hub",  "status": "Active",   "notes": "New transit center connecting light rail and bus lines." },
+    { "id": 3, "name": "San Francisco Bay",     "status": "On Hold",  "notes": "Environmental review in progress. Expected Q3 completion." },
+    { "id": 4, "name": "Los Angeles Metro",     "status": "Complete", "notes": "Metro expansion through downtown corridor. Closed out." },
+    { "id": 5, "name": "Phoenix Urban Core",    "status": "Active",   "notes": "Mixed-use development in central Phoenix district." },
+    { "id": 6, "name": "Denver Highlands",      "status": "Active",   "notes": "Residential and commercial redevelopment underway." },
+    { "id": 7, "name": "Dallas Corridor",       "status": "Planning", "notes": "Initial site surveys complete. Awaiting budget approval." },
+    { "id": 8, "name": "Minneapolis Riverfront","status": "Active",   "notes": "Riverfront park and mixed-use development. Phase 1 live." },
+    { "id": 9, "name": "Chicago Lakefront",     "status": "Planning", "notes": "Proposal submitted to city council. Review pending." },
+    { "id": 10,"name": "Boston Seaport",        "status": "Complete", "notes": "Seaport district buildout complete. Maintenance phase." }
+  ]
+}

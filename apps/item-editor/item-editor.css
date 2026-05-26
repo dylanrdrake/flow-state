@@ -1,0 +1,110 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #fafafa;
+}
+
+#pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+  overflow-y: auto;
+}
+
+#placeholder {
+  margin: auto;
+  color: #bdbdbd;
+  font-size: 14px;
+  text-align: center;
+}
+
+#editor {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px 24px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+#editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+#editor-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+#editor-fields input,
+#editor-fields textarea,
+#editor-fields select {
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #212121;
+  background: #fafafa;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  resize: vertical;
+}
+
+#editor-fields input:focus,
+#editor-fields textarea:focus,
+#editor-fields select:focus {
+  border-color: #1976d2;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(25,118,210,0.1);
+}
+
+#editor-fields input:disabled {
+  color: #9e9e9e;
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.action-row {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+button {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+#save-btn {
+  background: #1976d2;
+  color: #fff;
+}
+
+#save-btn:hover {
+  background: #1565c0;
+  box-shadow: 0 2px 6px rgba(25,118,210,0.3);
+}
+
+#save-btn.saved {
+  background: #2e7d32;
+}
