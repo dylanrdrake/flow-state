@@ -102,7 +102,7 @@ class CalendarApp extends HTMLElement {
               overflow:   false,
               isToday:    date === today,
               isSelected: date === selectedDate,
-              dots:       eventsOnDay.slice(0, 3).map(e => e.color),
+              dots:       eventsOnDay.map(e => e.color),
             });
           }
 
