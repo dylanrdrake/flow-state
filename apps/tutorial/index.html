@@ -105,12 +105,37 @@
     .nav-section { margin-bottom: 0.25rem; }
 
     .nav-section-label {
+      display: block;
       padding: 0.5rem 1.5rem 0.2rem;
       font-size: 0.68rem;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.09em;
       color: var(--muted);
+      text-decoration: none;
+      transition: color 0.12s;
+    }
+
+    .nav-section-label:hover { color: var(--text); }
+
+    .group-heading {
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      padding: 2.5rem 0 0.5rem;
+      border-top: 1px solid var(--border);
+      scroll-margin-top: 1.5rem;
+    }
+
+    .group-heading:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .group-heading + section h2 {
+      margin-top: 1rem;
     }
 
     .nav-link {
@@ -210,7 +235,7 @@
     .anim-embed iframe {
       display: block;
       width: 100%;
-      height: 625px;
+      height: 580px;
       border: none;
     }
 
@@ -375,13 +400,14 @@
     </div>
 
     <div class="nav-section">
-      <div class="nav-section-label">Introduction</div>
+      <a class="nav-section-label" href="#introduction">Introduction</a>
+      <a class="nav-link" href="#at-a-glance">At a Glance</a>
       <a class="nav-link" href="#core-concepts">Core Concepts</a>
-      <a class="nav-link" href="#usage">Two Ways to Use</a>
+      <a class="nav-link" href="#usage">Ways to Use</a>
     </div>
 
     <div class="nav-section">
-      <div class="nav-section-label">Reference</div>
+      <a class="nav-section-label" href="#reference">Reference</a>
       <a class="nav-link" href="#config">Config Object</a>
       <a class="nav-link" href="#instance-api">Instance API</a>
       <a class="nav-link" href="#static-api">Static API</a>
@@ -390,7 +416,7 @@
     </div>
 
     <div class="nav-section">
-      <div class="nav-section-label">Guides</div>
+      <a class="nav-section-label" href="#guides">Guides</a>
       <a class="nav-link" href="#patterns">Common Patterns</a>
       <a class="nav-link" href="#timing">Timing Rules</a>
       <a class="nav-link" href="#shadow-dom">Scope &amp; Shadow DOM</a>
@@ -405,6 +431,23 @@
     <!-- Tutorial Content -->
     <article class="content">
 
+      <div class="group-heading" id="introduction">Introduction</div>
+      <!-- ──────────────────────────────────── -->
+      <section id="at-a-glance">
+        <h2>At a Glance</h2>
+        <p>The entire public API &mdash; 4 instance methods, 5 static methods, and 5 HTML attributes:</p>
+        <div class="table-wrap">
+          <table>
+            <tbody>
+              <tr><td><strong>4 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code></td></tr>
+              <tr><td><strong>5 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.devtools</code></td></tr>
+              <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
+              <tr><td><strong>1 list directive</strong></td><td><code>flow-list</code></td></tr>
+              <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
       <!-- ──────────────────────────────────── -->
       <section id="core-concepts">
         <h2>Core Concepts</h2>
@@ -467,9 +510,26 @@ state.update({ name: 'Alice' }); // batched — one notification fires</code></p
 
       <!-- ──────────────────────────────────── -->
       <section id="usage">
-        <h2>Two Ways to Use FlowState</h2>
+        <h2>Ways to Use FlowState</h2>
 
-        <h3>1. Manually — <code>new FlowState(root, config)</code></h3>
+        <h3>1. Manually</h3>
+        <p>Mount FlowState on any DOM element. Use declarative HTML bindings and <code>state.update()</code> in your scripts — no custom elements required.</p>
+        <div class="cb"><pre><code>&lt;!-- HTML --&gt;
+&lt;div id="app"&gt;
+  &lt;span flow-watch-count-to-prop="textContent"&gt;0&lt;/span&gt;
+  &lt;button id="inc"&gt;Increment&lt;/button&gt;
+&lt;/div&gt;</code></pre></div>
+        <div class="cb"><pre><code>import { FlowState } from 'flow-state';
+
+const state = new FlowState(document.getElementById('app'), {
+  count: 0,
+});
+
+document.getElementById('inc').addEventListener('click', () => {
+  state.update(prev => ({ count: prev.count + 1 }));
+});</code></pre></div>
+
+        <h3>2. Manually with Web Components — <code>new FlowState(root, config)</code></h3>
         <p>For plain <code>HTMLElement</code> classes where you manage everything manually.</p>
         <div class="cb"><pre><code>import { FlowState } from 'flow-state';
 
@@ -503,7 +563,7 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
           <code>new FlowState(root, config)</code> and exists for symmetry with the static API.
         </p>
 
-        <h3>2. Component — <code>FlowStateComponent</code></h3>
+        <h3>3. Component — <code>FlowStateComponent</code></h3>
         <p>
           A base class that handles shadow DOM creation, styles, template stamping, and FlowState
           initialization in the correct order automatically.
@@ -555,6 +615,7 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
 }</code></pre></div>
       </section>
 
+      <div class="group-heading" id="reference">Reference</div>
       <!-- ──────────────────────────────────── -->
       <section id="config">
         <h2>The Config Object</h2>
@@ -734,20 +795,20 @@ deleteItem(this.#itemId);</code></pre></div>
           Place <code>flow-list="key"</code> on a container with a <code>&lt;template&gt;</code>
           child. When the array state key updates, FlowState re-renders the container by cloning
           the template once per item. Inside the template, bind item fields with
-          <code>flow-item-to-prop</code> and <code>flow-item-to-attr</code>:
+          <code>flow-&lt;key&gt;-to-prop</code> and <code>flow-&lt;key&gt;-to-attr</code>, where <code>&lt;key&gt;</code> is the field name from the item object:
         </p>
         <div class="cb"><pre><code data-nohl>&lt;div flow-list="users"&gt;
   &lt;template&gt;
-    &lt;div flow-item-to-attr="id:data-user-id"&gt;
-      &lt;span flow-item-to-prop="name:textContent"&gt;&lt;/span&gt;
-      &lt;span flow-item-to-prop="role:textContent"&gt;&lt;/span&gt;
+    &lt;div flow-id-to-attr="data-user-id"&gt;
+      &lt;span flow-name-to-prop="textContent"&gt;&lt;/span&gt;
+      &lt;span flow-role-to-prop="textContent"&gt;&lt;/span&gt;
     &lt;/div&gt;
   &lt;/template&gt;
 &lt;/div&gt;</code></pre></div>
         <p>
-          The binding format is <code>"itemField:target"</code> — item field name, colon, then the
-          DOM property name (<code>flow-item-to-prop</code>) or attribute name
-          (<code>flow-item-to-attr</code>).
+          The item key is encoded in the attribute name itself, consistent with
+          <code>flow-watch-*-to-prop</code> scope bindings. Use dashes to access nested
+          properties: <code>flow-user-city-to-prop</code> reads <code>item.user.city</code>.
         </p>
         <blockquote>
           <strong>Timing note</strong>: If a <code>state.watch()</code> watcher on the same array
@@ -782,6 +843,7 @@ const theme      = FlowState.get(this, 'theme');</code></pre></div>
         </p>
       </section>
 
+      <div class="group-heading" id="guides">Guides</div>
       <!-- ──────────────────────────────────── -->
       <section id="patterns">
         <h2>Common Patterns</h2>

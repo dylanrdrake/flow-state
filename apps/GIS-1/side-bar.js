@@ -94,18 +94,18 @@ template.innerHTML = HTML`
   <div class="section-label">Work Items</div>
   <div id="work-items-container" flow-list="workItems">
     <template>
-      <div class="work-item" flow-item-to-attr="id:data-work-item-id">
-        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
-        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      <div class="work-item" flow-id-to-attr="data-work-item-id">
+        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
+        <span class="work-item-name" flow-name-to-prop="textContent"></span>
       </div>
     </template>
   </div>
   <div class="section-label">Recent</div>
   <div id="work-history" flow-list="history">
     <template>
-      <div class="work-item" flow-item-to-attr="id:data-work-item-id">
-        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
-        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      <div class="work-item" flow-id-to-attr="data-work-item-id">
+        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
+        <span class="work-item-name" flow-name-to-prop="textContent"></span>
       </div>
     </template>
   </div>

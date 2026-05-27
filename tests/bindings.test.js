@@ -128,3 +128,103 @@ describe('FlowState – declarative bindings (dot-notation keys)', () => {
     expect(root.querySelector('#role-el').getAttribute('data-role')).toBe('admin');
   });
 });
+
+describe('FlowState – list item bindings (flow-list)', () => {
+  let root, state;
+
+  beforeEach(async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div flow-list="users">
+        <template>
+          <div flow-id-to-attr="data-id">
+            <span class="name" flow-name-to-prop="textContent"></span>
+            <span class="role" flow-role-to-attr="data-role"></span>
+          </div>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, {
+      users: [
+        { id: 1, name: 'Alice', role: 'admin' },
+        { id: 2, name: 'Bob',   role: 'viewer' },
+      ],
+    });
+
+    await waitForInitialBindings();
+  });
+
+  afterEach(() => root.remove());
+
+  it('renders one element per item', () => {
+    const items = root.querySelectorAll('[data-id]');
+    expect(items.length).toBe(2);
+  });
+
+  it('binds a flat property via flow-*-to-prop', () => {
+    const names = [...root.querySelectorAll('.name')].map(el => el.textContent);
+    expect(names).toEqual(['Alice', 'Bob']);
+  });
+
+  it('binds a flat attribute via flow-*-to-attr', () => {
+    const roles = [...root.querySelectorAll('.role')].map(el => el.getAttribute('data-role'));
+    expect(roles).toEqual(['admin', 'viewer']);
+  });
+
+  it('re-renders when the list updates', async () => {
+    await state.update({ users: [{ id: 3, name: 'Carol', role: 'editor' }] });
+    const items = root.querySelectorAll('[data-id]');
+    expect(items.length).toBe(1);
+    expect(root.querySelector('.name').textContent).toBe('Carol');
+  });
+});
+
+describe('FlowState – list item bindings (nested keys)', () => {
+  let root, state;
+
+  beforeEach(async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    // Dashes in the attribute key map to nested property access:
+    // flow-user-city-to-prop reads item.user.city
+    root.innerHTML = `
+      <div flow-list="people">
+        <template>
+          <span class="city"  flow-user-city-to-prop="textContent"></span>
+          <span class="badge" flow-user-role-to-attr="data-role"></span>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, {
+      people: [
+        { user: { city: 'NY', role: 'admin' } },
+        { user: { city: 'LA', role: 'viewer' } },
+      ],
+    });
+
+    await waitForInitialBindings();
+  });
+
+  afterEach(() => root.remove());
+
+  it('reads a nested property via dash-separated key (to-prop)', () => {
+    const cities = [...root.querySelectorAll('.city')].map(el => el.textContent);
+    expect(cities).toEqual(['NY', 'LA']);
+  });
+
+  it('reads a nested property via dash-separated key (to-attr)', () => {
+    const roles = [...root.querySelectorAll('.badge')].map(el => el.getAttribute('data-role'));
+    expect(roles).toEqual(['admin', 'viewer']);
+  });
+
+  it('re-renders nested bindings when the list updates', async () => {
+    await state.update({ people: [{ user: { city: 'Chicago', role: 'editor' } }] });
+    expect(root.querySelector('.city').textContent).toBe('Chicago');
+    expect(root.querySelector('.badge').getAttribute('data-role')).toBe('editor');
+  });
+});

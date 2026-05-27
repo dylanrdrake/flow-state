@@ -304,22 +304,23 @@ FlowState queries for these attributes inside its scope and updates them automat
 
 ### Render a list (`flow-list`)
 
-Place `flow-list="key"` on a container with a `<template>` child. When the array state key updates, FlowState re-renders the container by cloning the template once per item. Inside the template, bind item fields with `flow-item-to-prop` and `flow-item-to-attr`:
+Place `flow-list="key"` on a container with a `<template>` child. When the array state key updates, FlowState re-renders the container by cloning the template once per item. Inside the template, bind item fields with `flow-<key>-to-prop` and `flow-<key>-to-attr`, where `<key>` is the field name from the item object:
 
 ```html
 <div flow-list="users">
   <template>
-    <div flow-item-to-attr="id:data-user-id">
-      <span flow-item-to-prop="name:textContent"></span>
-      <span flow-item-to-prop="role:textContent"></span>
+    <div flow-id-to-attr="data-user-id">
+      <span flow-name-to-prop="textContent"></span>
+      <span flow-role-to-prop="textContent"></span>
     </div>
   </template>
 </div>
 ```
 
-The binding format is `"itemField:target"`:
-- `flow-item-to-prop="name:textContent"` — sets `element.textContent = item.name`
-- `flow-item-to-attr="id:data-user-id"` — calls `element.setAttribute('data-user-id', item.id)`
+The item key is encoded in the attribute name itself:
+- `flow-name-to-prop="textContent"` — sets `element.textContent = item.name`
+- `flow-id-to-attr="data-user-id"` — calls `element.setAttribute('data-user-id', item.id)`
+- `flow-user-city-to-prop="textContent"` — reads `item.user.city` (dashes map to nested access)
 
 > **Timing note**: If a `state.watch()` watcher on the same array key also updates visual state (e.g. adding a `.selected` class), wrap that visual update in `queueMicrotask()` to defer it until after `flow-list` has re-rendered the DOM.
 

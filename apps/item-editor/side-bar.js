@@ -10,9 +10,9 @@ template.innerHTML = HTML`
   <input id="filter-input" type="text" placeholder="Filter items…" />
   <div id="list" flow-list="filteredItems">
     <template>
-      <div flow-item-to-prop="itemClass:className" flow-item-to-attr="id:data-id">
-        <span class="work-item-avatar" flow-item-to-prop="initial:textContent"></span>
-        <span class="work-item-name" flow-item-to-prop="name:textContent"></span>
+      <div flow-class-to-prop="className" flow-id-to-attr="data-id">
+        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
+        <span class="work-item-name" flow-name-to-prop="textContent"></span>
       </div>
     </template>
   </div>
@@ -68,7 +68,7 @@ class SideBar extends HTMLElement {
     this.#state.update({
       filteredItems: filtered.map(i => ({
         ...i,
-        itemClass: `work-item${i.id === selected?.id ? ' selected' : ''}`
+        class: `work-item${i.id === selected?.id ? ' selected' : ''}`
       }))
     });
   }

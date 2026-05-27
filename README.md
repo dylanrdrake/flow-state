@@ -4,6 +4,20 @@ A simple, lightweight, zero-dependency state library for web components and vani
 
 **[View the interactive tutorial →](https://dylanrdrake.github.io/flow-state/apps/tutorial)**
 
+## At a Glance
+
+The entire public API:
+
+| | |
+|---|---|
+| **4 instance methods** | `update` · `watch` · `get` · `through` |
+| **5 static methods** | `FlowState.watch` · `FlowState.get` · `FlowState.through` · `FlowState.create` · `FlowState.devtools` |
+| **2 scope bindings** | `flow-watch-*-to-prop` · `flow-watch-*-to-attr` |
+| **1 list directive** | `flow-list` |
+| **2 item bindings** | `flow-<key>-to-prop` · `flow-<key>-to-attr` |
+
+---
+
 ## Features
 
 - **Reactive state** — scoped to a DOM element and its descendants
@@ -42,33 +56,93 @@ Or import directly from a CDN:
 
 ## Quick Start
 
+### 1. Manually
+
+Mount FlowState on any DOM element. Use declarative HTML bindings and `state.update()` in your scripts — no custom elements required.
+
 ```html
 <!DOCTYPE html>
 <html>
 <body>
   <div id="app">
-    <p flow-watch-count-to-prop="textContent"></p>
+    <span flow-watch-count-to-prop="textContent">0</span>
     <button id="inc">Increment</button>
   </div>
 
   <script type="module">
     import { FlowState } from 'flow-state';
 
-    const app = document.getElementById('app');
-
-    const state = new FlowState(app, {
+    const state = new FlowState(document.getElementById('app'), {
       count: 0,
-      doubled: (s) => s.count * 2,   // computed value
+      doubled: (s) => s.count * 2,
     });
 
     document.getElementById('inc').addEventListener('click', () => {
       state.update(prev => ({ count: prev.count + 1 }));
     });
-
-    state.watch('count', value => console.log('count is', value));
   </script>
 </body>
 </html>
+```
+
+### 2. Manually with Web Components
+
+Use `new FlowState(this, config)` inside a custom element. Create FlowState **before** stamping the template.
+
+```js
+import { FlowState } from 'flow-state';
+
+class MyCounter extends HTMLElement {
+  #state;
+
+  connectedCallback() {
+    const shadow = this.attachShadow({ mode: 'open' });
+
+    // ⚠️ Create FlowState BEFORE appending children.
+    this.#state = new FlowState(this, { count: 0 });
+    this.#state.through(shadow);
+
+    shadow.innerHTML = `<button id="btn">Click me</button>`;
+
+    this.#state.watch('count', n => {
+      shadow.getElementById('btn').textContent = `Clicked ${n} times`;
+    });
+
+    shadow.getElementById('btn').addEventListener('click', () => {
+      this.#state.update(prev => ({ count: prev.count + 1 }));
+    });
+  }
+}
+customElements.define('my-counter', MyCounter);
+```
+
+### 3. With FlowStateComponent
+
+A base class that handles shadow DOM, styles, template stamping, and FlowState initialization automatically.
+
+```js
+import { FlowStateComponent } from 'flow-state';
+
+class MyCounter extends FlowStateComponent {
+  shadowMode = 'open';
+  styles = `button { font-size: 1.5rem; }`;
+  template = `<button id="btn">Click 0 times</button>`;
+
+  state = { count: 0 };
+
+  connectedCallback() {
+    super.connectedCallback();
+
+    this.state.watch('count', n => {
+      this.shadowRoot.getElementById('btn').textContent = `Clicked ${n} times`;
+    });
+
+    this.shadowRoot.getElementById('btn').addEventListener('click', () => {
+      this.state.update(prev => ({ count: prev.count + 1 }));
+    });
+  }
+}
+customElements.define('my-counter', MyCounter);
 ```
 
 ---
@@ -255,20 +329,20 @@ Bind state to element properties or attributes directly in HTML — no JavaScrip
 
 ### Render a list
 
-Place `flow-list="key"` on a container with a `<template>` child. When the state key (an array) changes, FlowState clears the container and clones the template once per item. Use `flow-item-to-prop` and `flow-item-to-attr` inside the template to bind item fields:
+Place `flow-list="key"` on a container with a `<template>` child. When the state key (an array) changes, FlowState clears the container and clones the template once per item. Use `flow-<key>-to-prop` and `flow-<key>-to-attr` inside the template to bind item fields, where `<key>` is the field name from the item object:
 
 ```html
 <div flow-list="users">
   <template>
-    <div flow-item-to-attr="id:data-user-id">
-      <span flow-item-to-prop="name:textContent"></span>
-      <span flow-item-to-prop="role:textContent"></span>
+    <div flow-id-to-attr="data-user-id">
+      <span flow-name-to-prop="textContent"></span>
+      <span flow-role-to-prop="textContent"></span>
     </div>
   </template>
 </div>
 ```
 
-The binding format is `"itemField:target"` — item field name, colon, then the DOM property name or attribute name.
+The item key is encoded in the attribute name itself, consistent with `flow-watch-*-to-prop` scope bindings. Use dashes to access nested properties: `flow-user-name-to-prop` reads `item.user.name`.
 
 ---
 
