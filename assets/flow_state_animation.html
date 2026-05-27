@@ -23,7 +23,7 @@
   (function () {
     const canvas = document.getElementById('c');
     const ctx    = canvas.getContext('2d');
-    const DPR    = Math.min(window.devicePixelRatio || 1, 2);
+    const DPR    = window.devicePixelRatio || 1;
     const W = 2250, H = 1325;
 
     canvas.width  = W * DPR;
@@ -149,7 +149,7 @@
         ctx.fillStyle = `rgba(${rgb(p.color)},${(1-i/8)*0.3})`;
         ctx.fill();
       }
-      ctx.shadowBlur = 40; ctx.shadowColor = p.color;
+      ctx.shadowBlur = 55; ctx.shadowColor = p.color;
       ctx.beginPath(); ctx.arc(pos.x, pos.y, p.size, 0, Math.PI*2);
       ctx.fillStyle = p.color; ctx.fill();
       ctx.shadowBlur = 0;
@@ -159,16 +159,16 @@
       const n = N[id], p = pulse[id];
       if (p > 0.02) {
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r + (1 - p) * 70, 0, Math.PI*2);
-        ctx.strokeStyle = `rgba(${rgb(n.rim)},${p * 0.65})`;
-        ctx.lineWidth = 5; ctx.stroke();
+        ctx.arc(n.x, n.y, n.r + (1 - p) * 80, 0, Math.PI*2);
+        ctx.strokeStyle = `rgba(${rgb(n.rim)},${p * 0.9})`;
+        ctx.lineWidth = 8; ctx.stroke();
       }
-      ctx.shadowBlur = 20 + p * 55; ctx.shadowColor = n.rim;
+      ctx.shadowBlur = 35 + p * 90; ctx.shadowColor = n.rim;
       ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
       ctx.fillStyle = n.fill; ctx.fill();
       ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
-      ctx.strokeStyle = `rgba(${rgb(n.rim)},${0.45 + p * 0.55})`;
-      ctx.lineWidth = 4; ctx.stroke();
+      ctx.strokeStyle = `rgba(${rgb(n.rim)},${0.5 + p * 0.5})`;
+      ctx.lineWidth = 5; ctx.stroke();
       ctx.shadowBlur = 0;
 
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -224,7 +224,7 @@
 
       drawEdges();
 
-      for (const id of Object.keys(pulse)) pulse[id] = Math.max(0, pulse[id] - 0.020 * dt);
+      for (const id of Object.keys(pulse)) pulse[id] = Math.max(0, pulse[id] - 0.015 * dt);
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
