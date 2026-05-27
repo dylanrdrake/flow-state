@@ -177,9 +177,7 @@ export class CalendarSidebar extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      state: {
-        eventInputValue: ''
-      }
+      eventInputValue: ''
     });
 
     shadow.appendChild(template.content.cloneNode(true));

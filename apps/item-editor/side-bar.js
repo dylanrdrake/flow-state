@@ -21,14 +21,12 @@ template.innerHTML = HTML`
 class SideBar extends HTMLElement {
   #state;
   #selectWorkItem;
-  #list;
 
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.adoptedStyleSheets = [sheet];
     this.shadowRoot.appendChild(template.content.cloneNode(true));
-    this.#list = this.shadowRoot.getElementById('list');
 
     // Create local FlowState for filter before children connect
     this.#state = Flow.create(this, {
@@ -56,7 +54,7 @@ class SideBar extends HTMLElement {
       this.#state.update({ filter: e.target.value });
     });
 
-    this.#list.addEventListener('click', e => {
+    this.shadowRoot.getElementById('list').addEventListener('click', e => {
       const el = e.target.closest('[data-id]');
       if (!el) return;
       const item = Flow.get(this, 'items').find(i => i.id === +el.dataset.id);

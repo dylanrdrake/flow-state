@@ -342,24 +342,23 @@ class StressApp extends HTMLElement {
 
   constructor() {
     super();
-    this.#shadow = this.attachShadow({ mode: 'open' });
-    this.#shadow.adoptedStyleSheets = [sheet];
-    this.#shadow.appendChild(template.content.cloneNode(true));
-
     this.#state = Flow.create(this, {
-      state: {
-        tick: 0,
-        ...initialCells,
-        ...initialList,
-        ...initialNested,
-        metrics: {
-          fps: 0,
-          callus: 0,
-          total: 0,
-          cpf: 0,
-        },
+      tick: 0,
+      ...initialCells,
+      ...initialList,
+      ...initialNested,
+      metrics: {
+        fps: 0,
+        callus: 0,
+        total: 0,
+        cpf: 0,
       },
     });
+
+    this.#shadow = this.attachShadow({ mode: 'open' });
+    this.#shadow.adoptedStyleSheets = [sheet];
+    this.#state.through(this.#shadow);
+    this.#shadow.appendChild(template.content.cloneNode(true));
 
     this.#setupControls();
   }

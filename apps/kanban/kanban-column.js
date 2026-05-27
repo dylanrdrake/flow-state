@@ -88,7 +88,7 @@ class KanbanColumn extends FlowStateComponent {
 
   connectedCallback() {
     // Overwrite FlowStateComponent's attachShadow to get a ref to the closed shadow root.
-    // FlowStateComponent will still captures it into #flowRoot and use it for template stamping and adoptedStyleSheets.
+    // FlowStateComponent will still capture it into #shadowRoot and use it for template stamping and adoptedStyleSheets.
     const shadow = this.attachShadow({ mode: this.shadowMode });
 
     super.connectedCallback();
