@@ -435,11 +435,11 @@
       <!-- ──────────────────────────────────── -->
       <section id="at-a-glance">
         <h2>At a Glance</h2>
-        <p>The entire public API &mdash; 4 instance methods, 6 static methods, and 5 HTML attributes:</p>
+        <p>The entire public API &mdash; 5 instance methods, 6 static methods, and 5 HTML attributes:</p>
         <div class="table-wrap">
           <table>
             <tbody>
-              <tr><td><strong>4 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code></td></tr>
+              <tr><td><strong>5 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code> &middot; <code>destroy</code></td></tr>
               <tr><td><strong>6 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.compute</code> &middot; <code>FlowState.devtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
               <tr><td><strong>1 list directive</strong></td><td><code>flow-list</code></td></tr>
@@ -708,6 +708,18 @@ const name  = state.get('user.name');</code></pre></div>
 this.#state = new FlowState(this, config);
 this.#state.through(shadow); // scope now includes shadow</code></pre></div>
         <p><code>FlowStateComponent</code> does this automatically.</p>
+        
+        <h3><code>state.destroy()</code></h3>
+        <p>
+          When a FlowState scope will be removed permanently (for example when a component
+          is torn down and will not be reattached), call <code>state.destroy()</code> to
+          free watchers, detach devtools registration, and prevent memory leaks.
+        </p>
+        <div class="cb"><pre><code>disconnectedCallback() {
+  // If your component is permanently removed, cleanup the FlowState scope:
+  this.state?.destroy();
+}
+</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->

@@ -10,7 +10,7 @@ The entire public API — 4 instance methods, 6 static methods, and 5 HTML attri
 
 | | |
 |---|---|
-| **4 instance methods** | `update` · `watch` · `get` · `through` |
+| **5 instance methods** | `update` · `watch` · `get` · `through` · `destroy` |
 | **6 static methods** | `FlowState.watch` · `FlowState.get` · `FlowState.through` · `FlowState.create` · `FlowState.compute` · `FlowState.devtools` |
 | **2 scope bindings** | `flow-watch-*-to-prop` · `flow-watch-*-to-attr` |
 | **1 list directive** | `flow-list` |
@@ -32,13 +32,6 @@ The entire public API — 4 instance methods, 6 static methods, and 5 HTML attri
 ---
 
 ## Installation
-
-> **⚠️ NOTE:** FlowState has not been published to npm or any CDN yet. To use it, you'll need to clone this repository locally:
-> ```bash
-> git clone https://github.com/YOUR_USERNAME/flow-state.git
-> cd flow-state
-> ```
-> Then reference the library files directly in your projects.
 
 ```bash
 npm install flow-state
@@ -114,6 +107,17 @@ class MyCounter extends HTMLElement {
   }
 }
 customElements.define('my-counter', MyCounter);
+```
+
+
+### 4. Destroy / Cleanup
+Call `state.destroy()` when a scope is being removed permanently (for example in a component's `disconnectedCallback`) to free internal watchers, drop devtool registration, and avoid memory leaks in long-running apps.
+
+```js
+// In a custom element that will be removed permanently:
+disconnectedCallback() {
+  this.state?.destroy();
+}
 ```
 
 ### 3. With FlowStateComponent
