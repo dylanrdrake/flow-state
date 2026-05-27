@@ -442,7 +442,7 @@
               <tr><td><strong>5 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code> &middot; <code>destroy</code></td></tr>
               <tr><td><strong>6 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.compute</code> &middot; <code>FlowState.devtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
-              <tr><td><strong>1 list directive</strong></td><td><code>flow-list</code></td></tr>
+              <tr><td><strong>2 structural directives</strong></td><td><code>flow-list</code> &middot; <code>flow-if</code></td></tr>
               <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
             </tbody>
           </table>
@@ -838,6 +838,26 @@ deleteItem(this.#itemId);</code></pre></div>
           update in <code>queueMicrotask()</code> to defer it until after <code>flow-list</code>
           has re-rendered the DOM.
         </blockquote>
+
+        <h3>Conditional rendering — <code>flow-if</code></h3>
+        <p>
+          Use <code>flow-if</code> on a <code>&lt;template&gt;</code>. The template's
+          <strong>first element child</strong> is the pass case and the
+          <strong>second element child</strong> (if present) is the fail case.
+        </p>
+        <div class="cb"><pre><code data-nohl>&lt;template flow-if="isLoggedIn"&gt;
+  &lt;section class="welcome"&gt;Welcome back!&lt;/section&gt;
+  &lt;section class="signin"&gt;Please sign in.&lt;/section&gt;
+&lt;/template&gt;</code></pre></div>
+        <p>
+          The pass/fail branches can be any element tags. If the fail branch is omitted, nothing
+          is rendered when the condition is falsy.
+        </p>
+
+        <div class="cb"><pre><code data-nohl>&lt;!-- Pass-only form --&gt;
+&lt;template flow-if="showBanner"&gt;
+  &lt;aside class="banner"&gt;System maintenance tonight.&lt;/aside&gt;
+&lt;/template&gt;</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->

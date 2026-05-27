@@ -228,3 +228,122 @@ describe('FlowState – list item bindings (nested keys)', () => {
     expect(root.querySelector('.badge').getAttribute('data-role')).toBe('editor');
   });
 });
+
+describe('FlowState – conditional bindings (flow-if)', () => {
+  let root, state;
+
+  afterEach(() => root.remove());
+
+  it('renders the first element child in template content when truthy', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div id="cond">
+        <template flow-if="isReady">
+          <section id="pass">Ready</section>
+          <article id="fail">Not ready</article>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, { isReady: true });
+    await waitForInitialBindings();
+
+    expect(root.querySelector('#pass')?.textContent).toBe('Ready');
+    expect(root.querySelector('#fail')).toBeNull();
+
+    await state.update({ isReady: false });
+    expect(root.querySelector('#fail')?.textContent).toBe('Not ready');
+    expect(root.querySelector('#pass')).toBeNull();
+  });
+
+  it('renders the second element child in template content when falsy', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div id="cond">
+        <template flow-if="isReady">
+          <section id="pass">Ready</section>
+          <article id="fail">Not ready</article>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, { isReady: false });
+    await waitForInitialBindings();
+
+    expect(root.querySelector('#fail')?.textContent).toBe('Not ready');
+    expect(root.querySelector('#pass')).toBeNull();
+  });
+
+  it('renders nothing on falsy when only pass element exists', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div id="cond">
+        <template flow-if="isReady">
+          <section id="pass">Ready</section>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, { isReady: false });
+    await waitForInitialBindings();
+
+    expect(root.querySelector('#pass')).toBeNull();
+  });
+
+  it('switches branches when the condition changes', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div id="cond">
+        <template flow-if="isReady">
+          <section id="pass">Ready</section>
+          <article id="fail">Not ready</article>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, { isReady: false });
+    await waitForInitialBindings();
+
+    expect(root.querySelector('#fail')).not.toBeNull();
+    await state.update({ isReady: true });
+    expect(root.querySelector('#pass')).not.toBeNull();
+    expect(root.querySelector('#fail')).toBeNull();
+  });
+
+  it('renders flow-list inside pass element on first render', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div id="cond">
+        <template flow-if="showUsers">
+          <section id="users" flow-list="users">
+            <template>
+              <span class="name" flow-name-to-prop="textContent"></span>
+            </template>
+          </section>
+          <p id="fallback">No users</p>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, {
+      showUsers: true,
+      users: [{ name: 'Alice' }, { name: 'Bob' }],
+    });
+
+    await waitForInitialBindings();
+
+    const names = [...root.querySelectorAll('.name')].map(el => el.textContent);
+    expect(names).toEqual(['Alice', 'Bob']);
+    expect(root.querySelector('#fallback')).toBeNull();
+  });
+});
