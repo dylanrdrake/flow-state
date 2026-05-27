@@ -2,6 +2,8 @@
 
 A simple, lightweight, zero-dependency state library for web components and vanilla JavaScript.
 
+**[View the interactive tutorial →](https://dylanrdrake.github.io/flow-state/apps/tutorial)**
+
 ## Features
 
 - **Reactive state** — scoped to a DOM element and its descendants
