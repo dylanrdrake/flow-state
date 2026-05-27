@@ -87,7 +87,7 @@ Mount FlowState on any DOM element. Use declarative HTML bindings and `state.upd
 
 ### 2. Manually with Web Components
 
-Use `new FlowState(this, config)` inside a custom element. Create FlowState **before** stamping the template.
+Use `new FlowState(this, config)` or `FlowState.create(this, config)` inside a custom element. Create FlowState **before** stamping the template.
 
 ```js
 import { FlowState } from 'flow-state';

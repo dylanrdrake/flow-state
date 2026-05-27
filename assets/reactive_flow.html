@@ -75,18 +75,20 @@
           'state = {',
           '  items,',
           '  selectedItem,',
-          '  selectItem(item) {',
-          '    state.update({ selectedItem: item })',
-          '  },',
-          '  saveItem(edits) {',
-          '    // update items array',
+          '  actions: {',
+          '    selectItem(item) {',
+          '      state.update({ selectedItem: item })',
+          '    },',
+          '    saveItem(edits) {',
+          '      // update items array',
+          '    }',
           '  }',
           '}'
         ], root: true },
-      { id: 'sidebar', x: 175, y: 370, w: 250, h: 168, label: 'Sidebar', state: 'state = { filter }',
-        actions: ["", "selectItem = FS.get('selectItem')", "", "FS.watch('items', (items) => {", "  // render list", "})", "", "state.watch('filter', (filter) => {", "  // re-render list", "})"] },
-      { id: 'editor',  x: 525, y: 370, w: 260, h: 130, label: 'Editor',  state: 'state = { edits }',
-        actions: ["", "saveItem = FS.get('saveItem')", "", "FS.watch('selectedItem', (item) => {", "  // render editor", "})"] },
+      { id: 'sidebar', x: 175, y: 385, w: 270, h: 228, label: 'Sidebar', state: 'state = { filter }',
+        actions: ["", "selectItem = Flow.get('selectItem')", "", "Flow.watch('items', (items) => {", "  // render list", "})", "", "state.watch('filter', (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    state.update({ filter: e.target.value })", "  })"] },
+      { id: 'editor',  x: 525, y: 385, w: 260, h: 180, label: 'Editor',  state: 'state = { edits }',
+        actions: ["", "saveItem = Flow.get('saveItem')", "", "Flow.watch('selectedItem', (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
     ];
 
     const EDGES = [
@@ -213,14 +215,14 @@
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set();
-        // Highlight just 'selectItem' in "selectItem = FS.get('selectItem')" now at line 1
+        // Highlight just 'selectItem' in "selectItem = Flow.get('selectItem')" now at line 1
         partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" is chars 0-10 at line 1
         partialBold.editor = {};
         partialBold.app = {};
         addAnn('sidebarmsg', "User selects an item from the list.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
         spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
           glows.app = 1;
-          boldActionIndices.app = new Set([3, 4, 5]); // selectItem function lines 3-5
+          boldActionIndices.app = new Set([4, 5, 6]); // selectItem function lines 4-6
           addAnn('rootmsg', 'App sets selectedItem state.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         }});
       });
@@ -233,7 +235,7 @@
         glows.app = 1;
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set([3, 4, 5]); // watch callback
-        boldActionIndices.app = new Set([4]); // state.update line
+        boldActionIndices.app = new Set([5]); // state.update line
         partialBold.sidebar = {};
         partialBold.editor = {};
         partialBold.app = {};
@@ -250,16 +252,16 @@
         }
         glows.editor = 1;
         boldActionIndices.sidebar = new Set();
-        boldActionIndices.editor = new Set();
+        boldActionIndices.editor = new Set([7, 8, 9, 10]); // save-btn listener block
         boldActionIndices.app = new Set();
-        // Highlight just 'saveItem' in "saveItem = FS.get('saveItem')" at line 1
+        // Highlight just 'saveItem' in "saveItem = Flow.get('saveItem')" at line 1
         partialBold.sidebar = {};
         partialBold.editor = { 1: { start: 0, end: 8 } }; // "saveItem" is chars 0-8 at line 1
         partialBold.app = {};
         addAnn('editormsg', 'User edits item and saves.', nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.3, align: 'left' });
         spawnUp('editor', 'app', { delay: 0.2, onDone: () => {
           glows.app = 1;
-          boldActionIndices.app = new Set([6, 7, 8]); // saveItem function lines 6-8
+          boldActionIndices.app = new Set([7, 8, 9]); // saveItem function lines 7-9
           addAnn('rootmsg', 'App updates the items list with the edited item.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         }});
       });
@@ -289,7 +291,7 @@
           if (anns[k]) anns[k].alpha = 0;
         }
         glows.sidebar = 1;
-        boldActionIndices.sidebar = new Set([7, 8, 9]); // state.watch('filter') callback
+        boldActionIndices.sidebar = new Set([7, 8, 9, 11, 12, 13, 14]); // state.watch('filter') + filter-input listener
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set();
         partialBold.sidebar = {};
