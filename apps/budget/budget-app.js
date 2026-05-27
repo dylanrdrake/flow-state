@@ -118,9 +118,8 @@ const appCSS = CSS`
     color: #9ca3af;
     padding: 32px 0;
     font-size: 14px;
-    display: none;
+    display: block;
   }
-  #empty-msg[visible] { display: block; }
 
   #tx-count {
     font-size: 12px;
@@ -173,7 +172,9 @@ appTemplate.innerHTML = HTML`
       <span id="tx-count"></span>
     </div>
     <div id="tx-list"></div>
-    <p id="empty-msg">No transactions to show.</p>
+    <template flow-if="showEmptyMessage">
+      <p id="empty-msg">No transactions to show.</p>
+    </template>
   </div>
 `;
 
@@ -186,7 +187,6 @@ class BudgetApp extends HTMLElement {
   #filters;
   #filterBtns;
   #sortSelect;
-  #emptyMsg;
 
   constructor() {
     super();
@@ -213,6 +213,22 @@ class BudgetApp extends HTMLElement {
 
         // --- Computed values ---
 
+        // Filtered + sorted slice of transactions for the list view
+        filteredTransactions: Flow.compute((transactions, filter, sort) => {
+          let txs = filter === 'all'
+            ? transactions
+            : transactions.filter(t => t.type === filter);
+
+          return [...txs].sort((a, b) => {
+            switch (sort) {
+              case 'date-asc':    return new Date(a.date) - new Date(b.date);
+              case 'amount-desc': return b.amount - a.amount;
+              case 'amount-asc':  return a.amount - b.amount;
+              default:            return new Date(b.date) - new Date(a.date);
+            }
+          });
+        }, ['transactions', 'filter', 'sort']),
+
         // Objects consumed by budget-summary-card's `amount` setter
         balanceSummary: Flow.compute((transactions) => ({
           total: transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0),
@@ -230,21 +246,7 @@ class BudgetApp extends HTMLElement {
           return { total: txs.reduce((sum, t) => sum + t.amount, 0), count: txs.length, label: 'expense entries' };
         }, ['transactions']),
 
-        // Filtered + sorted slice of transactions for the list view
-        filteredTransactions: Flow.compute((transactions, filter, sort) => {
-          let txs = filter === 'all'
-            ? transactions
-            : transactions.filter(t => t.type === filter);
-
-          return [...txs].sort((a, b) => {
-            switch (sort) {
-              case 'date-asc':    return new Date(a.date) - new Date(b.date);
-              case 'amount-desc': return b.amount - a.amount;
-              case 'amount-asc':  return a.amount - b.amount;
-              default:            return new Date(b.date) - new Date(a.date);
-            }
-          });
-        }, ['transactions', 'filter', 'sort']),
+        showEmptyMessage: Flow.compute((filteredTxs) => filteredTxs.length === 0, ['filteredTransactions']),
 
       addTransaction:    this.#addTransaction.bind(this),
       deleteTransaction: this.#deleteTransaction.bind(this),
@@ -256,7 +258,6 @@ class BudgetApp extends HTMLElement {
     this.#filters   = shadow.querySelector('.filters');
     this.#filterBtns = shadow.querySelectorAll('.filter-btn');
     this.#sortSelect = shadow.getElementById('sort-select');
-    this.#emptyMsg  = shadow.getElementById('empty-msg');
 
     // Pierce the closed shadow so child components can reach state
     this.#state.through(shadow);
@@ -265,7 +266,6 @@ class BudgetApp extends HTMLElement {
     this.#state.watch('filteredTransactions', (txs) => {
       this.#txCount.textContent = `${txs.length} item${txs.length !== 1 ? 's' : ''}`;
       this.#txList.replaceChildren(...txs.map(tx => new TransactionItem(tx)));
-      this.#emptyMsg.toggleAttribute('visible', txs.length === 0);
     });
 
     // Filter buttons

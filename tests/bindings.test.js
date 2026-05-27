@@ -227,6 +227,27 @@ describe('FlowState – list item bindings (nested keys)', () => {
     expect(root.querySelector('.city').textContent).toBe('Chicago');
     expect(root.querySelector('.badge').getAttribute('data-role')).toBe('editor');
   });
+
+  it('binds camelCase item keys even when flow-list attribute names are lowercased by HTML', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div flow-list="people">
+        <template>
+          <span class="display" flow-displayName-to-prop="textContent"></span>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, {
+      people: [{ displayName: 'Alice' }],
+    });
+
+    await waitForInitialBindings();
+
+    expect(root.querySelector('.display').textContent).toBe('Alice');
+  });
 });
 
 describe('FlowState – conditional bindings (flow-if)', () => {
@@ -345,5 +366,51 @@ describe('FlowState – conditional bindings (flow-if)', () => {
     const names = [...root.querySelectorAll('.name')].map(el => el.textContent);
     expect(names).toEqual(['Alice', 'Bob']);
     expect(root.querySelector('#fallback')).toBeNull();
+  });
+
+  it('renders flow-if inside a through-linked closed shadow root', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const closedShadow = root.attachShadow({ mode: 'closed' });
+    closedShadow.innerHTML = `
+      <div id="cond">
+        <template flow-if="showEmpty">
+          <p id="empty">No items</p>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, { showEmpty: true });
+    state.through(closedShadow);
+    await waitForInitialBindings();
+
+    expect(closedShadow.querySelector('#empty')?.textContent).toBe('No items');
+
+    await state.update({ showEmpty: false });
+    expect(closedShadow.querySelector('#empty')).toBeNull();
+  });
+
+  it('renders flow-list inside a through-linked closed shadow root', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const closedShadow = root.attachShadow({ mode: 'closed' });
+    closedShadow.innerHTML = `
+      <div flow-list="items">
+        <template>
+          <span class="name" flow-name-to-prop="textContent"></span>
+        </template>
+      </div>
+    `;
+
+    state = new FlowState(root, {
+      items: [{ name: 'A' }, { name: 'B' }],
+    });
+    state.through(closedShadow);
+    await waitForInitialBindings();
+
+    const names = [...closedShadow.querySelectorAll('.name')].map(el => el.textContent);
+    expect(names).toEqual(['A', 'B']);
   });
 });

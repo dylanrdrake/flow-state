@@ -442,7 +442,7 @@
               <tr><td><strong>5 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code> &middot; <code>destroy</code></td></tr>
               <tr><td><strong>6 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.compute</code> &middot; <code>FlowState.devtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
-              <tr><td><strong>2 structural directives</strong></td><td><code>flow-list</code> &middot; <code>flow-if</code></td></tr>
+              <tr><td><strong>2 structural directives</strong></td><td><code>flow-if</code> &middot; <code>flow-list</code></td></tr>
               <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
             </tbody>
           </table>
@@ -823,6 +823,59 @@ deleteItem(this.#itemId);</code></pre></div>
           properties/attributes, or <code>state.get()</code> to set initial values.
         </blockquote>
 
+        <h3>Conditional rendering — <code>flow-if</code></h3>
+        <p>
+          Use <code>flow-if</code> on a <code>&lt;template&gt;</code>. The template's
+          <strong>first element child</strong> is the pass case and the
+          <strong>second element child</strong> (if present) is the fail case.
+        </p>
+        <div class="cb"><pre><code data-nohl>&lt;template flow-if="isLoggedIn"&gt;
+  &lt;section class="welcome"&gt;Welcome back!&lt;/section&gt;
+  &lt;section class="signin"&gt;Please sign in.&lt;/section&gt;
+&lt;/template&gt;</code></pre></div>
+        <p>
+          The pass/fail branches can be any element tags. If the fail branch is omitted, nothing
+          is rendered when the condition is falsy.
+        </p>
+
+        <div class="cb"><pre><code data-nohl>&lt;!-- Pass-only form --&gt;
+&lt;template flow-if="showBanner"&gt;
+  &lt;aside class="banner"&gt;System maintenance tonight.&lt;/aside&gt;
+&lt;/template&gt;</code></pre></div>
+
+        <h4>Real app patterns</h4>
+        <p>
+          A common pattern is deriving a boolean from computed data, then using that boolean for
+          <code>flow-if</code>.
+        </p>
+        <div class="cb"><pre><code>
+state = {
+  filteredTransactions: FlowState.compute((transactions, filter, sort) => {
+    return next;
+  }, ['transactions', 'filter', 'sort']),
+
+  showEmptyMessage: FlowState.compute(
+    (filteredTransactions) => filteredTransactions.length === 0,
+    ['filteredTransactions']
+  ),
+};
+
+// Template
+&lt;template flow-if="showEmptyMessage"&gt;
+  &lt;p&gt;No transactions to show.&lt;/p&gt;
+&lt;/template&gt;</code></pre></div>
+
+        <div class="cb"><pre><code>
+state = {
+  history: [],
+  hasHistory: FlowState.compute((history) => history.length &gt; 0, ['history']),
+};
+
+&lt;template flow-if="hasHistory"&gt;
+  &lt;section&gt;...recent list...&lt;/section&gt;
+  &lt;section&gt;No recently viewed items yet.&lt;/section&gt;
+&lt;/template&gt;</code></pre></div>
+
         <h3>Render a list — <code>flow-list</code></h3>
         <p>
           Place <code>flow-list="key"</code> on a container with a <code>&lt;template&gt;</code>
@@ -849,26 +902,6 @@ deleteItem(this.#itemId);</code></pre></div>
           update in <code>queueMicrotask()</code> to defer it until after <code>flow-list</code>
           has re-rendered the DOM.
         </blockquote>
-
-        <h3>Conditional rendering — <code>flow-if</code></h3>
-        <p>
-          Use <code>flow-if</code> on a <code>&lt;template&gt;</code>. The template's
-          <strong>first element child</strong> is the pass case and the
-          <strong>second element child</strong> (if present) is the fail case.
-        </p>
-        <div class="cb"><pre><code data-nohl>&lt;template flow-if="isLoggedIn"&gt;
-  &lt;section class="welcome"&gt;Welcome back!&lt;/section&gt;
-  &lt;section class="signin"&gt;Please sign in.&lt;/section&gt;
-&lt;/template&gt;</code></pre></div>
-        <p>
-          The pass/fail branches can be any element tags. If the fail branch is omitted, nothing
-          is rendered when the condition is falsy.
-        </p>
-
-        <div class="cb"><pre><code data-nohl>&lt;!-- Pass-only form --&gt;
-&lt;template flow-if="showBanner"&gt;
-  &lt;aside class="banner"&gt;System maintenance tonight.&lt;/aside&gt;
-&lt;/template&gt;</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->

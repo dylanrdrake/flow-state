@@ -100,15 +100,23 @@ template.innerHTML = HTML`
       </div>
     </template>
   </div>
-  <div class="section-label">Recent</div>
-  <div id="work-history" flow-list="history">
-    <template>
-      <div class="work-item" flow-id-to-attr="data-work-item-id">
-        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
-        <span class="work-item-name" flow-name-to-prop="textContent"></span>
+  <template flow-if="hasHistory">
+    <section id="recent-section">
+      <div class="section-label">Recent</div>
+      <div id="work-history" flow-list="history">
+        <template>
+          <div class="work-item" flow-id-to-attr="data-work-item-id">
+            <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
+            <span class="work-item-name" flow-name-to-prop="textContent"></span>
+          </div>
+        </template>
       </div>
-    </template>
-  </div>
+    </section>
+    <section id="recent-empty">
+      <div class="section-label">Recent</div>
+      <div class="empty-state">No recently viewed items yet.</div>
+    </section>
+  </template>
 `;
 
 const sheet = new CSSStyleSheet();
@@ -119,7 +127,6 @@ class SideBar extends HTMLElement {
   #selectWorkItem;
   #selectedWorkItem;
   #workItemsContainer;
-  #workHistoryContainer;
 
 
   constructor() {
@@ -130,33 +137,27 @@ class SideBar extends HTMLElement {
     shadowRoot.adoptedStyleSheets = [sheet];
 
     this.#workItemsContainer = shadowRoot.getElementById('work-items-container');
-    this.#workHistoryContainer = shadowRoot.getElementById('work-history');
+    shadowRoot.addEventListener('click', this.#onItemClick);
 
     this.#state = Flow.create(this, {
       history: [],
+      hasHistory: Flow.compute((history) => history.length > 0, ['history']),
     });
   }
 
   connectedCallback() {
     this.#selectWorkItem = Flow.get(this, 'selectWorkItem');
     Flow.watch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
-
-    this.#workItemsContainer.addEventListener('click', e => {
-      const el = e.target.closest('[data-work-item-id]');
-      if (!el) return;
-      const id = parseInt(el.getAttribute('data-work-item-id'));
-      const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
-      if (workItem) this.#selectWorkItem(workItem);
-    });
-
-    this.#workHistoryContainer.addEventListener('click', e => {
-      const el = e.target.closest('[data-work-item-id]');
-      if (!el) return;
-      const id = parseInt(el.getAttribute('data-work-item-id'));
-      const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
-      if (workItem) this.#selectWorkItem(workItem);
-    });
   }
+
+
+  #onItemClick = (e) => {
+    const el = e.target.closest('[data-work-item-id]');
+    if (!el) return;
+    const id = parseInt(el.getAttribute('data-work-item-id'));
+    const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
+    if (workItem) this.#selectWorkItem(workItem);
+  };
 
 
   #workItemSelected(workItem) {

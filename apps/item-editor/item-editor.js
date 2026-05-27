@@ -7,13 +7,15 @@ const HTML = String.raw;
 const template = document.createElement('template');
 template.innerHTML = HTML`
   <div id="pane">
-    <div id="placeholder">Select a work item to edit.</div>
-    <div id="editor" hidden>
-      <div id="editor-fields"></div>
-      <div class="action-row">
-        <button id="save-btn">Save</button>
+    <template flow-if="hasSelection">
+      <div id="editor">
+        <div id="editor-fields"></div>
+        <div class="action-row">
+          <button id="save-btn">Save</button>
+        </div>
       </div>
-    </div>
+      <div id="placeholder">Select a work item to edit.</div>
+    </template>
   </div>
 `;
 
@@ -23,10 +25,6 @@ class ItemEditor extends HTMLElement {
   #state;
   #shadow;
   #saveWorkItem;
-  #placeholder;
-  #editor;
-  #editorFields;
-  #saveBtn;
 
   constructor() {
     super();
@@ -34,26 +32,25 @@ class ItemEditor extends HTMLElement {
     this.#shadow.adoptedStyleSheets = [sheet];
     this.#shadow.appendChild(template.content.cloneNode(true));
 
-    this.#placeholder = this.#shadow.getElementById('placeholder');
-    this.#editor      = this.#shadow.getElementById('editor');
-    this.#editorFields = this.#shadow.getElementById('editor-fields');
-    this.#saveBtn     = this.#shadow.getElementById('save-btn');
-
     // Create local FlowState and register the closed shadow so parent
     // bindings can reach elements inside it.
     this.#state = Flow.create(this, {
-      edits: null
+      hasSelection: false,
+      edits: null,
     }).through(this.#shadow);
 
-    this.#saveBtn.addEventListener('click', () => {
+    this.#shadow.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!(target instanceof Element) || target.id !== 'save-btn') return;
+
       const edits = this.#state.get('edits');
       if (edits && this.#saveWorkItem) {
         this.#saveWorkItem(edits);
-        this.#saveBtn.textContent = 'Saved!';
-        this.#saveBtn.classList.add('saved');
+        target.textContent = 'Saved!';
+        target.classList.add('saved');
         setTimeout(() => {
-          this.#saveBtn.textContent = 'Save';
-          this.#saveBtn.classList.remove('saved');
+          target.textContent = 'Save';
+          target.classList.remove('saved');
         }, 1500);
       }
     });
@@ -63,23 +60,19 @@ class ItemEditor extends HTMLElement {
     this.#saveWorkItem = Flow.get(this, 'saveWorkItem');
 
     Flow.watch(this, 'selectedItem', item => {
-      this.#renderEditor(item);
+      this.#state.update({
+        hasSelection: Boolean(item),
+        edits: item ? { ...item } : null,
+      }).then(() => {
+        if (item) this.#renderEditor(item);
+      });
     });
   }
 
   #renderEditor(item) {
-    if (!item) {
-      this.#placeholder.hidden = false;
-      this.#editor.hidden = true;
-      return;
-    }
-
-    this.#placeholder.hidden = true;
-    this.#editor.hidden = false;
-    this.#editorFields.innerHTML = '';
-
-    // Seed edits with the current item values
-    this.#state.update({ edits: { ...item } });
+    const editorFields = this.#shadow.getElementById('editor-fields');
+    if (!editorFields) return;
+    editorFields.innerHTML = '';
 
     const fields = [
       { key: 'name',   label: 'Name',   type: 'text'     },
@@ -118,7 +111,7 @@ class ItemEditor extends HTMLElement {
       });
 
       wrapper.appendChild(input);
-      this.#editorFields.appendChild(wrapper);
+      editorFields.appendChild(wrapper);
     });
   }
 }

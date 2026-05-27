@@ -76,9 +76,8 @@ const styles = CSS`
     color: #d1d5db;
     font-size: 13px;
     padding: 24px 0;
-    display: none;
+    display: block;
   }
-  #no-events[visible] { display: block; }
   .form {
     border-top: 1px solid #f3f4f6;
     padding: 14px 12px;
@@ -143,7 +142,18 @@ const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="date-heading" id="date-heading">Select a day</div>
   <div class="events" id="events-list">
-    <p id="no-events">No events</p>
+    <div id="events-items" flow-list="events">
+      <template>
+        <div class="event-item" flow-id-to-attr="data-event-id">
+          <span class="event-dot" flow-dotStyle-to-attr="style"></span>
+          <span class="event-title" flow-title-to-prop="textContent"></span>
+          <button class="del-btn" type="button" title="Delete" flow-id-to-attr="data-event-id">✕</button>
+        </div>
+      </template>
+    </div>
+    <template flow-if="showNoEvents">
+      <p id="no-events">No events</p>
+    </template>
   </div>
   <div class="form">
     <input
@@ -162,7 +172,6 @@ export class CalendarSidebar extends HTMLElement {
   #state;
   #dateHeading;
   #eventsList;
-  #noEvents;
   #titleInput;
   #colorRow;
   #addBtn;
@@ -177,17 +186,25 @@ export class CalendarSidebar extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      eventInputValue: ''
+      eventInputValue: '',
+      events: [],
+      showNoEvents: Flow.compute((events) => events.length === 0, ['events']),
     });
 
     shadow.appendChild(template.content.cloneNode(true));
 
     this.#dateHeading = shadow.getElementById('date-heading');
     this.#eventsList  = shadow.getElementById('events-list');
-    this.#noEvents    = shadow.getElementById('no-events');
     this.#titleInput  = shadow.getElementById('title-input');
     this.#colorRow    = shadow.getElementById('color-row');
     this.#addBtn      = shadow.querySelector('.add-btn');
+
+    this.#eventsList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.del-btn');
+      if (!btn) return;
+      const id = Number(btn.getAttribute('data-event-id'));
+      if (!Number.isNaN(id)) this.#deleteEvent?.(id);
+    });
 
     this.#colorRow.addEventListener('click', (e) => {
       const swatch = e.target.closest('.color-swatch');
@@ -232,31 +249,11 @@ export class CalendarSidebar extends HTMLElement {
   }
 
   set events(events) {
-    const items = events.map(ev => {
-      const hex = COLOR_MAP[ev.color] ?? COLOR_MAP.indigo;
-      const item = document.createElement('div');
-      item.className = 'event-item';
-
-      const dot = document.createElement('span');
-      dot.className = 'event-dot';
-      dot.style.background = hex;
-
-      const title = document.createElement('span');
-      title.className = 'event-title';
-      title.textContent = ev.title;
-
-      const delBtn = document.createElement('button');
-      delBtn.className = 'del-btn';
-      delBtn.title = 'Delete';
-      delBtn.textContent = '✕';
-      delBtn.addEventListener('click', () => this.#deleteEvent?.(ev.id));
-
-      item.append(dot, title, delBtn);
-      return item;
-    });
-
-    this.#eventsList.replaceChildren(this.#noEvents, ...items);
-    this.#noEvents.toggleAttribute('visible', events.length === 0);
+    const nextEvents = (events ?? []).map(ev => ({
+      ...ev,
+      dotStyle: `background:${COLOR_MAP[ev.color] ?? COLOR_MAP.indigo}`,
+    }));
+    this.#state.update({ events: nextEvents });
   }
 }
 
