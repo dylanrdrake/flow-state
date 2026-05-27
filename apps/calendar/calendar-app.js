@@ -3,7 +3,7 @@ import './calendar-nav.js';
 import './calendar-grid.js';
 import './calendar-sidebar.js';
 
-Flow.devtools();
+Flow.startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;

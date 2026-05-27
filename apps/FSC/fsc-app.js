@@ -2,7 +2,7 @@ import { FlowState, FlowStateComponent } from '../../index.js';
 import './title-panel.js';
 import './title-editor.js';
 
-FlowState.devtools();
+FlowState.startFlowDevtools();
 
 const HTML = String.raw;
 const CSS = String.raw;

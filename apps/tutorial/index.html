@@ -1087,7 +1087,7 @@ console.log(state.get('count')); // still old value!</code></pre></div>
       <!-- ──────────────────────────────────── -->
       <section id="devtools">
         <h2>Devtools</h2>
-        <div class="cb"><pre><code>FlowState.devtools();</code></pre></div>
+        <div class="cb"><pre><code>FlowState.startFlowDevtools();</code></pre></div>
         <p>
           Call this once, early in your app entry point. It opens the devtools panel in a new tab
           and connects via <code>BroadcastChannel</code>. The devtools show all active FlowState
@@ -1155,7 +1155,7 @@ console.log(state.get('count')); // still old value!</code></pre></div>
                 <td>Link shadow into parent scope</td>
               </tr>
               <tr>
-                <td><code>FlowState.devtools()</code></td>
+                <td><code>FlowState.startFlowDevtools()</code></td>
                 <td>app entry point</td>
                 <td>Open devtools panel</td>
               </tr>

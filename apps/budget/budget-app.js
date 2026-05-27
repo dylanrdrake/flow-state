@@ -3,7 +3,7 @@ import './budget-summary-card.js';
 import { TransactionItem } from './transaction-item.js';
 import './transaction-form.js';
 
-Flow.devtools();
+Flow.startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;

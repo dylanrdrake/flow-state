@@ -1,7 +1,7 @@
 import { FlowState as Flow } from '../../lib/FlowState.js';
 import './work-space.js';
 
-Flow.devtools();
+Flow.startFlowDevtools();
 
 
 const CSS = String.raw;

@@ -1,5 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowState } from '../lib/FlowState.js';
+import {
+  FlowState,
+  createFlowFrom,
+  getFlowFrom,
+  watchFlowFrom,
+  flowThrough,
+  flowCompute,
+} from '../lib/FlowState.js';
 
 // ─── FlowState.watch() / FlowState.get() from child elements ────────────────
 
@@ -94,12 +101,81 @@ describe('FlowState.create()', () => {
   });
 });
 
+describe('function API – createFlowFrom/getFlowFrom/watchFlowFrom', () => {
+  let parent, child, state;
+
+  beforeEach(() => {
+    parent = document.createElement('div');
+    child = document.createElement('div');
+    parent.appendChild(child);
+    document.body.appendChild(parent);
+
+    state = createFlowFrom(parent, {
+      count: 1,
+      label: 'hello',
+    });
+  });
+
+  afterEach(() => parent.remove());
+
+  it('createFlowFrom creates a FlowState instance API from a DOM element', () => {
+    expect(state.get('count')).toBe(1);
+  });
+
+  it('getFlowFrom reads from a descendant element scope', () => {
+    expect(getFlowFrom(child, 'label')).toBe('hello');
+  });
+
+  it('getFlowFrom reads from a FlowState instance API', () => {
+    expect(getFlowFrom(state, 'count')).toBe(1);
+  });
+
+  it('watchFlowFrom works for descendant elements', async () => {
+    const spy = vi.fn();
+    watchFlowFrom(child, 'count', spy);
+    spy.mockClear();
+
+    await state.update({ count: 2 });
+    expect(spy).toHaveBeenCalledWith(2);
+  });
+
+  it('watchFlowFrom works for FlowState instance APIs', async () => {
+    const spy = vi.fn();
+    watchFlowFrom(state, 'count', spy);
+    spy.mockClear();
+
+    await state.update({ count: 3 });
+    expect(spy).toHaveBeenCalledWith(3);
+  });
+});
+
 // ─── FlowState.through() – static method ────────────────────────────────────
 
 describe('FlowState.through() – static method', () => {
   it('throws when called with a non-ShadowRoot argument', () => {
     expect(() => FlowState.through(document.createElement('div'))).toThrow();
     expect(() => FlowState.through(null)).toThrow();
+  });
+});
+
+describe('function API – flowThrough/flowCompute', () => {
+  it('flowThrough throws when called with a non-ShadowRoot argument', () => {
+    expect(() => flowThrough(document.createElement('div'))).toThrow();
+    expect(() => flowThrough(null)).toThrow();
+  });
+
+  it('flowCompute creates a computed descriptor that FlowState can use', () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const state = new FlowState(root, {
+      price: 10,
+      qty: 2,
+      total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
+    });
+
+    expect(state.get('total')).toBe(20);
+    root.remove();
   });
 });
 

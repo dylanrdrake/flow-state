@@ -105,7 +105,7 @@ function renderTree() {
       <div class="empty-state">
         <div class="empty-icon">◎</div>
         <div>No instances detected</div>
-        <code>FlowState.devtools()</code>
+        <code>FlowState.startFlowDevtools()</code>
       </div>`;
     return;
   }

@@ -1,6 +1,6 @@
 import { FlowState } from '../../index.js';
 
-FlowState.devtools();
+FlowState.startFlowDevtools();
 
 const HTML = String.raw;
 
