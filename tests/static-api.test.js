@@ -17,7 +17,7 @@ describe('FlowState static API – watch and get from child elements', () => {
 
     state = new FlowState(parent, {
       count: 0, name: 'Alice',
-      actions: { doAction: vi.fn() },
+      doAction: vi.fn(),
     });
   });
 

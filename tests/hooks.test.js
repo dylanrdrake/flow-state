@@ -11,11 +11,8 @@ describe('FlowState – actions', () => {
     document.body.appendChild(root);
     state = new FlowState(root, {
       count: 0,
-      actions: {
-        onClick: clickHandler,
-        onDelete: deleteHandler,
-        theme: 'dark',
-      },
+      onClick: clickHandler,
+      onDelete: deleteHandler,
     });
   });
 
@@ -28,10 +25,6 @@ describe('FlowState – actions', () => {
   it('state.get() returns the action function', () => {
     expect(state.get('onClick')).toBe(clickHandler);
     expect(state.get('onDelete')).toBe(deleteHandler);
-  });
-
-  it('state.get() returns a hook value', () => {
-    expect(state.get('theme')).toBe('dark');
   });
 
   it('state.watch() calls the callback immediately with the action', () => {
@@ -53,13 +46,11 @@ describe('FlowState – actions', () => {
 
   it('action watcher returns a no-op unsubscribe that does not throw', () => {
     const spy = vi.fn();
-    const unsub = state.watch('theme', spy);
+    const unsub = state.watch('onClick', spy);
     expect(() => unsub()).not.toThrow();
   });
 
   it('actions do not interfere with regular state values', () => {
     expect(state.get('count')).toBe(0);
-    // theme is a hook value, accessible via get
-    expect(state.get('theme')).toBe('dark');
   });
 });

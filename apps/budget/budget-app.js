@@ -214,42 +214,40 @@ class BudgetApp extends HTMLElement {
         // --- Computed values ---
 
         // Objects consumed by budget-summary-card's `amount` setter
-        balanceSummary: (s) => ({
-          total: s.transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0),
-          count: s.transactions.length,
+        balanceSummary: Flow.compute((transactions) => ({
+          total: transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0),
+          count: transactions.length,
           label: 'transactions total',
-        }),
+        }), ['transactions']),
 
-        incomeSummary: (s) => {
-          const txs = s.transactions.filter(t => t.type === 'income');
+        incomeSummary: Flow.compute((transactions) => {
+          const txs = transactions.filter(t => t.type === 'income');
           return { total: txs.reduce((sum, t) => sum + t.amount, 0), count: txs.length, label: 'income entries' };
-        },
+        }, ['transactions']),
 
-        expenseSummary: (s) => {
-          const txs = s.transactions.filter(t => t.type === 'expense');
+        expenseSummary: Flow.compute((transactions) => {
+          const txs = transactions.filter(t => t.type === 'expense');
           return { total: txs.reduce((sum, t) => sum + t.amount, 0), count: txs.length, label: 'expense entries' };
-        },
+        }, ['transactions']),
 
         // Filtered + sorted slice of transactions for the list view
-        filteredTransactions: (s) => {
-          let txs = s.filter === 'all'
-            ? s.transactions
-            : s.transactions.filter(t => t.type === s.filter);
+        filteredTransactions: Flow.compute((transactions, filter, sort) => {
+          let txs = filter === 'all'
+            ? transactions
+            : transactions.filter(t => t.type === filter);
 
           return [...txs].sort((a, b) => {
-            switch (s.sort) {
+            switch (sort) {
               case 'date-asc':    return new Date(a.date) - new Date(b.date);
               case 'amount-desc': return b.amount - a.amount;
               case 'amount-asc':  return a.amount - b.amount;
               default:            return new Date(b.date) - new Date(a.date);
             }
           });
-        },
+        }, ['transactions', 'filter', 'sort']),
 
-      actions: {
-        addTransaction:    this.#addTransaction.bind(this),
-        deleteTransaction: this.#deleteTransaction.bind(this),
-      },
+      addTransaction:    this.#addTransaction.bind(this),
+      deleteTransaction: this.#deleteTransaction.bind(this),
     });
 
     shadow.appendChild(appTemplate.content.cloneNode(true));

@@ -6,12 +6,12 @@ A simple, lightweight, zero-dependency state library for web components and vani
 
 ## At a Glance
 
-The entire public API:
+The entire public API — 4 instance methods, 6 static methods, and 5 HTML attributes:
 
 | | |
 |---|---|
 | **4 instance methods** | `update` · `watch` · `get` · `through` |
-| **5 static methods** | `FlowState.watch` · `FlowState.get` · `FlowState.through` · `FlowState.create` · `FlowState.devtools` |
+| **6 static methods** | `FlowState.watch` · `FlowState.get` · `FlowState.through` · `FlowState.create` · `FlowState.compute` · `FlowState.devtools` |
 | **2 scope bindings** | `flow-watch-*-to-prop` · `flow-watch-*-to-attr` |
 | **1 list directive** | `flow-list` |
 | **2 item bindings** | `flow-<key>-to-prop` · `flow-<key>-to-attr` |
@@ -21,7 +21,7 @@ The entire public API:
 ## Features
 
 - **Reactive state** — scoped to a DOM element and its descendants
-- **Computed values** — derived state with automatic dependency tracking
+- **Computed values** — derived state with explicit dependencies via `FlowState.compute()`
 - **Declarative DOM bindings** — bind state to element properties or attributes via HTML attributes
 - **List rendering** — render arrays declaratively with `flow-list` and HTML `<template>`; no JavaScript required
 - **Watchers** — subscribe to granular key changes with dot-notation support
@@ -74,7 +74,7 @@ Mount FlowState on any DOM element. Use declarative HTML bindings and `state.upd
 
     const state = new FlowState(document.getElementById('app'), {
       count: 0,
-      doubled: (s) => s.count * 2,
+      doubled: FlowState.compute((count) => count * 2, ['count']),
     });
 
     document.getElementById('inc').addEventListener('click', () => {
@@ -160,26 +160,31 @@ const state = new FlowState(rootElement, config);
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `rootElement` | `Node` | The DOM element that this state scope is mounted to |
-| `config` | `Object` | Flat configuration object. Functions → computed values. `actions:` key → static callbacks/values. |
-| `config.actions` | `Object` | Non-reactive static values (e.g. callbacks, services). All other keys are state values or computed values. |
+| `config` | `Object` | Flat configuration object. Top-level functions → actions. `FlowState.compute()` wrappers → computed values. Everything else → reactive state. |
 
 Returns an **instance API** object: `{ update, watch, get, through }`.
 
-### Config — Values and Computed
+### Config — Values, Computed, and Actions
 
-Plain values and computed values go directly in the config object. Any value whose definition is a function is treated as a **computed value** — it receives the current state and returns a derived result.
+Plain values go directly in the config object. Wrap derived values with `FlowState.compute(fn, deps)` — the function receives each listed dependency as a positional argument. Top-level functions are treated as **actions** (non-reactive).
 
 ```js
 const state = new FlowState(app, {
   firstName: 'Jane',
   lastName: 'Doe',
-  fullName: (s) => `${s.firstName} ${s.lastName}`,  // computed
+  fullName: FlowState.compute(
+    (firstName, lastName) => `${firstName} ${lastName}`,
+    ['firstName', 'lastName']
+  ),
   items: [],
-  total: (s) => s.items.reduce((sum, i) => sum + i.price, 0), // computed
+  total: FlowState.compute((items) => items.reduce((sum, i) => sum + i.price, 0), ['items']),
+
+  // Top-level functions are actions — non-reactive, passed to children
+  onSave: async (data) => { /* ... */ },
 });
 ```
 
-Computed values are read-only and update automatically when their dependencies change.
+Computed values are read-only and re-evaluated when any listed dependency changes.
 
 ### Nested State
 
@@ -203,6 +208,8 @@ state.watch('user.address.city', city => console.log(city));
 ---
 
 ## Instance API
+
+The object returned by `new FlowState(...)` or `FlowState.create(...)`, also accessible as `this.state` inside `FlowStateComponent`.
 
 ### `state.update(partialOrFn)`
 
@@ -287,6 +294,20 @@ Alias for `new FlowState(...)`.
   });
 </script>
 ```
+
+### `FlowState.compute(fn, deps)`
+
+Creates a computed value descriptor for use in a config object. `fn` receives each key listed in `deps` as a positional argument and is re-evaluated lazily when any dependency changes.
+
+```js
+const state = new FlowState(app, {
+  price: 10,
+  qty: 3,
+  total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+});
+```
+
+Computed values are read-only — `state.update({ total: ... })` is ignored. They can depend on other computed values.
 
 ---
 
@@ -387,19 +408,17 @@ After registration, declarative bindings inside the shadow root will receive upd
 
 ## Actions
 
-Actions are non-reactive, static values that can be injected into the state scope — useful for passing callbacks, services, or config to deeply nested child components without prop-drilling.
+Actions are non-reactive values injected into the state scope — useful for passing callbacks to deeply nested child components without prop-drilling. **Top-level functions in the config are automatically treated as actions.**
 
 ```js
 const state = new FlowState(app, {
   count: 0,
-  actions: {
-    onSave: async (data) => { /* ... */ },
-    apiUrl: '/api/v1',
-  }
+  // Top-level function → action (non-reactive)
+  onSave: async (data) => { /* ... */ },
 });
 ```
 
-Actions are accessible via `FlowState.get(element, 'apiUrl')` from a child's `connectedCallback` like any other state value, or via `state.watch('onSave', fn)` on the instance directly (called once immediately, then never again since actions are static).
+Actions are accessible via `FlowState.get(element, 'onSave')` from a child's `connectedCallback`, or via `state.watch('onSave', fn)` on the instance directly (called once immediately, then never again since actions are static).
 
 ---
 
@@ -529,7 +548,7 @@ customElements.define('my-counter', MyCounter);
 | `shadowMode` | `'open' \| 'closed'` | Auto-attaches a shadow root of this mode |
 | `template` | `string` | HTML string stamped into the shadow (or light DOM if no shadow) |
 | `styles` | `string` | CSS string applied via `adoptedStyleSheets` |
-| `state` | `object` | Flat config as `new FlowState(...)` — values, computed functions, and optional `actions:` sub-object |
+| `state` | `object` | Flat config as `new FlowState(...)` — values, `FlowState.compute()` wrappers for computed, top-level functions for actions |
 | `this.state` | instance API | The `FlowState` instance — available after `super.connectedCallback()` |
 
 `FlowStateComponent` mounts FlowState on `this` (the host element) and calls `state.through(shadowRoot)` automatically, so scope traversal works correctly across shadow boundaries.

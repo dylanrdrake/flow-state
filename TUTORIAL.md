@@ -139,31 +139,24 @@ class MyBanner extends FlowStateComponent {
   user: { name: 'Alice', role: 'admin' },
   items: [],
 
-  // Computed values — functions of state
-  // Re-evaluated automatically when dependencies change
-  fullLabel: (s) => `${s.user.name} (${s.user.role})`,
+  // Computed values — wrap with FlowState.compute(fn, deps)
+  // fn receives each listed dep as a positional argument
+  fullLabel: FlowState.compute((user) => `${user.name} (${user.role})`, ['user']),
 
-  actions: {
-    // Actions are read-only shared values or callbacks.
-    // Children call FlowState.get(el, 'doSomething') to retrieve them.
-    // They are NOT reactive — watchers receive the action value once on registration.
-    doSomething: (arg) => console.log(arg),
-    theme: 'dark',
-  },
+  // Top-level functions are actions — non-reactive, accessible via FlowState.get()
+  doSomething: (arg) => console.log(arg),
 }
 ```
 
 ### Computed Values
 
-Computed values are declared as functions in `init`. They are **re-evaluated lazily** when their dependencies update, and watchers on them are notified.
+Wrap derived values with `FlowState.compute(fn, deps)`. The function receives each listed dependency as a **positional argument** and is **re-evaluated lazily** when any listed key changes.
 
 ```js
 price: 10,
 qty: 3,
-total: (s) => s.price * s.qty,
+total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
 ```
-
-> ⚠️ **Known limitation**: Dependency tracking is **top-level only**. `(s) => s.user.name` tracks `'user'`, not `'user.name'`. Any update to the `user` object will trigger recomputation, even if only an unrelated nested field changed.
 
 ---
 
@@ -235,6 +228,16 @@ this.#state.through(shadow); // scope now includes shadow
 ## The Static API
 
 Used by **child elements** to reach a parent's FlowState without holding a direct reference to it. Everything works via DOM events that bubble up.
+
+### `FlowState.compute(fn, deps)`
+
+Creates a computed value descriptor for use in a config object. `fn` receives each key listed in `deps` as a positional argument and is re-evaluated lazily when any dependency changes.
+
+```js
+total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+```
+
+Computed values are read-only and can depend on other computed values.
 
 ### `FlowState.watch(element, key, callback)`
 
@@ -330,18 +333,16 @@ The item key is encoded in the attribute name itself:
 
 Actions are callbacks or values passed down from parent to child via the state scope. Children read them with `FlowState.get()` or `state.get()`.
 
+**Top-level functions in the config are actions.**
+
 ```js
 // Parent
 state = {
-  actions: {
-    deleteCard: (id) => this.#deleteCard(id),
-    theme: 'dark',
-  }
+  deleteCard: (id) => this.#deleteCard(id), // top-level function → action
 };
 
 // Child (in connectedCallback)
 const deleteCard = FlowState.get(this, 'deleteCard');
-const theme      = FlowState.get(this, 'theme');
 ```
 
 Actions are **not reactive** — `FlowState.watch(el, 'deleteCard', cb)` calls `cb` once with the action value and never again. Use them for stable callbacks and config, not changing data.
@@ -358,7 +359,7 @@ The canonical pattern. Parent owns state. Children watch it.
 // parent.js
 state = {
   items: [],
-  actions: { removeItem: (id) => this.#remove(id) },
+  removeItem: (id) => this.#remove(id), // top-level function → action
 };
 
 // child.js (connectedCallback)

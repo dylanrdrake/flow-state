@@ -74,15 +74,16 @@ class CalendarApp extends HTMLElement {
         selectedDate: today,
         events:       seedEvents,
 
-        monthLabel: (s) =>
-          new Date(s.viewYear, s.viewMonth).toLocaleDateString('en-US', {
+        monthLabel: Flow.compute((viewYear, viewMonth) =>
+          new Date(viewYear, viewMonth).toLocaleDateString('en-US', {
             month: 'long', year: 'numeric',
-          }),
+          })
+        , ['viewYear', 'viewMonth']),
 
         // 42-cell (6×7) grid: prev-month overflow, current month, next-month overflow.
         // Each cell carries the date string, display flags, and event dot colors.
-        calendarDays: (s) => {
-          const { viewYear: yr, viewMonth: mo } = s;
+        calendarDays: Flow.compute((viewYear, viewMonth, selectedDate, events, today) => {
+          const yr = viewYear, mo = viewMonth;
           const firstDayOfWeek = new Date(yr, mo, 1).getDay();
           const daysInMonth    = new Date(yr, mo + 1, 0).getDate();
           const days           = [];
@@ -95,12 +96,12 @@ class CalendarApp extends HTMLElement {
           // Current month
           for (let n = 1; n <= daysInMonth; n++) {
             const date         = localDate(new Date(yr, mo, n));
-            const eventsOnDay  = s.events.filter(e => e.date === date);
+            const eventsOnDay  = events.filter(e => e.date === date);
             days.push({
               date,
               overflow:   false,
-              isToday:    date === s.today,
-              isSelected: date === s.selectedDate,
+              isToday:    date === today,
+              isSelected: date === selectedDate,
               dots:       eventsOnDay.slice(0, 3).map(e => e.color),
             });
           }
@@ -112,20 +113,16 @@ class CalendarApp extends HTMLElement {
           }
 
           return days;
-        },
+        }, ['viewYear', 'viewMonth', 'selectedDate', 'events', 'today']),
 
-        selectedDayEvents: (s) => s.events.filter(e => e.date === s.selectedDate),
+        selectedDayEvents: Flow.compute((events, selectedDate) => events.filter(e => e.date === selectedDate), ['events', 'selectedDate']),
 
-      actions: {
-
-        prevMonth:   this.#prevMonth.bind(this),
-        nextMonth:   this.#nextMonth.bind(this),
-        goToday:     this.#goToday.bind(this),
-        selectDate:  this.#selectDate.bind(this),
-        addEvent:    this.#addEvent.bind(this),
-        deleteEvent: this.#deleteEvent.bind(this),
-
-      }
+      prevMonth:   this.#prevMonth.bind(this),
+      nextMonth:   this.#nextMonth.bind(this),
+      goToday:     this.#goToday.bind(this),
+      selectDate:  this.#selectDate.bind(this),
+      addEvent:    this.#addEvent.bind(this),
+      deleteEvent: this.#deleteEvent.bind(this),
 
     });
 

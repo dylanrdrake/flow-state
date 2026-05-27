@@ -23,9 +23,7 @@ class FSCApp extends FlowStateComponent {
   state = {
     title: 'Hello, FlowStateComponent!',
     message: 'This message is stored in FlowState and can be read with the button below.',
-    actions: {
-      changeTitle: this.#updateTitle.bind(this),
-    },
+    changeTitle: this.#updateTitle.bind(this),
   };
 
   #updateTitle(newTitle) {

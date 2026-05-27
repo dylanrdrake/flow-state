@@ -435,12 +435,12 @@
       <!-- ──────────────────────────────────── -->
       <section id="at-a-glance">
         <h2>At a Glance</h2>
-        <p>The entire public API &mdash; 4 instance methods, 5 static methods, and 5 HTML attributes:</p>
+        <p>The entire public API &mdash; 4 instance methods, 6 static methods, and 5 HTML attributes:</p>
         <div class="table-wrap">
           <table>
             <tbody>
               <tr><td><strong>4 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code></td></tr>
-              <tr><td><strong>5 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.devtools</code></td></tr>
+              <tr><td><strong>6 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.compute</code> &middot; <code>FlowState.devtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
               <tr><td><strong>1 list directive</strong></td><td><code>flow-list</code></td></tr>
               <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
@@ -625,41 +625,31 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
   user: { name: 'Alice', role: 'admin' },
   items: [],
 
-  // Computed values — functions of state
-  // Re-evaluated automatically when dependencies change
-  fullLabel: (s) => `${s.user.name} (${s.user.role})`,
+  // Computed values — wrap with FlowState.compute(fn, deps)
+  // fn receives the listed deps as positional arguments
+  fullLabel: FlowState.compute((user) => `${user.name} (${user.role})`, ['user']),
 
-  actions: {
-    // Actions are read-only shared values or callbacks.
-    // Children call FlowState.get(el, 'doSomething') to retrieve them.
-    // They are NOT reactive — watchers receive the action value once on registration.
-    doSomething: (arg) => console.log(arg),
-    theme: 'dark',
-  },
+  // Top-level functions are actions — non-reactive, accessible via FlowState.get()
+  doSomething: (arg) => console.log(arg),
 }</code></pre></div>
 
         <h3>Computed Values</h3>
         <p>
-          Computed values are declared as functions directly in the config. They are
-          <strong>re-evaluated lazily</strong> when their dependencies update.
+          Computed values use <code>FlowState.compute(fn, deps)</code>. The function receives each
+          listed dependency as a positional argument and is <strong>re-evaluated lazily</strong>
+          when any dependency changes.
         </p>
         <div class="cb"><pre><code>price: 10,
 qty: 3,
-total: (s) => s.price * s.qty,
+total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
 </code></pre></div>
-        <blockquote>
-          ⚠️ <strong>Known limitation</strong>: Dependency tracking is
-          <strong>top-level only</strong>. <code>(s) => s.user.name</code> tracks
-          <code>'user'</code>, not <code>'user.name'</code>. Any update to the <code>user</code>
-          object triggers recomputation, even if only an unrelated nested field changed.
-        </blockquote>
       </section>
 
       <!-- ──────────────────────────────────── -->
       <section id="instance-api">
         <h2>Instance API</h2>
         <p>
-          The object returned by <code>new FlowState(…)</code> or accessible as
+          The object returned by <code>new FlowState(…)</code> or <code>FlowState.create(…)</code>, also accessible as
           <code>this.state</code> in <code>FlowStateComponent</code>.
         </p>
 
@@ -727,6 +717,18 @@ this.#state.through(shadow); // scope now includes shadow</code></pre></div>
           Used by <strong>child elements</strong> to reach a parent's FlowState without holding a
           direct reference. Everything works via DOM events that bubble up.
         </p>
+
+        <h3><code>FlowState.compute(fn, deps)</code></h3>
+        <p>
+          Creates a computed value descriptor for use in a config object. <code>fn</code> receives
+          each key listed in <code>deps</code> as a positional argument and is re-evaluated lazily
+          when any dependency changes. Computed values are read-only and can depend on other
+          computed values.
+        </p>
+        <div class="cb"><pre><code>total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+
+// Can depend on another computed value
+discounted: FlowState.compute((total, discount) => total * (1 - discount), ['total', 'discount']),</code></pre></div>
 
         <h3><code>FlowState.watch(element, key, callback)</code></h3>
         <p>
@@ -825,17 +827,16 @@ deleteItem(this.#itemId);</code></pre></div>
           Actions are callbacks or values passed down from parent to child via the state scope.
           Children read them with <code>FlowState.get()</code> or <code>state.get()</code>.
         </p>
+        <p>
+          <strong>Top-level functions in the config are actions.</strong>
+        </p>
         <div class="cb"><pre><code>// Parent
 state = {
-  actions: {
-    deleteCard: (id) => this.#deleteCard(id),
-    theme: 'dark',
-  }
+  deleteCard: (id) => this.#deleteCard(id), // top-level function → action
 };
 
 // Child (in connectedCallback)
-const deleteCard = FlowState.get(this, 'deleteCard');
-const theme      = FlowState.get(this, 'theme');</code></pre></div>
+const deleteCard = FlowState.get(this, 'deleteCard');</code></pre></div>
         <p>
           Actions are <strong>not reactive</strong> —
           <code>FlowState.watch(el, 'deleteCard', cb)</code> calls <code>cb</code> once with the
@@ -853,7 +854,7 @@ const theme      = FlowState.get(this, 'theme');</code></pre></div>
         <div class="cb"><pre><code>// parent.js
 state = {
   items: [],
-  actions: { removeItem: (id) => this.#remove(id) },
+  removeItem: (id) => this.#remove(id), // top-level function → action
 };
 
 // child.js (connectedCallback)

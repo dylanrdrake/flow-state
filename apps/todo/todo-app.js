@@ -185,19 +185,17 @@ class TodoApp extends HTMLElement {
       filter: 'all',
 
       // Recomputes whenever todos or filter changes
-      filteredTodos: (state) => {
-        if (state.filter === 'active') return state.todos.filter(t => !t.done);
-        if (state.filter === 'done')   return state.todos.filter(t => t.done);
-        return state.todos;
-      },
+      filteredTodos: Flow.compute((todos, filter) => {
+        if (filter === 'active') return todos.filter(t => !t.done);
+        if (filter === 'done')   return todos.filter(t => t.done);
+        return todos;
+      }, ['todos', 'filter']),
 
       // DOM-bound via flow-watch-activeCount-to-prop
-      activeCount: (state) => state.todos.filter(t => !t.done).length,
+      activeCount: Flow.compute((todos) => todos.filter(t => !t.done).length, ['todos']),
 
-      actions: {
-        toggleTodo: this.#toggleTodo.bind(this),
-        deleteTodo: this.#deleteTodo.bind(this),
-      },
+      toggleTodo: this.#toggleTodo.bind(this),
+      deleteTodo: this.#deleteTodo.bind(this),
     });
 
     // Pierce the closed shadow root so child components can reach state

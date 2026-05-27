@@ -11,8 +11,8 @@ describe('FlowState – computed values', () => {
       price: 10,
       qty: 3,
       name: 'alice',
-      total: (s) => s.price * s.qty,
-      upper: (s) => s.name.toUpperCase(),
+      total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+      upper: FlowState.compute((name) => name.toUpperCase(), ['name']),
     });
   });
 
@@ -77,13 +77,63 @@ describe('FlowState – computed values', () => {
     document.body.appendChild(root2);
     const s = new FlowState(root2, {
       x: 4,
-      double: (s) => s.x * 2,
-      triple: (s) => s.x * 3,
+      double: FlowState.compute((x) => x * 2, ['x']),
+      triple: FlowState.compute((x) => x * 3, ['x']),
     });
 
     await s.update({ x: 5 });
     expect(s.get('double')).toBe(10);
     expect(s.get('triple')).toBe(15);
     root2.remove();
+  });
+});
+
+describe('FlowState – computed values with nested object deps', () => {
+  let root, state;
+
+  beforeEach(() => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+    state = new FlowState(root, {
+      user:  { name: 'Alice', role: 'admin' },
+      score: 42,
+      label: FlowState.compute((user) => `${user.name} (${user.role})`, ['user']),
+    });
+  });
+
+  afterEach(() => root.remove());
+
+  it('receives the full nested object as a positional argument', () => {
+    expect(state.get('label')).toBe('Alice (admin)');
+  });
+
+  it('re-evaluates when a nested property of the dep changes', async () => {
+    await state.update({ user: { name: 'Bob' } }); // deep merge — role preserved
+    expect(state.get('label')).toBe('Bob (admin)');
+  });
+
+  it('re-evaluates when the whole dep object is replaced', async () => {
+    await state.update({ user: { name: 'Carol', role: 'viewer' } });
+    expect(state.get('label')).toBe('Carol (viewer)');
+  });
+
+  it('does NOT re-evaluate when an unrelated key changes', async () => {
+    const spy = vi.fn();
+    state.watch('label', spy);
+    spy.mockClear();
+
+    await state.update({ score: 99 });
+    expect(spy).not.toHaveBeenCalled();
+    expect(state.get('label')).toBe('Alice (admin)');
+  });
+
+  it('watcher fires with the new derived value after a nested dep update', async () => {
+    const spy = vi.fn();
+    state.watch('label', spy);
+    spy.mockClear();
+
+    await state.update({ user: { name: 'Dave' } });
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith('Dave (admin)');
   });
 });

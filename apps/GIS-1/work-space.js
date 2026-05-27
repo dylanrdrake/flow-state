@@ -80,10 +80,8 @@ class Workspace extends HTMLElement {
     this.#state = new Flow(this, {
       workItems,
       selectedWorkItem: null,
-      actions: {
-        selectWorkItem: this.#selectWorkItemHook.bind(this),
-        saveWorkItem:   this.#saveWorkItem.bind(this)
-      }
+      selectWorkItem: this.#selectWorkItemHook.bind(this),
+      saveWorkItem:   this.#saveWorkItem.bind(this),
     });
 
     this.shadowRoot.appendChild(template.content.cloneNode(true));

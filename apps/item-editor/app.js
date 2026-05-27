@@ -35,10 +35,8 @@ class ItemEditorApp extends HTMLElement {
     this.#state = new Flow(this, {
       items,
       selectedItem: null,
-      actions: {
-        selectItem:   this.#selectWorkItem.bind(this),
-        saveWorkItem: this.#saveWorkItem.bind(this)
-      }
+      selectItem:   this.#selectWorkItem.bind(this),
+      saveWorkItem: this.#saveWorkItem.bind(this),
     });
 
     this.shadowRoot.appendChild(template.content.cloneNode(true));
