@@ -27,18 +27,14 @@
     const body = document.querySelector('body');
 
     const bodyState = FlowState.create(body, {
-      init: {
-        test: 'hello'
-      }
+      test: 'hello'
     });
 
     const appEl = document.querySelector('#app');
 
     const state = FlowState.create(appEl, {
-      init: {
-        count: 0,
-        test: 'hll'
-      }
+      count: 0,
+      test: 'hll'
     });
 
     let test = bodyState.get('test');

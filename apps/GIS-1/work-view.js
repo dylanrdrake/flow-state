@@ -178,12 +178,7 @@ class WorkView extends HTMLElement {
     shadowRoot.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      state: {
-        edits: null
-      },
-      options: {
-        label: 'WorkView'
-      }
+      edits: null,
     });
 
     shadowRoot.appendChild(template.content.cloneNode(true));
@@ -215,7 +210,7 @@ class WorkView extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#saveWorkItem = Flow.get(this, 'saveWorkItem');
+    this.#saveWorkItem   = Flow.get(this, 'saveWorkItem');
     this.#selectWorkItem = Flow.get(this, 'selectWorkItem');
     Flow.watch(this, 'workItems', this.#workItemsUpdated.bind(this));
     Flow.watch(this, 'selectedWorkItem', (workItem) => {

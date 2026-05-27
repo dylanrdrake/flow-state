@@ -20,19 +20,12 @@ class FSCApp extends FlowStateComponent {
     <title-editor></title-editor>
   `;
 
-  flowConfig = {
-    state: {
-      title: 'Hello, FlowStateComponent!',
-      message: 'This message is stored in FlowState and can be read with the button below.',
-    },
-
-    hooks: {
+  state = {
+    title: 'Hello, FlowStateComponent!',
+    message: 'This message is stored in FlowState and can be read with the button below.',
+    actions: {
       changeTitle: this.#updateTitle.bind(this),
     },
-
-    options: {
-      label: 'FSCApp FlowState',
-    }
   };
 
   #updateTitle(newTitle) {

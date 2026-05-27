@@ -81,11 +81,8 @@ class KanbanColumn extends FlowStateComponent {
 
   // Local state: which card in this column is selected, and the full columns list
   // (needed to populate the move-target select and render cards).
-  flowConfig = {
-    state: {
-      columnData: null,    // { id, title, cards[] } — set by parent watcher
-    },
-    options: { label: 'KanbanColumn' }
+  state = {
+    columnData: null,    // { id, title, cards[] } — set by parent watcher
   };
 
 
@@ -101,7 +98,7 @@ class KanbanColumn extends FlowStateComponent {
     this.#colTitle   = shadow.getElementById('col-title');
     this.#cardCount  = shadow.getElementById('card-count');
 
-    // Get shared hooks from parent KanbanApp scope
+    // Get shared actions from parent KanbanApp scope
     const moveCard   = FlowState.get(this, 'moveCard');
     const deleteCard = FlowState.get(this, 'deleteCard');
 

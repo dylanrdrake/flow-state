@@ -42,8 +42,7 @@ class ItemEditor extends HTMLElement {
     // Create local FlowState and register the closed shadow so parent
     // bindings can reach elements inside it.
     this.#state = Flow.create(this, {
-      state: { edits: null },
-      options: { label: 'ItemEditor' }
+      edits: null
     }).through(this.#shadow);
 
     this.#saveBtn.addEventListener('click', () => {

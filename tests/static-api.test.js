@@ -16,8 +16,8 @@ describe('FlowState static API – watch and get from child elements', () => {
     document.body.appendChild(parent);
 
     state = new FlowState(parent, {
-      state: { count: 0, name: 'Alice' },
-      hooks: { doAction: vi.fn() },
+      count: 0, name: 'Alice',
+      actions: { doAction: vi.fn() },
     });
   });
 
@@ -32,9 +32,9 @@ describe('FlowState static API – watch and get from child elements', () => {
     expect(FlowState.get(grandchild, 'count')).toBe(0);
   });
 
-  it('FlowState.get(el, key) returns a hook value', () => {
-    const hook = state.get('doAction');
-    expect(FlowState.get(child, 'doAction')).toBe(hook);
+  it('FlowState.get(el, key) returns an action value', () => {
+    const action = state.get('doAction');
+    expect(FlowState.get(child, 'doAction')).toBe(action);
   });
 
   it('FlowState.get(el, key) returns undefined for unknown keys', () => {
@@ -83,7 +83,7 @@ describe('FlowState.create()', () => {
   it('creates a FlowState instance on a DOM Node', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
-    const state = FlowState.create(root, { state: { x: 1 } });
+    const state = FlowState.create(root, { x: 1 });
     expect(state.get('x')).toBe(1);
     root.remove();
   });
@@ -119,7 +119,7 @@ describe('FlowState instance – state.through(shadowRoot)', () => {
     inner = document.createElement('div');
     shadow.appendChild(inner);
 
-    state = new FlowState(parent, { state: { count: 0, label: 'hello' } });
+    state = new FlowState(parent, { count: 0, label: 'hello' });
     state.through(shadow); // link shadow into parent scope
   });
 

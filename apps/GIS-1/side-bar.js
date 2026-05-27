@@ -133,12 +133,7 @@ class SideBar extends HTMLElement {
     this.#workHistoryContainer = shadowRoot.getElementById('work-history');
 
     this.#state = Flow.create(this, {
-      state: {
-        history: [],
-      },
-      options: {
-        label: 'SideBar'
-      }
+      history: [],
     });
   }
 

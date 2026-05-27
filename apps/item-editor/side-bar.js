@@ -32,8 +32,8 @@ class SideBar extends HTMLElement {
 
     // Create local FlowState for filter before children connect
     this.#state = Flow.create(this, {
-      state: { filter: '', filteredItems: [] },
-      options: { label: 'SideBar' }
+      filter: '',
+      filteredItems: []
     });
   }
 

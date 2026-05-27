@@ -194,7 +194,6 @@ class BudgetApp extends HTMLElement {
     shadow.adoptedStyleSheets = [appSheet];
 
     this.#state = Flow.create(this, {
-      state: {
 
         transactions: [
           { id: 1,  description: 'Monthly salary',    amount: 4200,  type: 'income',  category: 'Work',         date: agoDays(14) },
@@ -247,8 +246,7 @@ class BudgetApp extends HTMLElement {
           });
         },
 
-      },
-      hooks: {
+      actions: {
         addTransaction:    this.#addTransaction.bind(this),
         deleteTransaction: this.#deleteTransaction.bind(this),
       },

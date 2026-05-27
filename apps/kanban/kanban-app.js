@@ -191,18 +191,15 @@ class KanbanApp extends FlowStateComponent {
 
   template = template;
 
-  flowConfig = {
-    state: {
-      columns: [],
-      selectedCard: null,
-    },
-    hooks: {
+  state = {
+    columns: [],
+    selectedCard: null,
+    actions: {
       moveCard:   (...args) => this.#moveCard(...args),
       deleteCard: (...args) => this.#deleteCard(...args),
       selectCard: (...args) => this.#selectCard(...args),
       editCard:   (...args) => this.#openModal(...args),
     },
-    options: { label: 'KanbanApp' },
   };
 
   connectedCallback() {

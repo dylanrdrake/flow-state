@@ -12,7 +12,7 @@ describe('FlowStateComponent', () => {
   it('Creates a FlowState instance in this.state after connectedCallback', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      flowConfig = { state: { value: 42 } };
+      state = { value: 42 };
 
       connectedCallback() {
         super.connectedCallback();
@@ -31,7 +31,7 @@ describe('FlowStateComponent', () => {
   it('attaches a shadow root when shadowMode is set', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      flowConfig = {};
+      state = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -46,7 +46,7 @@ describe('FlowStateComponent', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<p id="msg">hello</p>';
-      flowConfig = {};
+      state = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -61,7 +61,7 @@ describe('FlowStateComponent', () => {
   it('state.update() and state.get() work correctly', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      flowConfig = { state: { count: 0 } };
+      state = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -76,7 +76,7 @@ describe('FlowStateComponent', () => {
   it('state.watch() fires immediately with the current value', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      flowConfig = { state: { label: 'hello' } };
+      state = { label: 'hello' };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -92,7 +92,7 @@ describe('FlowStateComponent', () => {
   it('does not reinitialize state when reconnected to the DOM', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      flowConfig = { state: { count: 0 } };
+      state = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -114,7 +114,7 @@ describe('FlowStateComponent', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<span id="name-el" flow-watch-name-to-prop="textContent"></span>';
-      flowConfig = { state: { name: 'Alice' } };
+      state = { name: 'Alice' };
     }
     const name = tag();
     customElements.define(name, MyComp);

@@ -8,8 +8,8 @@ describe('FlowState – scope isolation between siblings', () => {
     document.body.appendChild(root1);
     document.body.appendChild(root2);
 
-    const state1 = new FlowState(root1, { state: { count: 0 } });
-    const state2 = new FlowState(root2, { state: { count: 100 } });
+    const state1 = new FlowState(root1, { count: 0 });
+    const state2 = new FlowState(root2, { count: 100 });
 
     await state1.update({ count: 5 });
 
@@ -26,8 +26,8 @@ describe('FlowState – scope isolation between siblings', () => {
     document.body.appendChild(root1);
     document.body.appendChild(root2);
 
-    const state1 = new FlowState(root1, { state: { count: 0 } });
-    const state2 = new FlowState(root2, { state: { count: 0 } });
+    const state1 = new FlowState(root1, { count: 0 });
+    const state2 = new FlowState(root2, { count: 0 });
 
     const spy = vi.fn();
     state2.watch('count', spy);
@@ -51,8 +51,8 @@ describe('FlowState – scope isolation between siblings', () => {
     root1.appendChild(child1);
     root2.appendChild(child2);
 
-    new FlowState(root1, { state: { label: 'scope-1' } });
-    new FlowState(root2, { state: { label: 'scope-2' } });
+    new FlowState(root1, { label: 'scope-1' });
+    new FlowState(root2, { label: 'scope-2' });
 
     expect(FlowState.get(child1, 'label')).toBe('scope-1');
     expect(FlowState.get(child2, 'label')).toBe('scope-2');
@@ -69,8 +69,8 @@ describe('FlowState – child scope shadows parent key', () => {
     parent.appendChild(child);
     document.body.appendChild(parent);
 
-    new FlowState(parent, { state: { theme: 'dark' } });
-    new FlowState(child, { state: { theme: 'light' } }); // shadows parent
+    new FlowState(parent, { theme: 'dark' });
+    new FlowState(child, { theme: 'light' }); // shadows parent
 
     const inner = document.createElement('span');
     child.appendChild(inner);
@@ -89,8 +89,8 @@ describe('FlowState – child scope shadows parent key', () => {
     parent.appendChild(sibling);
     document.body.appendChild(parent);
 
-    new FlowState(parent, { state: { theme: 'dark' } });
-    new FlowState(child, { state: { theme: 'light' } }); // shadows only inside child
+    new FlowState(parent, { theme: 'dark' });
+    new FlowState(child, { theme: 'light' }); // shadows only inside child
 
     // sibling is not inside the child scope — should see parent's 'dark'
     expect(FlowState.get(sibling, 'theme')).toBe('dark');
@@ -137,7 +137,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   afterEach(() => { document.body.innerHTML = ''; });
 
   it('FlowState.watch can reach a closed shadow scope via composed events', () => {
-    const { shadow } = makeClosedHost('closed-scope-watch', { state: { label: 'hello' } });
+    const { shadow } = makeClosedHost('closed-scope-watch', { label: 'hello' });
 
     const inner = document.createElement('span');
     shadow.appendChild(inner);
@@ -148,7 +148,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   });
 
   it('FlowState.watch on a closed shadow child fires again after state.update', async () => {
-    const { shadow, state } = makeClosedHost('closed-scope-update', { state: { count: 0 } });
+    const { shadow, state } = makeClosedHost('closed-scope-update', { count: 0 });
 
     const inner = document.createElement('span');
     shadow.appendChild(inner);
@@ -164,7 +164,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   it('through() registers a closed shadow so parent bindings reach elements inside it', async () => {
     const parent = document.createElement('div');
     document.body.appendChild(parent);
-    const parentState = new FlowState(parent, { state: { status: 'idle' } });
+    const parentState = new FlowState(parent, { status: 'idle' });
 
     if (!customElements.get('closed-binding-child')) {
       customElements.define('closed-binding-child', class extends HTMLElement {});
@@ -188,7 +188,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   it('through() must be called before update to push values into a closed shadow binding', async () => {
     const parent = document.createElement('div');
     document.body.appendChild(parent);
-    const parentState = new FlowState(parent, { state: { mode: 'light' } });
+    const parentState = new FlowState(parent, { mode: 'light' });
 
     if (!customElements.get('closed-late-through')) {
       customElements.define('closed-late-through', class extends HTMLElement {});
@@ -209,8 +209,8 @@ describe('FlowState – closed shadow DOM and through()', () => {
   });
 
   it('a closed shadow scope is isolated from sibling scopes', async () => {
-    const { state: state1 } = makeClosedHost('closed-sibling-a', { state: { x: 1 } });
-    const { state: state2 } = makeClosedHost('closed-sibling-b', { state: { x: 100 } });
+    const { state: state1 } = makeClosedHost('closed-sibling-a', { x: 1 });
+    const { state: state2 } = makeClosedHost('closed-sibling-b', { x: 100 });
 
     await state1.update({ x: 99 });
 

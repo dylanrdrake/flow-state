@@ -8,13 +8,11 @@ describe('FlowState – computed values', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      state: {
-        price: 10,
-        qty: 3,
-        name: 'alice',
-        total: (s) => s.price * s.qty,
-        upper: (s) => s.name.toUpperCase(),
-      },
+      price: 10,
+      qty: 3,
+      name: 'alice',
+      total: (s) => s.price * s.qty,
+      upper: (s) => s.name.toUpperCase(),
     });
   });
 
@@ -78,11 +76,9 @@ describe('FlowState – computed values', () => {
     const root2 = document.createElement('div');
     document.body.appendChild(root2);
     const s = new FlowState(root2, {
-      state: {
-        x: 4,
-        double: (s) => s.x * 2,
-        triple: (s) => s.x * 3,
-      },
+      x: 4,
+      double: (s) => s.x * 2,
+      triple: (s) => s.x * 3,
     });
 
     await s.update({ x: 5 });

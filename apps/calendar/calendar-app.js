@@ -67,7 +67,6 @@ class CalendarApp extends HTMLElement {
     shadow.adoptedStyleSheets = [sheet];
 
     this.#state = Flow.create(this, {
-      state: {
 
         today,
         viewYear:     now.getFullYear(),
@@ -117,9 +116,7 @@ class CalendarApp extends HTMLElement {
 
         selectedDayEvents: (s) => s.events.filter(e => e.date === s.selectedDate),
 
-      },
-
-      hooks: {
+      actions: {
 
         prevMonth:   this.#prevMonth.bind(this),
         nextMonth:   this.#nextMonth.bind(this),

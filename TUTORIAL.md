@@ -59,7 +59,7 @@ class MyCounter extends HTMLElement {
 
     // ⚠️ Create FlowState BEFORE appending children.
     this.#state = new FlowState(this, {
-      init: { count: 0 },
+      count: 0,
     });
 
     shadow.innerHTML = `<button id="btn">Click me</button>`;
@@ -90,8 +90,8 @@ class MyCounter extends FlowStateComponent {
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`<button id="btn">Click 0 times</button>`;
 
-  flowConfig = {
-    init: { count: 0 },
+  state = {
+    count: 0,
   };
 
   connectedCallback() {
@@ -117,7 +117,7 @@ customElements.define('my-counter', MyCounter);
 class MyBanner extends FlowStateComponent {
   // no shadowMode — renders into light DOM
   template = `<p id="msg"></p>`;
-  flowConfig = { init: { message: 'Hello' } };
+  state = { message: 'Hello' };
 
   connectedCallback() {
     super.connectedCallback();
@@ -134,27 +134,21 @@ class MyBanner extends FlowStateComponent {
 
 ```js
 {
-  init: {
-    // Plain values — any JSON-serializable type
-    count: 0,
-    user: { name: 'Alice', role: 'admin' },
-    items: [],
+  // Plain values — any JSON-serializable type
+  count: 0,
+  user: { name: 'Alice', role: 'admin' },
+  items: [],
 
-    // Computed values — functions of state
-    // Re-evaluated automatically when dependencies change
-    fullLabel: (s) => `${s.user.name} (${s.user.role})`,
-  },
+  // Computed values — functions of state
+  // Re-evaluated automatically when dependencies change
+  fullLabel: (s) => `${s.user.name} (${s.user.role})`,
 
-  hooks: {
-    // Hooks are read-only shared values or callbacks.
+  actions: {
+    // Actions are read-only shared values or callbacks.
     // Children call FlowState.get(el, 'doSomething') to retrieve them.
-    // They are NOT reactive — watchers receive the hook value once on registration.
+    // They are NOT reactive — watchers receive the action value once on registration.
     doSomething: (arg) => console.log(arg),
     theme: 'dark',
-  },
-
-  options: {
-    label: 'MyComponent', // shown in devtools
   },
 }
 ```
@@ -164,11 +158,9 @@ class MyBanner extends FlowStateComponent {
 Computed values are declared as functions in `init`. They are **re-evaluated lazily** when their dependencies update, and watchers on them are notified.
 
 ```js
-init: {
-  price: 10,
-  qty: 3,
-  total: (s) => s.price * s.qty,
-}
+price: 10,
+qty: 3,
+total: (s) => s.price * s.qty,
 ```
 
 > ⚠️ **Known limitation**: Dependency tracking is **top-level only**. `(s) => s.user.name` tracks `'user'`, not `'user.name'`. Any update to the `user` object will trigger recomputation, even if only an unrelated nested field changed.
@@ -198,7 +190,7 @@ await state.update({ count: 99 });
 const current = state.get('count'); // 99 ✓
 ```
 
-> ⚠️ Only keys declared in `init` can be updated. Attempts to add new keys are silently ignored (with a console warning). Computed keys cannot be updated.
+> ⚠️ Only configured keys can be updated. Attempts to add new keys are silently ignored (with a console warning). Computed keys cannot be updated.
 
 ### `state.watch(key, callback)`
 
@@ -224,7 +216,7 @@ const count = state.get('count');
 const name  = state.get('user.name');
 ```
 
-Works for hooks too — `state.get('myHook')` returns the hook value.
+Works for actions too — `state.get('myAction')` returns the action value.
 
 ### `state.through(shadowRoot)`
 
@@ -301,7 +293,7 @@ FlowState queries for these attributes inside its scope and updates them automat
 >
 > ```js
 > const root = document.getElementById('app');
-> const state = new FlowState(root, { init: { status: 'idle', count: 0 } });
+> const state = new FlowState(root, { status: 'idle', count: 0 });
 >
 > // Reactively update a root attribute
 > state.watch('status', value => root.setAttribute('data-status', value));
@@ -333,14 +325,14 @@ The binding format is `"itemField:target"`:
 
 ---
 
-## Hooks
+## Actions
 
-Hooks are callbacks or values passed down from parent to child via the state scope. Children read them with `FlowState.get()` or `state.get()`.
+Actions are callbacks or values passed down from parent to child via the state scope. Children read them with `FlowState.get()` or `state.get()`.
 
 ```js
 // Parent
-flowConfig = {
-  hooks: {
+state = {
+  actions: {
     deleteCard: (id) => this.#deleteCard(id),
     theme: 'dark',
   }
@@ -351,7 +343,7 @@ const deleteCard = FlowState.get(this, 'deleteCard');
 const theme      = FlowState.get(this, 'theme');
 ```
 
-Hooks are **not reactive** — `FlowState.watch(el, 'deleteCard', cb)` calls `cb` once with the hook value and never again. Use them for stable callbacks and config, not changing data.
+Actions are **not reactive** — `FlowState.watch(el, 'deleteCard', cb)` calls `cb` once with the action value and never again. Use them for stable callbacks and config, not changing data.
 
 ---
 
@@ -363,9 +355,9 @@ The canonical pattern. Parent owns state. Children watch it.
 
 ```js
 // parent.js
-flowConfig = {
-  init: { items: [] },
-  hooks: { removeItem: (id) => this.#remove(id) },
+state = {
+  items: [],
+  actions: { removeItem: (id) => this.#remove(id) },
 };
 
 // child.js (connectedCallback)
@@ -381,8 +373,8 @@ Each component can have its own FlowState scope for state that shouldn't leak to
 
 ```js
 class KanbanColumn extends FlowStateComponent {
-  flowConfig = {
-    init: { selectedCardId: null }, // local only
+  state = {
+    selectedCardId: null, // local only
   };
 }
 ```

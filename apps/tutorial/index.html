@@ -385,7 +385,7 @@
       <a class="nav-link" href="#instance-api">Instance API</a>
       <a class="nav-link" href="#static-api">Static API</a>
       <a class="nav-link" href="#bindings">Declarative Bindings</a>
-      <a class="nav-link" href="#hooks">Hooks</a>
+      <a class="nav-link" href="#actions">Actions</a>
     </div>
 
     <div class="nav-section">
@@ -479,7 +479,7 @@ class MyCounter extends HTMLElement {
 
     // ⚠️ Create FlowState BEFORE appending children.
     this.#state = new FlowState(this, {
-      init: { count: 0 },
+      count: 0,
     });
     // Register the shadow so declarative bindings inside it receive updates.
     this.#state.through(shadow);
@@ -513,8 +513,8 @@ class MyCounter extends FlowStateComponent {
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`&lt;button id="btn"&gt;Click 0 times&lt;/button&gt;`;
 
-  flowConfig = {
-    init: { count: 0 },
+  state = {
+    count: 0,
   };
 
   connectedCallback() {
@@ -542,7 +542,7 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
         <div class="cb"><pre><code>class MyBanner extends FlowStateComponent {
   // no shadowMode — renders into light DOM
   template = `&lt;p id="msg"&gt;&lt;/p&gt;`;
-  flowConfig = { init: { message: 'Hello' } };
+  state = { message: 'Hello' };
 
   connectedCallback() {
     super.connectedCallback();
@@ -557,40 +557,33 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
       <section id="config">
         <h2>The Config Object</h2>
         <div class="cb"><pre><code>{
-  init: {
-    // Plain values — any JSON-serializable type
-    count: 0,
-    user: { name: 'Alice', role: 'admin' },
-    items: [],
+  // Plain values — any JSON-serializable type
+  count: 0,
+  user: { name: 'Alice', role: 'admin' },
+  items: [],
 
-    // Computed values — functions of state
-    // Re-evaluated automatically when dependencies change
-    fullLabel: (s) => `${s.user.name} (${s.user.role})`,
-  },
+  // Computed values — functions of state
+  // Re-evaluated automatically when dependencies change
+  fullLabel: (s) => `${s.user.name} (${s.user.role})`,
 
-  hooks: {
-    // Hooks are read-only shared values or callbacks.
+  actions: {
+    // Actions are read-only shared values or callbacks.
     // Children call FlowState.get(el, 'doSomething') to retrieve them.
-    // They are NOT reactive — watchers receive the hook value once on registration.
+    // They are NOT reactive — watchers receive the action value once on registration.
     doSomething: (arg) => console.log(arg),
     theme: 'dark',
-  },
-
-  options: {
-    label: 'MyComponent', // shown in devtools
   },
 }</code></pre></div>
 
         <h3>Computed Values</h3>
         <p>
-          Computed values are declared as functions in <code>init</code>. They are
+          Computed values are declared as functions directly in the config. They are
           <strong>re-evaluated lazily</strong> when their dependencies update.
         </p>
-        <div class="cb"><pre><code>init: {
-  price: 10,
-  qty: 3,
-  total: (s) => s.price * s.qty,
-}</code></pre></div>
+        <div class="cb"><pre><code>price: 10,
+qty: 3,
+total: (s) => s.price * s.qty,
+</code></pre></div>
         <blockquote>
           ⚠️ <strong>Known limitation</strong>: Dependency tracking is
           <strong>top-level only</strong>. <code>(s) => s.user.name</code> tracks
@@ -626,7 +619,7 @@ state.update({ user: { name: 'Bob' } }); // only name changes, role preserved
 await state.update({ count: 99 });
 const current = state.get('count'); // 99 ✓</code></pre></div>
         <blockquote>
-          ⚠️ Only keys declared in <code>init</code> can be updated. Attempts to add new keys are
+          ⚠️ Only <strong>configured keys</strong> can be updated. Attempts to add new keys are
           silently ignored (with a console warning). Computed keys cannot be updated.
         </blockquote>
 
@@ -651,7 +644,7 @@ unsub();</code></pre></div>
         <p>Read the current value synchronously. Does not register a watcher.</p>
         <div class="cb"><pre><code>const count = state.get('count');
 const name  = state.get('user.name');</code></pre></div>
-        <p>Works for hooks too — <code>state.get('myHook')</code> returns the hook value.</p>
+        <p>Works for actions too — <code>state.get('myAction')</code> returns the action value.</p>
 
         <h3><code>state.through(shadowRoot)</code></h3>
         <p>
@@ -763,15 +756,15 @@ deleteItem(this.#itemId);</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->
-      <section id="hooks">
-        <h2>Hooks</h2>
+      <section id="actions">
+        <h2>Actions</h2>
         <p>
-          Hooks are callbacks or values passed down from parent to child via the state scope.
+          Actions are callbacks or values passed down from parent to child via the state scope.
           Children read them with <code>FlowState.get()</code> or <code>state.get()</code>.
         </p>
         <div class="cb"><pre><code>// Parent
-flowConfig = {
-  hooks: {
+state = {
+  actions: {
     deleteCard: (id) => this.#deleteCard(id),
     theme: 'dark',
   }
@@ -781,9 +774,9 @@ flowConfig = {
 const deleteCard = FlowState.get(this, 'deleteCard');
 const theme      = FlowState.get(this, 'theme');</code></pre></div>
         <p>
-          Hooks are <strong>not reactive</strong> —
+          Actions are <strong>not reactive</strong> —
           <code>FlowState.watch(el, 'deleteCard', cb)</code> calls <code>cb</code> once with the
-          hook value and never again. Use them for stable callbacks and config, not changing data.
+          action value and never again. Use them for stable callbacks and config, not changing data.
         </p>
       </section>
 
@@ -794,9 +787,9 @@ const theme      = FlowState.get(this, 'theme');</code></pre></div>
         <h3>Parent → Children data flow</h3>
         <p>The canonical pattern. Parent owns state. Children watch it.</p>
         <div class="cb"><pre><code>// parent.js
-flowConfig = {
-  init: { items: [] },
-  hooks: { removeItem: (id) => this.#remove(id) },
+state = {
+  items: [],
+  actions: { removeItem: (id) => this.#remove(id) },
 };
 
 // child.js (connectedCallback)
@@ -807,7 +800,7 @@ this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
         <p>
           The demo below shows this pattern in action. A <code>work-space</code> root owns
           <code>workItems</code> and <code>selectedWorkItem</code> state, and exposes
-          <code>selectWorkItem</code> and <code>saveWorkItem</code> hooks. The sidebar uses
+          <code>selectWorkItem</code> and <code>saveWorkItem</code> actions. The sidebar uses
           <code>FlowState.watch</code> and <code>FlowState.get</code> to connect to the shared
           scope, while managing its own <code>filter</code> state locally with a nested
           <code>FlowState</code> instance.
@@ -824,8 +817,8 @@ this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
           ancestors or siblings.
         </p>
         <div class="cb"><pre><code>class KanbanColumn extends FlowStateComponent {
-  flowConfig = {
-    init: { selectedCardId: null }, // local only
+  state = {
+    selectedCardId: null, // local only
   };
 }</code></pre></div>
 

@@ -181,21 +181,20 @@ class TodoApp extends HTMLElement {
     this.#clearDoneBtn = shadow.getElementById('clear-done-btn');
 
     this.#state = Flow.create(this, {
-      state: {
-        todos: [],
-        filter: 'all',
+      todos: [],
+      filter: 'all',
 
-        // Recomputes whenever todos or filter changes
-        filteredTodos: (state) => {
-          if (state.filter === 'active') return state.todos.filter(t => !t.done);
-          if (state.filter === 'done')   return state.todos.filter(t => t.done);
-          return state.todos;
-        },
-
-        // DOM-bound via flow-watch-activeCount-to-prop
-        activeCount: (state) => state.todos.filter(t => !t.done).length,
+      // Recomputes whenever todos or filter changes
+      filteredTodos: (state) => {
+        if (state.filter === 'active') return state.todos.filter(t => !t.done);
+        if (state.filter === 'done')   return state.todos.filter(t => t.done);
+        return state.todos;
       },
-      hooks: {
+
+      // DOM-bound via flow-watch-activeCount-to-prop
+      activeCount: (state) => state.todos.filter(t => !t.done).length,
+
+      actions: {
         toggleTodo: this.#toggleTodo.bind(this),
         deleteTodo: this.#deleteTodo.bind(this),
       },

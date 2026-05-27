@@ -21,7 +21,7 @@ describe('FlowState – constructor', () => {
   it('exposes __Flow__ with hasKey and flowThroughs on the root element', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
-    new FlowState(root, { state: { count: 0, user: { name: 'Alice' } } });
+    new FlowState(root, { count: 0, user: { name: 'Alice' } });
 
     expect(root.__Flow__).toBeDefined();
     expect(root.__Flow__.hasKey('count')).toBe(true);
@@ -56,13 +56,11 @@ describe('FlowState – state.get()', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      state: {
-        count: 0,
-        name: 'Alice',
-        active: true,
-        user: { role: 'admin', address: { city: 'NY' } },
-        items: [1, 2, 3],
-      },
+      count: 0,
+      name: 'Alice',
+      active: true,
+      user: { role: 'admin', address: { city: 'NY' } },
+      items: [1, 2, 3],
     });
   });
 
@@ -101,11 +99,9 @@ describe('FlowState – state.update()', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      state: {
-        count: 0,
-        name: 'Alice',
-        user: { role: 'admin', age: 30 },
-      },
+      count: 0,
+      name: 'Alice',
+      user: { role: 'admin', age: 30 },
     });
   });
 
@@ -179,10 +175,8 @@ describe('FlowState – state.watch()', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
     state = new FlowState(root, {
-      state: {
-        count: 0,
-        user: { name: 'Alice', age: 30 },
-      },
+      count: 0,
+      user: { name: 'Alice', age: 30 },
     });
   });
 
@@ -297,7 +291,7 @@ describe('FlowState – state immutability', () => {
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = new FlowState(root, { state: { count: 0, user: { name: 'Alice' } } });
+    state = new FlowState(root, { count: 0, user: { name: 'Alice' } });
   });
 
   afterEach(() => root.remove());
@@ -316,7 +310,7 @@ describe('FlowState – state immutability', () => {
   it('returned arrays are frozen', () => {
     const root2 = document.createElement('div');
     document.body.appendChild(root2);
-    const s = new FlowState(root2, { state: { items: [1, 2, 3] } });
+    const s = new FlowState(root2, { items: [1, 2, 3] });
     expect(Object.isFrozen(s.get('items'))).toBe(true);
     root2.remove();
   });

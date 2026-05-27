@@ -118,7 +118,7 @@ class KanbanCard extends HTMLElement {
     this.#cardId   = Number(this.dataset.cardId);
     this.#columnId = this.dataset.columnId;
 
-    // Get hooks from the nearest parent scope (KanbanColumn or KanbanApp)
+    // Get actions from the nearest parent scope (KanbanColumn or KanbanApp)
     this.#deleteCard = FlowState.get(this, 'deleteCard');
     this.#selectCard = FlowState.get(this, 'selectCard');
     this.#editCard   = FlowState.get(this, 'editCard');

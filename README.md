@@ -55,10 +55,8 @@ Or import directly from a CDN:
     const app = document.getElementById('app');
 
     const state = new FlowState(app, {
-      init: {
-        count: 0,
-        doubled: (s) => s.count * 2,   // computed value
-      },
+      count: 0,
+      doubled: (s) => s.count * 2,   // computed value
     });
 
     document.getElementById('inc').addEventListener('click', () => {
@@ -80,32 +78,28 @@ Or import directly from a CDN:
 A `FlowState` instance is **scoped to a root DOM element**. State updates propagate to all descendants/children of that root. Only one `FlowState` instance can be mounted per element.
 
 ```js
-const state = new FlowState(rootElement, { init, hooks, options });
+const state = new FlowState(rootElement, config);
 ```
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `rootElement` | `Node` | The DOM element that this state scope is mounted to |
-| `config` | `Object` | Configuration object: `{ init, hooks, options }` |
-| `config.init` | `Object` | Initial state. Functions become **computed values**. |
-| `config.hooks` | `Object` | Non-reactive static values (e.g. callbacks, services) |
-| `config.options` | `Object` | `{ label: string }` — labels this instance in devtools (to be expanded later...) |
+| `config` | `Object` | Flat configuration object. Functions → computed values. `actions:` key → static callbacks/values. |
+| `config.actions` | `Object` | Non-reactive static values (e.g. callbacks, services). All other keys are state values or computed values. |
 
 Returns an **instance API** object: `{ update, watch, get, through }`.
 
 ### Config — Values and Computed
 
-Plain values and computed values are declared together in `config.init`. Any value whose definition is a function is treated as a **computed value** — it receives the current state and returns a derived result.
+Plain values and computed values go directly in the config object. Any value whose definition is a function is treated as a **computed value** — it receives the current state and returns a derived result.
 
 ```js
 const state = new FlowState(app, {
-  init: {
-    firstName: 'Jane',
-    lastName: 'Doe',
-    fullName: (s) => `${s.firstName} ${s.lastName}`,  // computed
-    items: [],
-    total: (s) => s.items.reduce((sum, i) => sum + i.price, 0), // computed
-  },
+  firstName: 'Jane',
+  lastName: 'Doe',
+  fullName: (s) => `${s.firstName} ${s.lastName}`,  // computed
+  items: [],
+  total: (s) => s.items.reduce((sum, i) => sum + i.price, 0), // computed
 });
 ```
 
@@ -117,7 +111,6 @@ State can be deeply nested using plain objects:
 
 ```js
 const state = new FlowState(app, {
-  init: {
     user: {
       name: 'Jane',
       address: {
@@ -214,7 +207,7 @@ Alias for `new FlowState(...)`.
   import { FlowState } from 'flow-state';
 
   FlowState.create(document.querySelector('#app'), {
-    init: { count: 0 }
+    count: 0
   });
 </script>
 ```
@@ -229,7 +222,7 @@ Bind state to element properties or attributes directly in HTML — no JavaScrip
 >
 > ```js
 > const root = document.getElementById('app');
-> const state = new FlowState(root, { init: { status: 'idle', count: 0 } });
+> const state = new FlowState(root, { status: 'idle', count: 0 });
 >
 > // Reactively update a root attribute
 > state.watch('status', value => root.setAttribute('data-status', value));
@@ -290,7 +283,7 @@ class MyCard extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'closed' });
 
     // Mount FlowState on the host (this), not the shadow
-    const state = new FlowState(this, { init: { ... } });
+    const state = new FlowState(this, { /* config */ });
 
     // Register the closed shadow so bindings inside it receive updates
     state.through(shadow); // only pierces shadow with only this FlowState instance (keep your closed component closed off from outside state too)
@@ -316,21 +309,21 @@ After registration, declarative bindings inside the shadow root will receive upd
 
 ---
 
-## Hooks
+## Actions
 
-Hooks are non-reactive, static values that can be injected into the state scope — useful for passing callbacks, services, or config to deeply nested child components without prop-drilling.
+Actions are non-reactive, static values that can be injected into the state scope — useful for passing callbacks, services, or config to deeply nested child components without prop-drilling.
 
 ```js
 const state = new FlowState(app, {
-  init: config,
-  hooks: {
+  count: 0,
+  actions: {
     onSave: async (data) => { /* ... */ },
     apiUrl: '/api/v1',
   }
 });
 ```
 
-Hooks are accessible via `FlowState.get(element, 'apiUrl')` from a child's `connectedCallback` like any other state value, or via `state.watch('onSave', fn)` on the instance directly (called once immediately, then never again since hooks are static).
+Actions are accessible via `FlowState.get(element, 'apiUrl')` from a child's `connectedCallback` like any other state value, or via `state.watch('onSave', fn)` on the instance directly (called once immediately, then never again since actions are static).
 
 ---
 
@@ -375,7 +368,7 @@ class MyParent extends HTMLElement {
     this.attachShadow({ mode: 'open' });
 
     // ✅ FlowState on the host element (light DOM)
-    this.#state = new FlowState(this, { init: { count: 0 } });
+    this.#state = new FlowState(this, { count: 0 });
 
     // Children's connectedCallbacks fire here and can successfully call
     // FlowState.watch / FlowState.get
@@ -394,7 +387,7 @@ class MyParent extends HTMLElement {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
     // Too late — child connectedCallbacks already fired
-    this.#state = new FlowState(this, { init: { count: 0 } });
+    this.#state = new FlowState(this, { count: 0 });
   }
 }
 ```
@@ -437,9 +430,8 @@ class MyCounter extends FlowStateComponent {
     <button id="inc">+</button>
   `;
 
-  flowConfig = {
-    init: { count: 0 },
-    options: { label: 'MyCounter' },
+  state = {
+    count: 0,
   };
 
   connectedCallback() {
@@ -461,7 +453,7 @@ customElements.define('my-counter', MyCounter);
 | `shadowMode` | `'open' \| 'closed'` | Auto-attaches a shadow root of this mode |
 | `template` | `string` | HTML string stamped into the shadow (or light DOM if no shadow) |
 | `styles` | `string` | CSS string applied via `adoptedStyleSheets` |
-| `flowConfig` | `object` | Same `{ init, hooks, options }` config as `new FlowState(...)` |
+| `state` | `object` | Flat config as `new FlowState(...)` — values, computed functions, and optional `actions:` sub-object |
 | `this.state` | instance API | The `FlowState` instance — available after `super.connectedCallback()` |
 
 `FlowStateComponent` mounts FlowState on `this` (the host element) and calls `state.through(shadowRoot)` automatically, so scope traversal works correctly across shadow boundaries.

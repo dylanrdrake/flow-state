@@ -33,15 +33,12 @@ class ItemEditorApp extends HTMLElement {
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
     this.#state = new Flow(this, {
-      state: {
-        items,
-        selectedItem: null
-      },
-      hooks: {
-        selectItem:    this.#selectWorkItem.bind(this),
-        saveWorkItem:  this.#saveWorkItem.bind(this)
-      },
-      options: { label: 'ItemEditorApp' }
+      items,
+      selectedItem: null,
+      actions: {
+        selectItem:   this.#selectWorkItem.bind(this),
+        saveWorkItem: this.#saveWorkItem.bind(this)
+      }
     });
 
     this.shadowRoot.appendChild(template.content.cloneNode(true));
