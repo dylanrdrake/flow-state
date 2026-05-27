@@ -55,7 +55,7 @@
     const cv  = document.getElementById('c');
     const ctx = cv.getContext('2d');
 
-    const W = 700, H = 580;
+    const W = 700, H = 720;
     const dpr = window.devicePixelRatio || 1;
     cv.width  = W * dpr;
     cv.height = H * dpr;
@@ -70,7 +70,7 @@
 
     // ── Graph ─────────────────────────────────────────────────────────────
     const NODES = [
-      { id: 'app',     x: 350, y: 145,  w: 310, h: 172, label: 'App',
+      { id: 'app',     x: 350, y: 160,  w: 320, h: 220, label: 'App',
         stateLines: [
           'state = {',
           '  items,',
@@ -85,9 +85,9 @@
           '  }',
           '}'
         ], root: true },
-      { id: 'sidebar', x: 175, y: 385, w: 270, h: 228, label: 'Sidebar', state: 'state = { filter }',
+      { id: 'sidebar', x: 175, y: 480, w: 310, h: 280, label: 'Sidebar', state: 'state = { filter }',
         actions: ["", "selectItem = Flow.get('selectItem')", "", "Flow.watch('items', (items) => {", "  // render list", "})", "", "state.watch('filter', (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    state.update({ filter: e.target.value })", "  })"] },
-      { id: 'editor',  x: 525, y: 385, w: 260, h: 180, label: 'Editor',  state: 'state = { edits }',
+      { id: 'editor',  x: 525, y: 480, w: 295, h: 222, label: 'Editor',  state: 'state = { edits }',
         actions: ["", "saveItem = Flow.get('saveItem')", "", "Flow.watch('selectedItem', (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
     ];
 
@@ -340,33 +340,33 @@
         const textX = n.x - n.w / 2 + 8; // 8px padding from left edge
         const topY = n.y - n.h / 2 + 8; // 8px padding from top edge
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 13px system-ui';
+        ctx.font = 'bold 14px system-ui';
         ctx.fillText(n.label, textX, topY + 8);
         ctx.fillStyle = `rgba(255,255,255,${0.5 + g * 0.5})`;
-        ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+        ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
         const lines = n.stateLines || (n.state ? [n.state] : []);
         const startY = topY + 24;
         const boldIndices = boldActionIndices[n.id] || new Set();
         const partialBoldLines = partialBold[n.id] || {};
         lines.forEach((ln, i) => {
-          const y = startY + i * 12;
+          const y = startY + i * 14;
           // Check for partial bold
           if (partialBoldLines[i]) {
             const { start, end } = partialBoldLines[i];
             const before = ln.substring(0, start);
             const bold = ln.substring(start, end);
             const after = ln.substring(end);
-            ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(before, textX, y);
             const beforeW = ctx.measureText(before).width;
-            ctx.font = `600 9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.font = `600 11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(bold, textX + beforeW, y);
             const boldW = ctx.measureText(bold).width;
-            ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(after, textX + beforeW + boldW, y);
           } else {
             // Full line bold or normal
-            ctx.font = boldIndices.has(i) ? `600 9.5px 'Cascadia Code','JetBrains Mono',monospace` : `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.font = boldIndices.has(i) ? `600 11px 'Cascadia Code','JetBrains Mono',monospace` : `11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(ln, textX, y);
           }
         });
@@ -381,11 +381,11 @@
         const textX = n.x - n.w / 2 + 8; // 8px padding from left edge
         const topY = n.y - n.h / 2 + 8; // 8px padding from top edge
         ctx.fillStyle = INK;
-        ctx.font = '600 12px system-ui';
+        ctx.font = '600 13px system-ui';
         ctx.fillText(n.label, textX, topY + 8);
         if (n.state) {
           ctx.fillStyle = MUTED;
-          ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+          ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
           ctx.fillText(n.state, textX, topY + 24);
         }
         if (n.actions) {
@@ -394,24 +394,24 @@
           const boldIndices = boldActionIndices[n.id] || new Set();
           const partialBoldLines = partialBold[n.id] || {};
           n.actions.forEach((action, i) => {
-            const y = startY + i * 12;
+            const y = startY + i * 14;
             // Check for partial bold
             if (partialBoldLines[i]) {
               const { start, end } = partialBoldLines[i];
               const before = action.substring(0, start);
               const bold = action.substring(start, end);
               const after = action.substring(end);
-              ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(before, textX, y);
               const beforeW = ctx.measureText(before).width;
-              ctx.font = `600 9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.font = `600 11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(bold, textX + beforeW, y);
               const boldW = ctx.measureText(bold).width;
-              ctx.font = `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(after, textX + beforeW + boldW, y);
             } else {
               // Full line bold or normal
-              ctx.font = boldIndices.has(i) ? `600 9.5px 'Cascadia Code','JetBrains Mono',monospace` : `9.5px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.font = boldIndices.has(i) ? `600 11px 'Cascadia Code','JetBrains Mono',monospace` : `11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(action, textX, y);
             }
           });
@@ -435,7 +435,7 @@
     }
 
     function drawAnnotations() {
-      ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+      ctx.font = '11px \'Cascadia Code\', \'JetBrains Mono\', monospace';
       ctx.textBaseline = 'middle';
       for (const k in anns) {
         const a = anns[k];
@@ -467,13 +467,13 @@
             // Render normal text before this bold segment
             if (range.start > lastEnd) {
               const segment = a.text.substring(lastEnd, range.start);
-              ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+              ctx.font = '11px \'Cascadia Code\', \'JetBrains Mono\', monospace';
               ctx.fillText(segment, currentX, a.y);
               currentX += ctx.measureText(segment).width;
             }
             // Render bold segment
             const boldSegment = a.text.substring(range.start, range.end);
-            ctx.font = '600 9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+            ctx.font = '600 11px \'Cascadia Code\', \'JetBrains Mono\', monospace';
             ctx.fillText(boldSegment, currentX, a.y);
             currentX += ctx.measureText(boldSegment).width;
             lastEnd = range.end;
@@ -481,7 +481,7 @@
           // Render remaining normal text after last bold segment
           if (lastEnd < a.text.length) {
             const segment = a.text.substring(lastEnd);
-            ctx.font = '9.5px \'Cascadia Code\', \'JetBrains Mono\', monospace';
+            ctx.font = '11px \'Cascadia Code\', \'JetBrains Mono\', monospace';
             ctx.fillText(segment, currentX, a.y);
           }
         } else {
