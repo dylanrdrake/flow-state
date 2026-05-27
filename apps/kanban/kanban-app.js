@@ -186,6 +186,9 @@ class KanbanApp extends FlowStateComponent {
   #modalDesc;
   #modalColumn;
   #editingCard = null; // { card: Card|null, columnId: string }
+  #onEscapeKeydown = (e) => {
+    if (e.key === 'Escape') this.#closeModal();
+  };
 
   styles = styles;
 
@@ -219,9 +222,7 @@ class KanbanApp extends FlowStateComponent {
     this.querySelector('#modal-save').addEventListener('click', () => this.#saveModal());
 
     // Close on Escape
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') this.#closeModal();
-    });
+    window.addEventListener('keydown', this.#onEscapeKeydown);
 
     // Load columns from API, then watch for render
     fetch('/api/kanban')
@@ -232,6 +233,11 @@ class KanbanApp extends FlowStateComponent {
     this.state.watch('columns', this.#renderColumns.bind(this));
 
     this.#newCardBtn.addEventListener('click', () => this.#openModal(null, null));
+  }
+
+  disconnectedCallback() {
+    window.removeEventListener('keydown', this.#onEscapeKeydown);
+    this.state?.destroy();
   }
 
   #renderColumns(columns) {

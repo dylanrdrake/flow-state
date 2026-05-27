@@ -107,6 +107,10 @@ class KanbanColumn extends FlowStateComponent {
     FlowState.watch(this, 'columns', this.#render.bind(this));
   }
 
+  disconnectedCallback() {
+    this.state?.destroy();
+  }
+
   #render(columns) {
     const col = columns?.find(c => c.id === this.#columnId);
     if (!col) return;

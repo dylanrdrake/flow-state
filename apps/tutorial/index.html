@@ -556,7 +556,10 @@ class MyCounter extends HTMLElement {
       this.#state.update(prev => ({ count: prev.count + 1 }));
     });
   }
-}
+
+  disconnectedCallback() {
+    this.#state?.destroy();
+  }
 customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
           <code>FlowState.create(root, config)</code> is identical to
@@ -590,6 +593,11 @@ class MyCounter extends FlowStateComponent {
       this.state.update(prev => ({ count: prev.count + 1 }));
     });
   }
+
+  disconnectedCallback() {
+    // ⚠️ Cleanup: destroy the FlowState scope when this component is torn down.
+    this.state?.destroy();
+  }
 }
 customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
@@ -612,7 +620,19 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
       this.querySelector('#msg').textContent = v;
     });
   }
+
+  disconnectedCallback() {
+    this.state?.destroy();
+  }
 }</code></pre></div>
+        <blockquote>
+          <strong>Cleanup warning:</strong> If a FlowState scope is being removed permanently,
+          call <code>state.destroy()</code> in <code>disconnectedCallback()</code>.
+          This releases watchers, removes internal scope registration, and helps prevent memory
+          leaks in long-running apps.
+          <br><br>
+          <code>disconnectedCallback() { this.state?.destroy(); }</code>
+        </blockquote>
       </section>
 
       <div class="group-heading" id="reference">Reference</div>
@@ -708,18 +728,6 @@ const name  = state.get('user.name');</code></pre></div>
 this.#state = new FlowState(this, config);
 this.#state.through(shadow); // scope now includes shadow</code></pre></div>
         <p><code>FlowStateComponent</code> does this automatically.</p>
-        
-        <h3><code>state.destroy()</code></h3>
-        <p>
-          When a FlowState scope will be removed permanently (for example when a component
-          is torn down and will not be reattached), call <code>state.destroy()</code> to
-          free watchers, detach devtools registration, and prevent memory leaks.
-        </p>
-        <div class="cb"><pre><code>disconnectedCallback() {
-  // If your component is permanently removed, cleanup the FlowState scope:
-  this.state?.destroy();
-}
-</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->
@@ -906,6 +914,17 @@ state.update(prev => ({ count: prev.count + 1 }));
 
 // ✗ Risky if called multiple times before flush
 state.update({ count: state.get('count') + 1 });</code></pre></div>
+
+        <h3>Cleanup on permanent unmount</h3>
+        <p>
+          When a component is removed for good (not temporarily detached for a move), cleanup
+          its scope in <code>disconnectedCallback()</code>.
+        </p>
+        <div class="cb"><pre><code>class TaskPanel extends FlowStateComponent {
+  disconnectedCallback() {
+    this.state?.destroy();
+  }
+}</code></pre></div>
       </section>
 
       <!-- ──────────────────────────────────── -->

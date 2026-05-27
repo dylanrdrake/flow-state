@@ -2,11 +2,11 @@
 
 A simple, lightweight, zero-dependency state library for web components and vanilla JavaScript.
 
-**[View the interactive tutorial →](https://dylanrdrake.github.io/flow-state/apps/tutorial)**
+**[View the tutorial →](https://dylanrdrake.github.io/flow-state/apps/tutorial)**
 
 ## At a Glance
 
-The entire public API — 4 instance methods, 6 static methods, and 5 HTML attributes:
+The entire public API — 5 instance methods, 6 static methods, and 5 HTML attributes:
 
 | | |
 |---|---|
@@ -105,20 +105,15 @@ class MyCounter extends HTMLElement {
       this.#state.update(prev => ({ count: prev.count + 1 }));
     });
   }
+
+  disconnectedCallback() {
+    // ⚠️ Cleanup: destroy the FlowState scope when this component is torn down.
+    this.#state?.destroy();
+  }
 }
 customElements.define('my-counter', MyCounter);
 ```
 
-
-### 4. Destroy / Cleanup
-Call `state.destroy()` when a scope is being removed permanently (for example in a component's `disconnectedCallback`) to free internal watchers, drop devtool registration, and avoid memory leaks in long-running apps.
-
-```js
-// In a custom element that will be removed permanently:
-disconnectedCallback() {
-  this.state?.destroy();
-}
-```
 
 ### 3. With FlowStateComponent
 
@@ -145,9 +140,23 @@ class MyCounter extends FlowStateComponent {
       this.state.update(prev => ({ count: prev.count + 1 }));
     });
   }
+
+  disconnectedCallback() {
+    this.state?.destroy();
+  }
 }
 customElements.define('my-counter', MyCounter);
 ```
+
+> **Cleanup warning:** If a FlowState scope is being removed permanently, call `state.destroy()` in `disconnectedCallback()`.
+> This releases watchers, removes internal scope registration, and helps prevent memory leaks in long-running apps.
+> See `state.destroy()` in Instance API and Cleanup on permanent unmount in Common Patterns below.
+>
+> ```js
+> disconnectedCallback() {
+>   this.state?.destroy();
+> }
+> ```
 
 ---
 
@@ -166,7 +175,7 @@ const state = new FlowState(rootElement, config);
 | `rootElement` | `Node` | The DOM element that this state scope is mounted to |
 | `config` | `Object` | Flat configuration object. Top-level functions → actions. `FlowState.compute()` wrappers → computed values. Everything else → reactive state. |
 
-Returns an **instance API** object: `{ update, watch, get, through }`.
+Returns an **instance API** object: `{ update, watch, get, through, destroy }`.
 
 ### Config — Values, Computed, and Actions
 
@@ -219,12 +228,18 @@ The object returned by `new FlowState(...)` or `FlowState.create(...)`, also acc
 
 Update state values. Only keys declared in the initial config can be updated. New, non-configured state keys will be ignored. Updates are batched and flushed as microtasks.
 
+`state.update(...)` returns a Promise that resolves after the flush completes. If you need to read the latest state immediately after an update, `await` it.
+
 ```js
 // Partial object — merged into current state
 state.update({ count: 5 });
 
 // Functional update — receives previous state, must return partial object
 state.update(prev => ({ count: prev.count + 1 }));
+
+// Await when you need a post-flush read
+await state.update({ count: 99 });
+console.log(state.get('count')); // 99
 ```
 
 ### `state.watch(key, callback)`
@@ -248,6 +263,20 @@ Get the current value of a state key once.
 
 ```js
 const count = state.get('count');
+```
+
+### `state.destroy()`
+
+Destroy a FlowState scope when it is being removed permanently. This clears registered watchers,
+removes internal scope registration, and unregisters the instance from devtools snapshots.
+
+Use this for permanent teardown (for example in `disconnectedCallback` of components that are
+not expected to be reattached).
+
+```js
+disconnectedCallback() {
+  this.state?.destroy();
+}
 ```
 
 ---
@@ -426,6 +455,25 @@ Actions are accessible via `FlowState.get(element, 'onSave')` from a child's `co
 
 ---
 
+## Common Patterns
+
+### Cleanup on permanent unmount
+
+If a component scope will not be reused, call `state.destroy()` during teardown.
+
+```js
+class TaskPanel extends FlowStateComponent {
+  disconnectedCallback() {
+    this.state?.destroy();
+  }
+}
+```
+
+`destroy()` internally uses a microtask + connectivity check, so transient detach/reattach cycles
+in the same turn are ignored.
+
+---
+
 ## Timing Rules
 
 FlowState's static methods (`FlowState.watch`, `FlowState.get`) work by dispatching a DOM event that bubbles up to the nearest ancestor with a matching FlowState scope. For this to work, the parent's FlowState instance must already be initialized and listening when the event fires.
@@ -539,6 +587,10 @@ class MyCounter extends FlowStateComponent {
     this.shadowRoot.getElementById('inc').addEventListener('click', () => {
       this.state.update(prev => ({ count: prev.count + 1 }));
     });
+  }
+
+  disconnectedCallback() {
+    this.state?.destroy();
   }
 }
 
