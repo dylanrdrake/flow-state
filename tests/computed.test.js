@@ -137,3 +137,65 @@ describe('FlowState – computed values with nested object deps', () => {
     expect(spy).toHaveBeenCalledWith('Dave (admin)');
   });
 });
+
+describe('FlowState – computed values depending on computed values', () => {
+  it('evaluates upstream computed deps before downstream computed values', async () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const state = new FlowState(root, {
+      price: 10,
+      qty: 2,
+      taxRate: 0.1,
+      subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+      total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
+    });
+
+    expect(state.get('subtotal')).toBe(20);
+    expect(state.get('total')).toBe(22);
+
+    await state.update({ qty: 3 });
+    expect(state.get('subtotal')).toBe(30);
+    expect(state.get('total')).toBe(33);
+
+    root.remove();
+  });
+
+  it('notifies watcher on downstream computed key when upstream computed key changes', async () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const state = new FlowState(root, {
+      price: 10,
+      qty: 2,
+      taxRate: 0.1,
+      subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+      total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
+    });
+
+    const spy = vi.fn();
+    state.watch('total', spy);
+    spy.mockClear();
+
+    await state.update({ price: 20 });
+    expect(spy).toHaveBeenCalledOnce();
+    expect(spy).toHaveBeenCalledWith(44);
+
+    root.remove();
+  });
+
+  it('throws for circular computed dependencies', () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+
+    expect(() => {
+      new FlowState(root, {
+        source: 1,
+        a: FlowState.compute((b) => b + 1, ['b']),
+        b: FlowState.compute((a) => a + 1, ['a']),
+      });
+    }).toThrow(/Circular computed dependency detected/);
+
+    root.remove();
+  });
+});

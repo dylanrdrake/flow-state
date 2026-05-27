@@ -657,12 +657,22 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
           Computed values use <code>FlowState.compute(fn, deps)</code>. The function receives each
           listed dependency as a positional argument and is <strong>re-evaluated lazily</strong>
-          when any dependency changes.
+          when any dependency changes. Dependencies can reference plain state keys
+          <em>or other computed keys</em>.
         </p>
         <div class="cb"><pre><code>price: 10,
 qty: 3,
-total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+taxRate: 0.1,
+
+subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+
+// Depends on another computed key (subtotal)
+total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
 </code></pre></div>
+        <p>
+          FlowState resolves computed dependencies in order (upstream first). Circular dependency
+          chains are rejected with an explicit error.
+        </p>
       </section>
 
       <!-- ──────────────────────────────────── -->
@@ -694,6 +704,7 @@ const current = state.get('count'); // 99 ✓</code></pre></div>
         <blockquote>
           ⚠️ Only <strong>configured keys</strong> can be updated. Attempts to add new keys are
           silently ignored (with a console warning). Computed keys cannot be updated.
+          This is a design decision.
         </blockquote>
 
         <h3><code>state.watch(key, callback)</code></h3>
