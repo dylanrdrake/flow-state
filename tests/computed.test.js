@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowState } from '../lib/FlowState.js';
+import { createFlowFrom, flowCompute, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
 
 describe('FlowState – computed values', () => {
   let root, state;
@@ -7,42 +7,42 @@ describe('FlowState – computed values', () => {
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       price: 10,
       qty: 3,
       name: 'alice',
-      total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
-      upper: FlowState.compute((name) => name.toUpperCase(), ['name']),
+      total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
+      upper: flowCompute((name) => name.toUpperCase(), ['name']),
     });
   });
 
   afterEach(() => root.remove());
 
   it('state.get() returns the computed value', () => {
-    expect(state.get('total')).toBe(30);
-    expect(state.get('upper')).toBe('ALICE');
+    expect(getFlowFrom(root, 'total')).toBe(30);
+    expect(getFlowFrom(root, 'upper')).toBe('ALICE');
   });
 
   it('computed value is recalculated when a dependency changes', async () => {
     await state.update({ price: 20 });
-    expect(state.get('total')).toBe(60);
+    expect(getFlowFrom(root, 'total')).toBe(60);
   });
 
   it('computed value updates when the other dependency changes', async () => {
     await state.update({ qty: 5 });
-    expect(state.get('total')).toBe(50);
+    expect(getFlowFrom(root, 'total')).toBe(50);
   });
 
   it('watcher on a computed key fires immediately with the computed value', () => {
     const spy = vi.fn();
-    state.watch('total', spy);
+    watchFlowFrom(root, 'total', spy);
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(30);
   });
 
   it('watcher on a computed key fires with the new value when a dependency changes', async () => {
     const spy = vi.fn();
-    state.watch('total', spy);
+    watchFlowFrom(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ qty: 5 });
@@ -51,7 +51,7 @@ describe('FlowState – computed values', () => {
 
   it('watcher on a computed key does NOT fire when an unrelated key changes', async () => {
     const spy = vi.fn();
-    state.watch('total', spy);
+    watchFlowFrom(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ name: 'bob' });
@@ -63,7 +63,7 @@ describe('FlowState – computed values', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await state.update({ total: 999 });
     expect(warn).toHaveBeenCalled();
-    expect(state.get('total')).toBe(30); // still computed from price * qty
+    expect(getFlowFrom(root, 'total')).toBe(30); // still computed from price * qty
     warn.mockRestore();
   });
 
@@ -75,15 +75,15 @@ describe('FlowState – computed values', () => {
   it('multiple computed values can depend on the same key', async () => {
     const root2 = document.createElement('div');
     document.body.appendChild(root2);
-    const s = new FlowState(root2, {
+    const s = createFlowFrom(root2, {
       x: 4,
-      double: FlowState.compute((x) => x * 2, ['x']),
-      triple: FlowState.compute((x) => x * 3, ['x']),
+      double: flowCompute((x) => x * 2, ['x']),
+      triple: flowCompute((x) => x * 3, ['x']),
     });
 
     await s.update({ x: 5 });
-    expect(s.get('double')).toBe(10);
-    expect(s.get('triple')).toBe(15);
+    expect(getFlowFrom(root2, 'double')).toBe(10);
+    expect(getFlowFrom(root2, 'triple')).toBe(15);
     root2.remove();
   });
 });
@@ -94,42 +94,42 @@ describe('FlowState – computed values with nested object deps', () => {
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       user:  { name: 'Alice', role: 'admin' },
       score: 42,
-      label: FlowState.compute((user) => `${user.name} (${user.role})`, ['user']),
+      label: flowCompute((user) => `${user.name} (${user.role})`, ['user']),
     });
   });
 
   afterEach(() => root.remove());
 
   it('receives the full nested object as a positional argument', () => {
-    expect(state.get('label')).toBe('Alice (admin)');
+    expect(getFlowFrom(root, 'label')).toBe('Alice (admin)');
   });
 
   it('re-evaluates when a nested property of the dep changes', async () => {
     await state.update({ user: { name: 'Bob' } }); // deep merge — role preserved
-    expect(state.get('label')).toBe('Bob (admin)');
+    expect(getFlowFrom(root, 'label')).toBe('Bob (admin)');
   });
 
   it('re-evaluates when the whole dep object is replaced', async () => {
     await state.update({ user: { name: 'Carol', role: 'viewer' } });
-    expect(state.get('label')).toBe('Carol (viewer)');
+    expect(getFlowFrom(root, 'label')).toBe('Carol (viewer)');
   });
 
   it('does NOT re-evaluate when an unrelated key changes', async () => {
     const spy = vi.fn();
-    state.watch('label', spy);
+    watchFlowFrom(root, 'label', spy);
     spy.mockClear();
 
     await state.update({ score: 99 });
     expect(spy).not.toHaveBeenCalled();
-    expect(state.get('label')).toBe('Alice (admin)');
+    expect(getFlowFrom(root, 'label')).toBe('Alice (admin)');
   });
 
   it('watcher fires with the new derived value after a nested dep update', async () => {
     const spy = vi.fn();
-    state.watch('label', spy);
+    watchFlowFrom(root, 'label', spy);
     spy.mockClear();
 
     await state.update({ user: { name: 'Dave' } });
@@ -143,20 +143,20 @@ describe('FlowState – computed values depending on computed values', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
 
-    const state = new FlowState(root, {
+    const state = createFlowFrom(root, {
       price: 10,
       qty: 2,
       taxRate: 0.1,
-      subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
-      total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
+      subtotal: flowCompute((price, qty) => price * qty, ['price', 'qty']),
+      total: flowCompute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
     });
 
-    expect(state.get('subtotal')).toBe(20);
-    expect(state.get('total')).toBe(22);
+    expect(getFlowFrom(root, 'subtotal')).toBe(20);
+    expect(getFlowFrom(root, 'total')).toBe(22);
 
     await state.update({ qty: 3 });
-    expect(state.get('subtotal')).toBe(30);
-    expect(state.get('total')).toBe(33);
+    expect(getFlowFrom(root, 'subtotal')).toBe(30);
+    expect(getFlowFrom(root, 'total')).toBe(33);
 
     root.remove();
   });
@@ -165,16 +165,16 @@ describe('FlowState – computed values depending on computed values', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
 
-    const state = new FlowState(root, {
+    const state = createFlowFrom(root, {
       price: 10,
       qty: 2,
       taxRate: 0.1,
-      subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
-      total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
+      subtotal: flowCompute((price, qty) => price * qty, ['price', 'qty']),
+      total: flowCompute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
     });
 
     const spy = vi.fn();
-    state.watch('total', spy);
+    watchFlowFrom(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ price: 20 });
@@ -189,10 +189,10 @@ describe('FlowState – computed values depending on computed values', () => {
     document.body.appendChild(root);
 
     expect(() => {
-      new FlowState(root, {
+      createFlowFrom(root, {
         source: 1,
-        a: FlowState.compute((b) => b + 1, ['b']),
-        b: FlowState.compute((a) => a + 1, ['a']),
+        a: flowCompute((b) => b + 1, ['b']),
+        b: flowCompute((a) => a + 1, ['a']),
       });
     }).toThrow(/Circular computed dependency detected/);
 

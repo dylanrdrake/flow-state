@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FlowState } from '../lib/FlowState.js';
+import { createFlowFrom, flowThrough } from '../lib/FlowState.js';
 
 // The constructor defers the initial binding update one microtask.
 // Awaiting this lets us see the initial bound values in DOM assertions.
@@ -17,7 +17,7 @@ describe('FlowState – declarative bindings (to-prop)', () => {
       <span id="active-el"  flow-watch-active-to-prop="hidden"></span>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       name: 'Alice', active: false,
     });
 
@@ -57,7 +57,7 @@ describe('FlowState – declarative bindings (to-attr)', () => {
       <img   id="avatar"      flow-watch-avatar-to-attr="src">
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       count: 0, avatar: '/img/default.png',
     });
 
@@ -95,7 +95,7 @@ describe('FlowState – declarative bindings (dot-notation keys)', () => {
       <span id="role-el"  flow-watch-user-role-to-attr="data-role"></span>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       user: { city: 'NY', role: 'admin' },
     });
 
@@ -147,7 +147,7 @@ describe('FlowState – list item bindings (flow-list)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       users: [
         { id: 1, name: 'Alice', role: 'admin' },
         { id: 2, name: 'Bob',   role: 'viewer' },
@@ -200,7 +200,7 @@ describe('FlowState – list item bindings (nested keys)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       people: [
         { user: { city: 'NY', role: 'admin' } },
         { user: { city: 'LA', role: 'viewer' } },
@@ -240,7 +240,7 @@ describe('FlowState – list item bindings (nested keys)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       people: [{ displayName: 'Alice' }],
     });
 
@@ -268,7 +268,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: true });
+    state = createFlowFrom(root, { isReady: true });
     await waitForInitialBindings();
 
     expect(root.querySelector('#pass')?.textContent).toBe('Ready');
@@ -292,7 +292,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = createFlowFrom(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#fail')?.textContent).toBe('Not ready');
@@ -311,7 +311,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = createFlowFrom(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#pass')).toBeNull();
@@ -330,7 +330,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = createFlowFrom(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#fail')).not.toBeNull();
@@ -356,7 +356,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       showUsers: true,
       users: [{ name: 'Alice' }, { name: 'Bob' }],
     });
@@ -381,8 +381,8 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { showEmpty: true });
-    state.through(closedShadow);
+    state = createFlowFrom(root, { showEmpty: true });
+    flowThrough(closedShadow);
     await waitForInitialBindings();
 
     expect(closedShadow.querySelector('#empty')?.textContent).toBe('No items');
@@ -404,10 +404,10 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = createFlowFrom(root, {
       items: [{ name: 'A' }, { name: 'B' }],
     });
-    state.through(closedShadow);
+    flowThrough(closedShadow);
     await waitForInitialBindings();
 
     const names = [...closedShadow.querySelectorAll('.name')].map(el => el.textContent);
