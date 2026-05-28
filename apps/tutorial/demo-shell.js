@@ -1,24 +1,29 @@
-const params = new URLSearchParams(window.location.search);
-
-const title = params.get('title') || 'Demo';
-const base = params.get('base') || '../item-editor';
-const app = params.get('app') || 'index.html';
-const filesParam = params.get('files') || 'index.html,app.js';
-const files = filesParam
-  .split(',')
-  .map((name) => name.trim())
-  .filter(Boolean);
-
-document.title = `${title} Demo - FlowState`;
-
 const previewFrame = document.getElementById('preview-frame');
 const fileTabs = document.getElementById('file-tabs');
 const codeDisplay = document.getElementById('code-display');
 const cache = {};
 
-if (previewFrame) {
-  previewFrame.src = `${base}/${app}`;
-  previewFrame.title = title;
+let title = 'Demo';
+let root = '../item-editor';
+let entry = 'index.html';
+let files = ['index.html', 'app.js'];
+
+async function resolveDemoConfig() {
+  try {
+    const cfg = await fetch('./demo-shell.config.json').then((r) => {
+      if (!r.ok) throw new Error(`Failed to load demo-shell.config.json (${r.status})`);
+      return r.json();
+    });
+
+    title = cfg?.title || title;
+    root = cfg?.root || root;
+    entry = cfg?.entry || entry;
+    if (Array.isArray(cfg?.files) && cfg.files.length > 0) {
+      files = cfg.files;
+    }
+  } catch (err) {
+    console.warn('[demo-shell] Falling back to built-in demo settings.', err);
+  }
 }
 
 function languageForFile(filename) {
@@ -30,7 +35,7 @@ function languageForFile(filename) {
 
 async function loadFile(filename) {
   if (cache[filename]) return cache[filename];
-  const text = await fetch(`${base}/${filename}`).then((r) => r.text());
+  const text = await fetch(`${root}/${filename}`).then((r) => r.text());
   cache[filename] = text;
   return text;
 }
@@ -77,6 +82,18 @@ function initMainTabs() {
   });
 }
 
-buildFileTabs();
-initMainTabs();
-if (files[0]) showFile(files[0]);
+async function init() {
+  await resolveDemoConfig();
+  document.title = `${title} Demo - FlowState`;
+
+  if (previewFrame) {
+    previewFrame.src = `${root}/${entry}`;
+    previewFrame.title = title;
+  }
+
+  buildFileTabs();
+  initMainTabs();
+  if (files[0]) showFile(files[0]);
+}
+
+init();

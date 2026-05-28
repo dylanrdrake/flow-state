@@ -1,0 +1,6 @@
+{
+  "title": "Item Editor",
+  "root": "../item-editor",
+  "entry": "index.html",
+  "files": ["index.html", "app.js", "side-bar.js", "item-editor.js"]
+}
