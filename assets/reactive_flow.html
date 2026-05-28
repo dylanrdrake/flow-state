@@ -57,16 +57,20 @@
 
     const W = 700, H = 720;
     const dpr = window.devicePixelRatio || 1;
-    cv.width  = W * dpr;
-    cv.height = H * dpr;
+    const RENDER_SCALE = 1.5;
+    const pxScale = dpr * RENDER_SCALE;
+    cv.width  = W * pxScale;
+    cv.height = H * pxScale;
     cv.style.width  = W + 'px';
     cv.style.height = H + 'px';
-    ctx.scale(dpr, dpr);
+    ctx.scale(pxScale, pxScale);
 
     // ── Palette ───────────────────────────────────────────────────────────
     const INK    = '#0e1b1b';
     const BORDER = '#dcdcdc';
     const MUTED  = '#aaaaaa';
+    const HILITE = '#0e1b1b';
+    const HILITE_BG = 'rgba(14, 27, 27, 0.12)';
 
     // ── Graph ─────────────────────────────────────────────────────────────
     const NODES = [
@@ -101,6 +105,7 @@
     let glows = {}, particles = [], anns = {}, elapsed = 0, did = {};
     let boldActionIndices = {}; // Track which action line indices should be bold per node
     let partialBold = {}; // Track partial bold within specific lines: { nodeId: { lineIdx: { start, end } } }
+    let partialBoldState = {}; // Track partial bold in a node's state line: { nodeId: { start, end } }
     const CYCLE  = 20.5;
     const DECAY  = 1.0; // glow decay per second
 
@@ -112,6 +117,7 @@
       did       = {};
       boldActionIndices = {};
       partialBold = {};
+      partialBoldState = {};
     }
     reset();
 
@@ -165,6 +171,7 @@
 
       // Phase A — Sidebar watches items; Editor watches selectedItem + gets saveItem
       at('glow_reg', 2.0, () => {
+        partialBoldState = {};
         glows.sidebar = 1;
         glows.editor  = 1;
         boldActionIndices.sidebar = new Set([1, 3]); // get and watch (indices 1 and 3)
@@ -183,6 +190,7 @@
         spawnUp('editor',  'app', { delay: 0.35 });
       });
       at('reg_done', 5.5, () => {
+        partialBoldState = {};
         for (const k of ['rootmsg1', 'sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'sidebarmsg4', 'editormsg1', 'editormsg2', 'editormsg3', 'editormsg4']) {
           if (anns[k]) anns[k].alpha = 0;
         }
@@ -206,13 +214,14 @@
 
       // Phase B — Sidebar calls selectItem()
       at('select_item', 8.0, () => {
+        partialBoldState = {};
         for (const k of ['rootmsg1', 'rootmsg2', 'sidebarmsg', 'sidebarmsg2', 'sidebarmsg3', 'editormsg1', 'editormsg2', 'editormsg3']) {
           if (anns[k]) anns[k].alpha = 0;
         }
         glows.sidebar = 1;
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set();
-        boldActionIndices.app = new Set();
+        boldActionIndices.app = new Set([3, 4, 5]); // selectItem function lines 3-5
         // Highlight just 'selectItem' in "selectItem = flowGet(this, 'selectItem')" now at line 1
         partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" is chars 0-10 at line 1
         partialBold.editor = {};
@@ -220,23 +229,26 @@
         addAnn('sidebarmsg', "User selects an item from the list.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
         spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
           glows.app = 1;
-          boldActionIndices.app = new Set([4, 5, 6]); // selectItem function lines 4-6
+          boldActionIndices.app = new Set([3, 4, 5]); // selectItem function lines 3-5
           addAnn('rootmsg', 'App sets selectedItem source.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         }});
       });
 
       // Phase C — App updates selectedItem, Editor notified
       at('selected_item_update', 10.5, () => {
+        partialBoldState = {};
         for (const k of ['sidebarmsg', 'rootmsg']) {
           if (anns[k]) anns[k].alpha = 0;
         }
         glows.app = 1;
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set([3, 4, 5]); // watch callback
-        boldActionIndices.app = new Set([5]); // source.update line
+        boldActionIndices.app = new Set();
         partialBold.sidebar = {};
         partialBold.editor = {};
-        partialBold.app = {};
+        partialBold.app = {
+          2: { start: 2, end: 14 }, // selectedItem in "  selectedItem,"
+        };
         spawnDown('app', 'editor', { delay: 0.2, onDone: () => {
           glows.editor = 1;
           addAnn('editormsg', 'Render item editor with selected item values.', nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.8, align: 'left' });
@@ -245,6 +257,7 @@
 
       // Phase C — Editor calls saveItem()
       at('save_item', 13.0, () => {
+        partialBoldState = {};
         for (const k of ['rootmsg', 'editormsg']) {
           if (anns[k]) anns[k].alpha = 0;
         }
@@ -259,13 +272,14 @@
         addAnn('editormsg', 'User edits item and saves.', nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 2.3, align: 'left' });
         spawnUp('editor', 'app', { delay: 0.2, onDone: () => {
           glows.app = 1;
-          boldActionIndices.app = new Set([7, 8, 9]); // saveItem function lines 7-9
+          boldActionIndices.app = new Set([6, 7, 8]); // saveItem function lines 6-8
           addAnn('rootmsg', 'App updates the items list with the edited item.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         }});
       });
 
       // Phase D — App updates source
       at('update_items', 15.5, () => {
+        partialBoldState = {};
         for (const k of ['rootmsg', 'editormsg']) {
           if (anns[k]) anns[k].alpha = 0;
         }
@@ -275,7 +289,9 @@
         boldActionIndices.app = new Set();
         partialBold.sidebar = {};
         partialBold.editor = {};
-        partialBold.app = {};
+        partialBold.app = {
+          1: { start: 2, end: 7 }, // items in "  items,"
+        };
         spawnDown('app', 'sidebar', { delay: 0.2, onDone: () => {
           glows.sidebar = 1;
           boldActionIndices.sidebar = new Set([3, 4, 5]); // watch callback
@@ -285,6 +301,7 @@
 
       // Phase E — User updates filter in Sidebar
       at('filter_update', 18.0, () => {
+        partialBoldState = {};
         for (const k of ['sidebarmsg']) {
           if (anns[k]) anns[k].alpha = 0;
         }
@@ -295,6 +312,7 @@
         partialBold.sidebar = {};
         partialBold.editor = {};
         partialBold.app = {};
+        partialBoldState.sidebar = { start: 0, end: nm.sidebar.state.length };
         addAnn('sidebarmsg', 'User types in filter input.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
         addAnn('sidebarmsg2', 'Local-only source update and re-render.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
         addAnn('sidebarmsg3', 'Re-render filtered list.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 2.3, align: 'left' });
@@ -355,16 +373,35 @@
             const bold = ln.substring(start, end);
             const after = ln.substring(end);
             ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
-            ctx.fillText(before, textX, y);
             const beforeW = ctx.measureText(before).width;
-            ctx.font = `600 11px 'Cascadia Code','JetBrains Mono',monospace`;
+            const boldWPreview = ctx.measureText(bold).width;
+            ctx.save();
+            ctx.fillStyle = HILITE_BG;
+            ctx.fillRect(textX + beforeW - 1, y - 10, boldWPreview + 3, 12);
+            ctx.restore();
+            ctx.fillStyle = `rgba(255,255,255,${0.5 + g * 0.5})`;
+            ctx.fillText(before, textX, y);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `700 11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(bold, textX + beforeW, y);
             const boldW = ctx.measureText(bold).width;
+            ctx.fillStyle = `rgba(255,255,255,${0.5 + g * 0.5})`;
             ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
             ctx.fillText(after, textX + beforeW + boldW, y);
           } else {
             // Full line bold or normal
-            ctx.font = boldIndices.has(i) ? `600 11px 'Cascadia Code','JetBrains Mono',monospace` : `11px 'Cascadia Code','JetBrains Mono',monospace`;
+            if (boldIndices.has(i)) {
+              const lineW = ctx.measureText(ln).width;
+              ctx.save();
+              ctx.fillStyle = HILITE_BG;
+              ctx.fillRect(textX - 1, y - 10, lineW + 3, 12);
+              ctx.restore();
+              ctx.fillStyle = '#ffffff';
+              ctx.font = `700 11px 'Cascadia Code','JetBrains Mono',monospace`;
+            } else {
+              ctx.fillStyle = `rgba(255,255,255,${0.5 + g * 0.5})`;
+              ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
+            }
             ctx.fillText(ln, textX, y);
           }
         });
@@ -383,8 +420,27 @@
         ctx.fillText(n.label, textX, topY + 8);
         if (n.state) {
           ctx.fillStyle = MUTED;
-          ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
-          ctx.fillText(n.state, textX, topY + 24);
+          const stateBold = partialBoldState[n.id];
+          const sy = topY + 24;
+          if (stateBold) {
+            const before = n.state.substring(0, stateBold.start);
+            const bold = n.state.substring(stateBold.start, stateBold.end);
+            const after = n.state.substring(stateBold.end);
+            ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
+            const beforeW = ctx.measureText(before).width;
+            ctx.fillStyle = MUTED;
+            ctx.fillText(before, textX, sy);
+            ctx.fillStyle = HILITE;
+            ctx.font = `700 11px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(bold, textX + beforeW, sy);
+            const boldW = ctx.measureText(bold).width;
+            ctx.fillStyle = MUTED;
+            ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(after, textX + beforeW + boldW, sy);
+          } else {
+            ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
+            ctx.fillText(n.state, textX, sy);
+          }
         }
         if (n.actions) {
           ctx.fillStyle = MUTED;
@@ -400,16 +456,25 @@
               const bold = action.substring(start, end);
               const after = action.substring(end);
               ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
-              ctx.fillText(before, textX, y);
               const beforeW = ctx.measureText(before).width;
-              ctx.font = `600 11px 'Cascadia Code','JetBrains Mono',monospace`;
+              ctx.fillStyle = MUTED;
+              ctx.fillText(before, textX, y);
+              ctx.fillStyle = HILITE;
+              ctx.font = `700 11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(bold, textX + beforeW, y);
               const boldW = ctx.measureText(bold).width;
+              ctx.fillStyle = MUTED;
               ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
               ctx.fillText(after, textX + beforeW + boldW, y);
             } else {
               // Full line bold or normal
-              ctx.font = boldIndices.has(i) ? `600 11px 'Cascadia Code','JetBrains Mono',monospace` : `11px 'Cascadia Code','JetBrains Mono',monospace`;
+              if (boldIndices.has(i)) {
+                ctx.fillStyle = HILITE;
+                ctx.font = `700 11px 'Cascadia Code','JetBrains Mono',monospace`;
+              } else {
+                ctx.fillStyle = MUTED;
+                ctx.font = `11px 'Cascadia Code','JetBrains Mono',monospace`;
+              }
               ctx.fillText(action, textX, y);
             }
           });
