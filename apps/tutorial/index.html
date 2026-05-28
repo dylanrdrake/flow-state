@@ -348,6 +348,8 @@
     .tpl { color: var(--syntax-str); }
     .cmt { color: var(--syntax-cmt); font-style: italic; }
     .num { color: var(--syntax-num); }
+    .mark-ok { color: #1f8f49; font-weight: 700; font-style: normal; font-size: 1.16em; }
+    .mark-bad { color: var(--red); font-weight: 700; font-style: normal; font-size: 1.16em; }
 
     /* ── Table ── */
     .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
@@ -409,8 +411,8 @@
     <div class="nav-section">
       <a class="nav-section-label" href="#reference">Reference</a>
       <a class="nav-link" href="#config">Config Object</a>
-      <a class="nav-link" href="#instance-api">Instance API</a>
-      <a class="nav-link" href="#static-api">Static API</a>
+      <a class="nav-link" href="#instance-api">Source Instance API</a>
+      <a class="nav-link" href="#functional-api">Functional Helpers</a>
       <a class="nav-link" href="#bindings">Declarative Bindings</a>
       <a class="nav-link" href="#actions">Actions</a>
     </div>
@@ -435,12 +437,13 @@
       <!-- ──────────────────────────────────── -->
       <section id="at-a-glance">
         <h2>At a Glance</h2>
-        <p>The entire public API &mdash; 5 instance methods, 6 static methods, and 5 HTML attributes:</p>
+        <p>The entire public API &mdash; FlowSource constructor, 2 source instance methods, 5 functional helpers, and 5 HTML attributes:</p>
         <div class="table-wrap">
           <table>
             <tbody>
-              <tr><td><strong>5 instance methods</strong></td><td><code>update</code> &middot; <code>watch</code> &middot; <code>get</code> &middot; <code>through</code> &middot; <code>destroy</code></td></tr>
-              <tr><td><strong>6 static methods</strong></td><td><code>FlowState.watch</code> &middot; <code>FlowState.get</code> &middot; <code>FlowState.through</code> &middot; <code>FlowState.create</code> &middot; <code>FlowState.compute</code> &middot; <code>FlowState.devtools</code></td></tr>
+              <tr><td><strong>Constructor</strong></td><td><code>new FlowSource(root, config)</code></td></tr>
+              <tr><td><strong>2 source instance methods</strong></td><td><code>update</code> &middot; <code>destroy</code></td></tr>
+              <tr><td><strong>5 functional helpers</strong></td><td><code>flowWatch</code> &middot; <code>flowGet</code> &middot; <code>flowThrough</code> &middot; <code>flowCompute</code> &middot; <code>startFlowDevtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
               <tr><td><strong>2 structural directives</strong></td><td><code>flow-if</code> &middot; <code>flow-list</code></td></tr>
               <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
@@ -454,25 +457,32 @@
 
         <h3>The Scope</h3>
         <p>
-          Every FlowState instance is scoped to a DOM <strong>node</strong> — a light DOM
+          Every FlowState source instance is scoped to a DOM <strong>node</strong> — a light DOM
           <code>HTMLElement</code>. The root defines the <strong>scope</strong>: only elements that
-          are DOM descendants of the root can receive state from that instance.
+          are DOM descendants of the root can receive state from that source instance.
         </p>
         <blockquote>
-          <strong>Always mount FlowState on a host element, not a ShadowRoot.</strong>
+          <strong>Always mount a FlowState source on a host element, not a ShadowRoot.</strong>
           Scope traversal walks the light DOM via <code>parentElement</code>. If FlowState were
           mounted on a ShadowRoot it would be invisible to that traversal. To extend a scope into a
-          shadow, use <code>state.through(shadowRoot)</code> after mounting on the host.
+          shadow, use <code>flowThrough(shadowRoot)</code> after mounting on the host.
         </blockquote>
         <div class="cb"><pre><code data-nohl>&lt;my-app&gt;          ← FlowState root
   &lt;child-a&gt;       ← inside scope, can watch/get
   &lt;child-b&gt;
     &lt;grandchild&gt;  ← also inside scope</code></pre></div>
         <p>
-          When a child calls <code>FlowState.watch()</code> or <code>FlowState.get()</code>, it
+          When a child calls <code>flowWatch()</code> or <code>flowGet()</code>, it
           dispatches a <code>CustomEvent</code> that <strong>bubbles up</strong> the DOM. The first
           ancestor that owns that key intercepts it. Scopes nest naturally — a child component can
           shadow a key from a parent without affecting siblings.
+        </p>
+        <p>
+          FlowState enforces and encourages one-way data flow: state updates flow
+          <strong>down</strong> through the DOM from parents to children. Only the owner of a
+          FlowState source instance can call <code>source.update()</code>. If children need to
+          request parent updates, expose actions (plain functions as source config values) on the
+          parent and have children call those actions via <code>flowGet()</code>.
         </p>
 
         <div class="anim-embed">
@@ -483,27 +493,27 @@
         <h3>State is Immutable Between Updates</h3>
         <p>
           FlowState deep-freezes its internal values after every update. You cannot mutate state in
-          place. All changes go through <code>state.update()</code>.
+          place. All changes go through <code>source.update()</code>.
         </p>
 
         <h3>Updates are Batched</h3>
         <p>
-          Multiple <code>state.update()</code> calls in the same synchronous turn are
+          Multiple <code>source.update()</code> calls in the same synchronous turn are
           <strong>batched</strong> into a single flush via <code>queueMicrotask</code>. Watchers
           and bindings are only notified once after the flush.
         </p>
-        <div class="cb"><pre><code>state.update({ count: 1 });
-state.update({ name: 'Alice' }); // batched — one notification fires</code></pre></div>
+        <div class="cb"><pre><code>source.update({ count: 1 });
+source.update({ name: 'Alice' }); // batched — one notification fires</code></pre></div>
         <p>
-          <code>state.update()</code> returns a <strong>Promise</strong> that resolves after the
+          <code>source.update()</code> returns a <strong>Promise</strong> that resolves after the
           flush completes, so you can <code>await</code> it when you need to read the post-update
           value immediately.
         </p>
 
         <h3>Watchers fire immediately</h3>
         <p>
-          When you register a watcher with <code>state.watch()</code> or
-          <code>FlowState.watch()</code>, it <strong>calls your callback immediately</strong> with
+          When you register a watcher with <code>flowWatch()</code>, it
+          <strong>calls your callback immediately</strong> with
           the current value.
         </p>
       </section>
@@ -513,57 +523,56 @@ state.update({ name: 'Alice' }); // batched — one notification fires</code></p
         <h2>Ways to Use FlowState</h2>
 
         <h3>1. Manually</h3>
-        <p>Mount FlowState on any DOM element. Use declarative HTML bindings and <code>state.update()</code> in your scripts — no custom elements required.</p>
+        <p>Mount a FlowSource on any DOM element. Use declarative HTML bindings and <code>source.update()</code> in your scripts — no custom elements required.</p>
         <div class="cb"><pre><code>&lt;!-- HTML --&gt;
 &lt;div id="app"&gt;
   &lt;span flow-watch-count-to-prop="textContent"&gt;0&lt;/span&gt;
   &lt;button id="inc"&gt;Increment&lt;/button&gt;
 &lt;/div&gt;</code></pre></div>
-        <div class="cb"><pre><code>import { FlowState } from 'flow-state';
+        <div class="cb"><pre><code>import { FlowSource } from 'flow-state';
 
-const state = new FlowState(document.getElementById('app'), {
+const source = new FlowSource(document.getElementById('app'), {
   count: 0,
 });
 
 document.getElementById('inc').addEventListener('click', () => {
-  state.update(prev => ({ count: prev.count + 1 }));
+  source.update(prev => ({ count: prev.count + 1 }));
 });</code></pre></div>
 
         <h3>2. Manually with Web Components</h3>
         <p>For plain <code>HTMLElement</code> classes where you manage everything manually.</p>
-        <div class="cb"><pre><code>import { FlowState } from 'flow-state';
+        <div class="cb"><pre><code>import { FlowSource, flowWatch, flowThrough } from 'flow-state';
 
 class MyCounter extends HTMLElement {
-  #state;
+  #source;
 
   connectedCallback() {
     const shadow = this.attachShadow({ mode: 'open' });
 
-    // ⚠️ Create FlowState BEFORE appending children.
-    this.#state = new FlowState(this, {
+    // ⚠️ Create FlowSource BEFORE appending children.
+    this.#source = new FlowSource(this, {
       count: 0,
     });
     // Register the shadow so declarative bindings inside it receive updates.
-    this.#state.through(shadow);
+    flowThrough(shadow);
 
     shadow.innerHTML = `&lt;button id="btn"&gt;Click me&lt;/button&gt;`;
 
-    this.#state.watch('count', n => {
+    flowWatch(this, 'count', n => {
       shadow.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
     shadow.getElementById('btn').addEventListener('click', () => {
-      this.#state.update(prev => ({ count: prev.count + 1 }));
+      this.#source.update(prev => ({ count: prev.count + 1 }));
     });
   }
 
   disconnectedCallback() {
-    this.#state?.destroy();
+    this.#source?.destroy();
   }
 customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
-          <code>FlowState.create(root, config)</code> is identical to
-          <code>new FlowState(root, config)</code> and exists for symmetry with the static API.
+          Use <code>new FlowSource(root, config)</code> to create a scope.
         </p>
 
         <h3>3. Component — <code>FlowStateComponent</code></h3>
@@ -571,37 +580,37 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
           A base class that handles shadow DOM creation, styles, template stamping, and FlowState
           initialization in the correct order automatically.
         </p>
-        <div class="cb"><pre><code>import { FlowStateComponent } from 'flow-state';
+        <div class="cb"><pre><code>import { FlowStateComponent, flowWatch } from 'flow-state';
 
 class MyCounter extends FlowStateComponent {
   shadowMode = 'open';
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`&lt;button id="btn"&gt;Click 0 times&lt;/button&gt;`;
 
-  state = {
+source = {
     count: 0,
   };
 
   connectedCallback() {
     super.connectedCallback(); // always call first
 
-    this.state.watch('count', n => {
+    flowWatch(this, 'count', n => {
       this.shadowRoot.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
     this.shadowRoot.getElementById('btn').addEventListener('click', () => {
-      this.state.update(prev => ({ count: prev.count + 1 }));
+      this.source.update(prev => ({ count: prev.count + 1 }));
     });
   }
 
   disconnectedCallback() {
     // ⚠️ Cleanup: destroy the FlowState scope when this component is torn down.
-    this.state?.destroy();
+    this.source?.destroy();
   }
 }
 customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
-          <code>FlowStateComponent</code> exposes <code>this.state</code> — the instance API
+          <code>FlowStateComponent</code> exposes <code>this.source</code> — the source instance API
           returned by the FlowState constructor.
         </p>
         <p>
@@ -612,50 +621,50 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
         <div class="cb"><pre><code>class MyBanner extends FlowStateComponent {
   // no shadowMode — renders into light DOM
   template = `&lt;p id="msg"&gt;&lt;/p&gt;`;
-  state = { message: 'Hello' };
+  source = { message: 'Hello' };
 
   connectedCallback() {
     super.connectedCallback();
-    this.state.watch('message', v => {
+    flowWatch(this, 'message', v => {
       this.querySelector('#msg').textContent = v;
     });
   }
 
   disconnectedCallback() {
-    this.state?.destroy();
+    this.source?.destroy();
   }
 }</code></pre></div>
         <blockquote>
-          <strong>Cleanup warning:</strong> If a FlowState scope is being removed permanently,
-          call <code>state.destroy()</code> in <code>disconnectedCallback()</code>.
+          <strong>Cleanup warning:</strong> If a FlowState source scope is being removed permanently,
+          call <code>source.destroy()</code> in <code>disconnectedCallback()</code>.
           This releases watchers, removes internal scope registration, and helps prevent memory
           leaks in long-running apps.
           <br><br>
-          <code>disconnectedCallback() { this.state?.destroy(); }</code>
+          <code>disconnectedCallback() { this.source?.destroy(); }</code>
         </blockquote>
       </section>
 
       <div class="group-heading" id="reference">Reference</div>
       <!-- ──────────────────────────────────── -->
       <section id="config">
-        <h2>The Config Object</h2>
+        <h2>The Source Config Object</h2>
         <div class="cb"><pre><code>{
   // Plain values — any JSON-serializable type
   count: 0,
   user: { name: 'Alice', role: 'admin' },
   items: [],
 
-  // Computed values — wrap with FlowState.compute(fn, deps)
+  // Computed values — wrap with flowCompute(fn, deps)
   // fn receives the listed deps as positional arguments
-  fullLabel: FlowState.compute((user) => `${user.name} (${user.role})`, ['user']),
+  fullLabel: flowCompute((user) => `${user.name} (${user.role})`, ['user']),
 
-  // Top-level functions are actions — non-reactive, accessible via FlowState.get()
+  // Top-level functions are actions — non-reactive, accessible via flowGet()
   doSomething: (arg) => console.log(arg),
 }</code></pre></div>
 
         <h3>Computed Values</h3>
         <p>
-          Computed values use <code>FlowState.compute(fn, deps)</code>. The function receives each
+          Computed values use <code>flowCompute(fn, deps)</code>. The function receives each
           listed dependency as a positional argument and is <strong>re-evaluated lazily</strong>
           when any dependency changes. Dependencies can reference plain state keys
           <em>or other computed keys</em>.
@@ -664,10 +673,10 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
 qty: 3,
 taxRate: 0.1,
 
-subtotal: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+subtotal: flowCompute((price, qty) => price * qty, ['price', 'qty']),
 
 // Depends on another computed key (subtotal)
-total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
+total: flowCompute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
 </code></pre></div>
         <p>
           FlowState resolves computed dependencies in order (upstream first). Circular dependency
@@ -677,120 +686,99 @@ total: FlowState.compute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subt
 
       <!-- ──────────────────────────────────── -->
       <section id="instance-api">
-        <h2>Instance API</h2>
+        <h2>Source Instance API</h2>
         <p>
-          The object returned by <code>new FlowState(…)</code> or <code>FlowState.create(…)</code>, also accessible as
-          <code>this.state</code> in <code>FlowStateComponent</code>.
+          The object returned by <code>new FlowSource(…)</code>, also accessible as
+          <code>this.source</code> in <code>FlowStateComponent</code>.
         </p>
 
-        <h3><code>state.update(patch | fn)</code></h3>
+        <h3><code>source.update(patch | fn)</code></h3>
         <p>
           Update state. Accepts either a partial object or a function that receives the current
           state and returns a partial object. Returns a Promise that resolves after the microtask
           flush.
         </p>
         <div class="cb"><pre><code>// Partial object
-state.update({ count: 5 });
+source.update({ count: 5 });
 
 // Function (safe for values that depend on current state)
-state.update(prev => ({ count: prev.count + 1 }));
+source.update(prev => ({ count: prev.count + 1 }));
 
 // Deep partial — merges into nested objects
-state.update({ user: { name: 'Bob' } }); // only name changes, role preserved
+source.update({ user: { name: 'Bob' } }); // only name changes, role preserved
 
 // Awaitable
-await state.update({ count: 99 });
-const current = state.get('count'); // 99 ✓</code></pre></div>
+await source.update({ count: 99 });
+const current = flowGet(root, 'count'); // 99 ✓</code></pre></div>
         <blockquote>
           ⚠️ Only <strong>configured keys</strong> can be updated. Attempts to add new keys are
           silently ignored (with a console warning). Computed keys cannot be updated.
           This is a design decision.
         </blockquote>
 
-        <h3><code>state.watch(key, callback)</code></h3>
+        <h3><code>source.destroy()</code></h3>
         <p>
-          Register a watcher. The callback fires <strong>immediately</strong> with the current
-          value, then again whenever the key changes. Returns an unsubscribe function.
+          Destroy the source instance when a component is permanently removed.
         </p>
-        <div class="cb"><pre><code>const unsub = state.watch('user.name', name => {
-  console.log('Name changed:', name);
-});
-
-// Later, to stop watching:
-unsub();</code></pre></div>
+        <div class="cb"><pre><code>disconnectedCallback() {
+  this.source?.destroy();
+}</code></pre></div>
         <p>
-          Supports dot-notation for nested keys. Watching <code>'user'</code> fires when any
-          property inside <code>user</code> changes. Watching <code>'user.name'</code> fires only
-          when <code>name</code> changes.
+          Functional helpers like <code>flowWatch</code>, <code>flowGet</code>, and
+          <code>flowThrough</code> are documented in the next section.
         </p>
-
-        <h3><code>state.get(key)</code></h3>
-        <p>Read the current value synchronously. Does not register a watcher.</p>
-        <div class="cb"><pre><code>const count = state.get('count');
-const name  = state.get('user.name');</code></pre></div>
-        <p>Works for actions too — <code>state.get('myAction')</code> returns the action value.</p>
-
-        <h3><code>state.through(shadowRoot)</code></h3>
-        <p>
-          Extend the FlowState scope into a shadow DOM so that elements inside it can use
-          declarative bindings.
-        </p>
-        <div class="cb"><pre><code>const shadow = this.attachShadow({ mode: 'open' });
-this.#state = new FlowState(this, config);
-this.#state.through(shadow); // scope now includes shadow</code></pre></div>
-        <p><code>FlowStateComponent</code> does this automatically.</p>
       </section>
 
       <!-- ──────────────────────────────────── -->
-      <section id="static-api">
-        <h2>Static API</h2>
+      <section id="functional-api">
+        <h2>Functional Helpers</h2>
         <p>
           Used by <strong>child elements</strong> to reach a parent's FlowState without holding a
           direct reference. Everything works via DOM events that bubble up.
         </p>
 
-        <h3><code>FlowState.compute(fn, deps)</code></h3>
+        <h3><code>flowCompute(fn, deps)</code></h3>
         <p>
           Creates a computed value descriptor for use in a config object. <code>fn</code> receives
           each key listed in <code>deps</code> as a positional argument and is re-evaluated lazily
           when any dependency changes. Computed values are read-only and can depend on other
           computed values.
         </p>
-        <div class="cb"><pre><code>total: FlowState.compute((price, qty) => price * qty, ['price', 'qty']),
+        <div class="cb"><pre><code>total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
 
 // Can depend on another computed value
-discounted: FlowState.compute((total, discount) => total * (1 - discount), ['total', 'discount']),</code></pre></div>
+discounted: flowCompute((total, discount) => total * (1 - discount), ['total', 'discount']),</code></pre></div>
 
-        <h3><code>FlowState.watch(element, key, callback)</code></h3>
+        <h3><code>flowWatch(element, key, callback)</code></h3>
         <p>
           Register a watcher from a child element. The event bubbles up until it finds a FlowState
-          instance that owns <code>key</code>.
+          source instance that owns <code>key</code>.
         </p>
         <div class="cb"><pre><code>// Inside a child element's connectedCallback:
-FlowState.watch(this, 'items', items => {
+flowWatch(this, 'items', items => {
   this.render(items);
 });</code></pre></div>
 
-        <h3><code>FlowState.get(element, key)</code></h3>
+        <h3><code>flowGet(element, key)</code></h3>
         <p>
           Synchronously read a value or hook from the nearest ancestor FlowState that owns
           <code>key</code>.
         </p>
-        <div class="cb"><pre><code>const deleteItem = FlowState.get(this, 'deleteItem'); // retrieve a hook/callback
+        <div class="cb"><pre><code>const deleteItem = flowGet(this, 'deleteItem'); // retrieve a hook/callback
 deleteItem(this.#itemId);</code></pre></div>
 
-        <h3><code>FlowState.through(shadowRoot)</code></h3>
+        <h3><code>flowThrough(shadowRoot)</code></h3>
         <p>
-          Registers a closed shadow root with the nearest ancestor FlowState scope so that
-          <strong>declarative bindings</strong> inside it receive updates. This is
-          <em>not</em> needed for <code>FlowState.watch()</code> / <code>FlowState.get()</code>
-          — those dispatch <code>composed: true</code> events that already cross shadow boundaries
-          automatically.
+          Only necessary for <strong>state flowing down</strong> through a <strong>closed</strong>
+          shadow boundary, so <strong>declarative bindings</strong> inside that shadow root receive
+          updates. It is <em>not</em> needed for events flowing up from
+          <code>flowWatch()</code> / <code>flowGet()</code>, because those use
+          <code>composed: true</code> and already cross shadow boundaries automatically.
         </p>
         <div class="cb"><pre><code>connectedCallback() {
   const shadow = this.attachShadow({ mode: 'closed' });
-  // Declarative bindings (flow-watch-*) inside this shadow will now update
-  FlowState.through(shadow); // dispatches event that bubbles to nearest ancestor scope
+  // Enables downward flow to declarative bindings (flow-watch-*) in this closed shadow
+  flowThrough(shadow);
 }</code></pre></div>
       </section>
 
@@ -819,8 +807,8 @@ deleteItem(this.#itemId);</code></pre></div>
         </blockquote>
         <blockquote>
           <strong>Descendants only.</strong> Declarative bindings on the root element itself are
-          ignored. Use <code>state.watch()</code> to reactively bind the root's
-          properties/attributes, or <code>state.get()</code> to set initial values.
+          ignored. Use <code>flowWatch()</code> to reactively bind the root's
+          properties/attributes, or <code>flowGet()</code> to set initial values.
         </blockquote>
 
         <h3>Conditional rendering — <code>flow-if</code></h3>
@@ -849,12 +837,12 @@ deleteItem(this.#itemId);</code></pre></div>
           <code>flow-if</code>.
         </p>
         <div class="cb"><pre><code>
-state = {
-  filteredTransactions: FlowState.compute((transactions, filter, sort) => {
+source = {
+  filteredTransactions: flowCompute((transactions, filter, sort) => {
     return next;
   }, ['transactions', 'filter', 'sort']),
 
-  showEmptyMessage: FlowState.compute(
+  showEmptyMessage: flowCompute(
     (filteredTransactions) => filteredTransactions.length === 0,
     ['filteredTransactions']
   ),
@@ -866,9 +854,9 @@ state = {
 &lt;/template&gt;</code></pre></div>
 
         <div class="cb"><pre><code>
-state = {
+source = {
   history: [],
-  hasHistory: FlowState.compute((history) => history.length &gt; 0, ['history']),
+  hasHistory: flowCompute((history) => history.length &gt; 0, ['history']),
 };
 
 &lt;template flow-if="hasHistory"&gt;
@@ -897,7 +885,7 @@ state = {
           properties: <code>flow-user-city-to-prop</code> reads <code>item.user.city</code>.
         </p>
         <blockquote>
-          <strong>Timing note</strong>: If a <code>state.watch()</code> watcher on the same array
+          <strong>Timing note</strong>: If a <code>flowWatch()</code> watcher on the same array
           key also updates visual state (e.g. adding a <code>.selected</code> class), wrap that
           update in <code>queueMicrotask()</code> to defer it until after <code>flow-list</code>
           has re-rendered the DOM.
@@ -909,21 +897,28 @@ state = {
         <h2>Actions</h2>
         <p>
           Actions are callbacks or values passed down from parent to child via the state scope.
-          Children read them with <code>FlowState.get()</code> or <code>state.get()</code>.
+          Children read them with <code>flowGet()</code>.
         </p>
         <p>
           <strong>Top-level functions in the config are actions.</strong>
         </p>
         <div class="cb"><pre><code>// Parent
-state = {
+source = {
+  cards: [],
   deleteCard: (id) => this.#deleteCard(id), // top-level function → action
 };
 
+#deleteCard(id) {
+  this.source.update(({ cards }) => ({
+    cards: cards.filter(card => card.id !== id),
+  }));
+}
+
 // Child (in connectedCallback)
-const deleteCard = FlowState.get(this, 'deleteCard');</code></pre></div>
+const deleteCard = flowGet(this, 'deleteCard');</code></pre></div>
         <p>
           Actions are <strong>not reactive</strong> —
-          <code>FlowState.watch(el, 'deleteCard', cb)</code> calls <code>cb</code> once with the
+          <code>flowWatch(el, 'deleteCard', cb)</code> calls <code>cb</code> once with the
           action value and never again. Use them for stable callbacks and config, not changing data.
         </p>
       </section>
@@ -936,23 +931,23 @@ const deleteCard = FlowState.get(this, 'deleteCard');</code></pre></div>
         <h3>Parent → Children data flow</h3>
         <p>The canonical pattern. Parent owns state. Children watch it.</p>
         <div class="cb"><pre><code>// parent.js
-state = {
+source = {
   items: [],
   removeItem: (id) => this.#remove(id), // top-level function → action
 };
 
 // child.js (connectedCallback)
-FlowState.watch(this, 'items', items => this.#render(items));
-const remove = FlowState.get(this, 'removeItem');
+flowWatch(this, 'items', items => this.#render(items));
+const remove = flowGet(this, 'removeItem');
 this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
 
         <p>
           The demo below shows this pattern in action. A <code>work-space</code> root owns
           <code>workItems</code> and <code>selectedWorkItem</code> state, and exposes
           <code>selectWorkItem</code> and <code>saveWorkItem</code> actions. The sidebar uses
-          <code>FlowState.watch</code> and <code>FlowState.get</code> to connect to the shared
+          <code>flowWatch</code> and <code>flowGet</code> to connect to the shared
           scope, while managing its own <code>filter</code> state locally with a nested
-          <code>FlowState</code> instance.
+          <code>FlowState</code> source instance.
         </p>
         <div class="anim-embed resizable" id="demo-embed">
           <iframe src="../../apps/item-editor/demo.html" title="FlowState item editor demo"></iframe>
@@ -966,7 +961,7 @@ this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
           ancestors or siblings.
         </p>
         <div class="cb"><pre><code>class KanbanColumn extends FlowStateComponent {
-  state = {
+  source = {
     selectedCardId: null, // local only
   };
 }</code></pre></div>
@@ -974,10 +969,10 @@ this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
         <h3>Functional updates for dependent state</h3>
         <p>Always use the functional form when the new value depends on the old one.</p>
         <div class="cb"><pre><code>// ✓ Safe — prev is a snapshot at flush time
-state.update(prev => ({ count: prev.count + 1 }));
+source.update(prev => ({ count: prev.count + 1 }));
 
 // ✗ Risky if called multiple times before flush
-state.update({ count: state.get('count') + 1 });</code></pre></div>
+source.update({ count: flowGet(root, 'count') + 1 });</code></pre></div>
 
         <h3>Cleanup on permanent unmount</h3>
         <p>
@@ -986,7 +981,7 @@ state.update({ count: state.get('count') + 1 });</code></pre></div>
         </p>
         <div class="cb"><pre><code>class TaskPanel extends FlowStateComponent {
   disconnectedCallback() {
-    this.state?.destroy();
+    this.source?.destroy();
   }
 }</code></pre></div>
       </section>
@@ -996,7 +991,7 @@ state.update({ count: state.get('count') + 1 });</code></pre></div>
         <h2>Timing Rules</h2>
         <p>These are the most common source of bugs.</p>
 
-        <h3>1. Create FlowState BEFORE appending children</h3>
+        <h3>1. Create FlowSource BEFORE appending children</h3>
         <p>
           FlowState registers event listeners on the root. When a child element's
           <code>connectedCallback</code> fires, it immediately dispatches
@@ -1004,54 +999,54 @@ state.update({ count: state.get('count') + 1 });</code></pre></div>
           set up yet, those events have no listener and are silently lost.
         </p>
         <div class="cb"><pre><code>// ✓ Correct
-this.#state = new FlowState(this, config);
-this.#state.through(shadow);
+this.#source = new FlowSource(this, config);
+flowThrough(shadow);
 shadow.appendChild(template.content.cloneNode(true)); // children init here
 
 // ✗ Wrong — children connect before FlowState exists
 shadow.appendChild(template.content.cloneNode(true));
-this.#state = new FlowState(this, config);</code></pre></div>
+this.#source = new FlowSource(this, config);</code></pre></div>
         <p>
           <code>FlowStateComponent</code> handles this automatically in
           <code>connectedCallback</code>.
         </p>
 
-        <h3>2. Static API only in connectedCallback</h3>
+        <h3>2. Functional API only in connectedCallback</h3>
         <p>
-          <code>FlowState.watch()</code> and <code>FlowState.get()</code> dispatch events that
-          bubble up to a parent FlowState instance. That instance only exists once the parent is
+          <code>flowWatch()</code> and <code>flowGet()</code> dispatch events that
+          bubble up to a parent FlowState source instance. That source instance only exists once the parent is
           connected to the DOM. Never call them in a <code>constructor</code>.
         </p>
-        <div class="cb"><pre><code>// ✓ Correct
-connectedCallback() {
-  FlowState.watch(this, 'items', cb);
-}
-
-// ✗ Wrong — parent not yet connected
+        <div class="cb"><pre><code>// ✗ Wrong — parent not yet connected
 constructor() {
   super();
-  FlowState.watch(this, 'items', cb); // no listener exists yet
+  flowWatch(this, 'items', cb); // no listener exists yet
+}
+
+// ✓ Correct
+connectedCallback() {
+  flowWatch(this, 'items', cb);
 }</code></pre></div>
 
         <h3>3. Await update before reading new state</h3>
         <p>
-          <code>state.update()</code> is <strong>batched via microtask</strong> —
-          <code>state.get()</code> immediately after returns the old value.
+          <code>source.update()</code> is <strong>batched via microtask</strong> —
+          <code>flowGet()</code> immediately after returns the old value.
         </p>
         <div class="cb"><pre><code>// ✓ Read in a watcher (fires after flush)
-state.watch('count', n => console.log(n));
+flowWatch(this, 'count', n => console.log(n));
 
 // ✓ Await the update
-await state.update({ count: 99 });
-console.log(state.get('count')); // 99
+await source.update({ count: 99 });
+console.log(flowGet(this, 'count')); // 99
 
 // ✗ Race condition
-state.update({ count: 99 });
-console.log(state.get('count')); // still old value!</code></pre></div>
+source.update({ count: 99 });
+console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
 
         <h3>4. Initial notification is deferred one microtask</h3>
         <p>
-          After <code>new FlowState(root, config)</code>, the initial watcher notification is
+          After <code>new FlowSource(root, config)</code>, the initial watcher notification is
           deferred with <code>Promise.resolve().then(…)</code> to give children time to register
           their watchers. Watchers registered synchronously after construction receive the initial
           value; watchers registered in a later macrotask may miss it.
@@ -1064,18 +1059,18 @@ console.log(state.get('count')); // still old value!</code></pre></div>
         <p>
           FlowState uses DOM event bubbling to locate the right scope. Shadow DOM normally blocks
           bubbling — FlowState handles this by dispatching events with <code>composed: true</code>,
-          which crosses shadow boundaries. The <code>through()</code> call links a shadow root into
+          which crosses shadow boundaries. The <code>flowThrough()</code> call links a shadow root into
           a parent's scope for <strong>declarative bindings</strong>; it's not required for the
-          static API (<code>watch</code>/<code>get</code>) because those events are already
+          functional API (<code>flowWatch</code>/<code>flowGet</code>) because those events are already
           composed.
         </p>
         <div class="cb"><pre><code data-nohl>document
  └─ &lt;my-app&gt;              ← FlowState scope (root = my-app)
-     └─ #shadow-root      ← through() links this in
+     └─ #shadow-root      ← flowThrough() links this in
          └─ &lt;my-column&gt;   ← FlowState scope (root = my-column)
              └─ #shadow-root
                  └─ &lt;my-card&gt;   ← watch/get bubble up through shadows</code></pre></div>
-        <p>When <code>&lt;my-card&gt;</code> calls <code>FlowState.watch(this, 'theme', cb)</code>:</p>
+        <p>When <code>&lt;my-card&gt;</code> calls <code>flowWatch(this, 'theme', cb)</code>:</p>
         <ol>
           <li>Event bubbles through <code>my-column</code>'s shadow → host → <code>my-app</code>'s shadow → host</li>
           <li>If <code>my-column</code> owns <code>theme</code>, it intercepts and stops propagation</li>
@@ -1087,7 +1082,7 @@ console.log(state.get('count')); // still old value!</code></pre></div>
       <!-- ──────────────────────────────────── -->
       <section id="devtools">
         <h2>Devtools</h2>
-        <div class="cb"><pre><code>FlowState.startFlowDevtools();</code></pre></div>
+        <div class="cb"><pre><code>startFlowDevtools();</code></pre></div>
         <p>
           Call this once, early in your app entry point. It opens the devtools panel in a new tab
           and connects via <code>BroadcastChannel</code>. The devtools show all active FlowState
@@ -1110,52 +1105,42 @@ console.log(state.get('count')); // still old value!</code></pre></div>
             </thead>
             <tbody>
               <tr>
-                <td><code>new FlowState(root, config)</code></td>
+                <td><code>new FlowSource(root, config)</code></td>
                 <td>anywhere</td>
-                <td>Create an instance anchored to <code>root</code></td>
+                <td>Create a source instance anchored to <code>root</code></td>
               </tr>
               <tr>
-                <td><code>FlowState.create(root, config)</code></td>
-                <td>anywhere</td>
-                <td>Same as above</td>
-              </tr>
-              <tr>
-                <td><code>state.update(patch|fn)</code></td>
+                <td><code>source.update(patch|fn)</code></td>
                 <td>owner</td>
                 <td>Update state; returns <code>Promise</code></td>
               </tr>
               <tr>
-                <td><code>state.watch(key, cb)</code></td>
+                <td><code>source.destroy()</code></td>
                 <td>owner</td>
-                <td>Watch a key; returns unsubscribe fn</td>
+                <td>Cleanup scope on permanent unmount</td>
               </tr>
               <tr>
-                <td><code>state.get(key)</code></td>
-                <td>owner</td>
-                <td>Read current value synchronously</td>
+                <td><code>flowCompute(fn, deps)</code></td>
+                <td>owner config</td>
+                <td>Declare computed values</td>
               </tr>
               <tr>
-                <td><code>state.through(shadowRoot)</code></td>
-                <td>owner</td>
-                <td>Extend scope into a shadow DOM</td>
-              </tr>
-              <tr>
-                <td><code>FlowState.watch(el, key, cb)</code></td>
+                <td><code>flowWatch(el, key, cb)</code></td>
                 <td>child <code>connectedCallback</code></td>
                 <td>Subscribe from a child element</td>
               </tr>
               <tr>
-                <td><code>FlowState.get(el, key)</code></td>
+                <td><code>flowGet(el, key)</code></td>
                 <td>child <code>connectedCallback</code></td>
                 <td>Read from nearest ancestor scope</td>
               </tr>
               <tr>
-                <td><code>FlowState.through(shadowRoot)</code></td>
+                <td><code>flowThrough(shadowRoot)</code></td>
                 <td>child <code>connectedCallback</code></td>
                 <td>Link shadow into parent scope</td>
               </tr>
               <tr>
-                <td><code>FlowState.startFlowDevtools()</code></td>
+                <td><code>startFlowDevtools()</code></td>
                 <td>app entry point</td>
                 <td>Open devtools panel</td>
               </tr>
@@ -1217,14 +1202,17 @@ console.log(state.get('count')); // still old value!</code></pre></div>
   function highlight(raw) {
     let s = esc(raw);
     const slots = [];
+    const colorizeMarks = (text) => text
+      .replace(/✓/g, '<span class="mark-ok">✓</span>')
+      .replace(/✗/g, '<span class="mark-bad">✗</span>');
     const ph = (cls, text) => {
       const i = slots.length;
       slots.push(`<span class="${cls}">${text}</span>`);
       return `\x00p${i}\x00`; // 'p' prefix prevents digit regex from matching the index
     };
     // Order: comments → template literals → strings → numbers → keywords
-    s = s.replace(/\/\/[^\n]*/g,            m => ph('cmt', m));
-    s = s.replace(/\/\*[\s\S]*?\*\//g,      m => ph('cmt', m));
+    s = s.replace(/\/\/[^\n]*/g,            m => ph('cmt', colorizeMarks(m)));
+    s = s.replace(/\/\*[\s\S]*?\*\//g,      m => ph('cmt', colorizeMarks(m)));
     s = s.replace(/`(?:[^`\\]|\\.)*`/g,     m => ph('tpl', m));
     s = s.replace(/'(?:[^'\\]|\\.)*'/g,     m => ph('str', m));
     s = s.replace(/"(?:[^"\\]|\\.)*"/g,     m => ph('str', m));

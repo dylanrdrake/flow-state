@@ -325,7 +325,7 @@ template.innerHTML = HTML`
 
 
 class StressApp extends HTMLElement {
-  #state;
+  #source;
   #shadow;
   #frameId = null;
   #intervalId = null;
@@ -342,7 +342,7 @@ class StressApp extends HTMLElement {
 
   constructor() {
     super();
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       tick: 0,
       ...initialCells,
       ...initialList,
@@ -400,7 +400,7 @@ class StressApp extends HTMLElement {
     // Reset counters in state
     const resetCells = Object.fromEntries(Array.from({ length: CELL_COUNT }, (_, i) => [`c${i}`, 0]));
     const resetList  = Object.fromEntries(Array.from({ length: LIST_SIZE }, (_, i) => [`item${i}`, { name: `Item ${i}`, value: 0, status: 'idle', ts: 0 }]));
-    this.#state.update({ tick: 0, ...resetCells, ...resetList, user: { score: 0, level: 1 }, settings: { volume: 50 }, ui: { page: 0 }, metrics: { fps: 0, callus: 0, total: 0, cpf: 0 } });
+    this.#source.update({ tick: 0, ...resetCells, ...resetList, user: { score: 0, level: 1 }, settings: { volume: 50 }, ui: { page: 0 }, metrics: { fps: 0, callus: 0, total: 0, cpf: 0 } });
 
     this.#metricsTimer = setInterval(() => this.#flushMetrics(), 500);
 
@@ -408,7 +408,7 @@ class StressApp extends HTMLElement {
       this.#intervalId = setInterval(() => {
         for (let i = 0; i < FLOOD_RATE; i++) {
           const us = this.#timeCall(() =>
-            this.#state.update(prev => ({ tick: prev.tick + 1 }))
+            this.#source.update(prev => ({ tick: prev.tick + 1 }))
           );
           this.#callTimes.push(us);
           this.#totalCalls++;
@@ -426,7 +426,7 @@ class StressApp extends HTMLElement {
         if (key === 'user')     patch = { user: { score: this.#totalCalls } };
         if (key === 'settings') patch = { settings: { volume: (this.#totalCalls % 100) } };
         if (key === 'ui')       patch = { ui: { page: Math.floor(this.#totalCalls / 10) } };
-        const us = this.#timeCall(() => this.#state.update(patch));
+        const us = this.#timeCall(() => this.#source.update(patch));
         this.#callTimes.push(us);
         this.#totalCalls++;
         this.#callsSinceMetrics++;
@@ -475,7 +475,7 @@ class StressApp extends HTMLElement {
     switch (this.#scenario) {
       case 'singleKey': {
         const us = this.#timeCall(() =>
-          this.#state.update(prev => ({ tick: prev.tick + 1 }))
+          this.#source.update(prev => ({ tick: prev.tick + 1 }))
         );
         this.#callTimes.push(us);
         this.#totalCalls++;
@@ -487,7 +487,7 @@ class StressApp extends HTMLElement {
         const patch = Object.fromEntries(
           Array.from({ length: CELL_COUNT }, (_, i) => [`c${i}`, this.#totalCalls + i])
         );
-        const us = this.#timeCall(() => this.#state.update(patch));
+        const us = this.#timeCall(() => this.#source.update(patch));
         this.#callTimes.push(us);
         this.#totalCalls++;
         this.#callsSinceMetrics++;
@@ -498,7 +498,7 @@ class StressApp extends HTMLElement {
         let totalUs = 0;
         for (let i = 0; i < BATCH_SIZE; i++) {
           totalUs += this.#timeCall(() =>
-            this.#state.update(prev => ({ tick: prev.tick + 1 }))
+            this.#source.update(prev => ({ tick: prev.tick + 1 }))
           );
           this.#totalCalls++;
           this.#callsSinceMetrics++;
@@ -511,7 +511,7 @@ class StressApp extends HTMLElement {
         const i = Math.floor(Math.random() * LIST_SIZE);
         const key = `item${i}`;
         const us = this.#timeCall(() =>
-          this.#state.update(prev => ({
+          this.#source.update(prev => ({
             [key]: { name: prev[key].name, value: prev[key].value + 1, status: 'updated', ts: this.#totalCalls }
           }))
         );
@@ -528,7 +528,7 @@ class StressApp extends HTMLElement {
         if (cycle === 0) patch = { user: { score: this.#totalCalls } };
         if (cycle === 1) patch = { settings: { volume: this.#totalCalls % 100 } };
         if (cycle === 2) patch = { ui: { page: Math.floor(this.#totalCalls / 60) } };
-        const us = this.#timeCall(() => this.#state.update(patch));
+        const us = this.#timeCall(() => this.#source.update(patch));
         this.#callTimes.push(us);
         this.#totalCalls++;
         this.#callsSinceMetrics++;
@@ -560,7 +560,7 @@ class StressApp extends HTMLElement {
     this.#frameCount = 0;
     this.#callsSinceMetrics = 0;
 
-    this.#state.update({
+    this.#source.update({
       metrics: { fps, callus: avgUs, total: this.#totalCalls, cpf },
     });
   }

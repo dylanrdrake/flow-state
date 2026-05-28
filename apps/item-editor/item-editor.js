@@ -22,7 +22,7 @@ template.innerHTML = HTML`
 const STATUS_OPTIONS = ['Active', 'On Hold', 'Planning', 'Complete'];
 
 class ItemEditor extends HTMLElement {
-  #state;
+  #source;
   #shadow;
   #saveWorkItem;
 
@@ -34,7 +34,7 @@ class ItemEditor extends HTMLElement {
 
     // Create local FlowState and register the closed shadow so parent
     // bindings can reach elements inside it.
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       hasSelection: false,
       edits: null,
     });
@@ -61,7 +61,7 @@ class ItemEditor extends HTMLElement {
     this.#saveWorkItem = flowGet(this, 'saveWorkItem');
 
     flowWatch(this, 'selectedItem', item => {
-      this.#state.update({
+      this.#source.update({
         hasSelection: Boolean(item),
         edits: item ? { ...item } : null,
       }).then(() => {
@@ -106,7 +106,7 @@ class ItemEditor extends HTMLElement {
       }
 
       input.addEventListener('input', e => {
-        this.#state.update(prev => ({
+        this.#source.update(prev => ({
           edits: { ...prev.edits, [key]: e.target.value }
         }));
       });

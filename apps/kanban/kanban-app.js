@@ -194,7 +194,7 @@ class KanbanApp extends FlowStateComponent {
 
   template = template;
 
-  state = {
+  source = {
     columns: [],
     selectedCard: null,
     moveCard:   (...args) => this.#moveCard(...args),
@@ -227,7 +227,7 @@ class KanbanApp extends FlowStateComponent {
     // Load columns from API, then watch for render
     fetch('/api/kanban')
       .then(r => r.json())
-      .then(columns => this.state.update({ columns }))
+      .then(columns => this.source.update({ columns }))
       .catch(err => console.error('Failed to load kanban data:', err));
 
     flowWatch(this, 'columns', this.#renderColumns.bind(this));
@@ -237,7 +237,7 @@ class KanbanApp extends FlowStateComponent {
 
   disconnectedCallback() {
     window.removeEventListener('keydown', this.#onEscapeKeydown);
-    this.state?.destroy();
+    this.source?.destroy();
   }
 
   #renderColumns(columns) {
@@ -282,7 +282,7 @@ class KanbanApp extends FlowStateComponent {
   }
 
   #addCard(columnId, title, desc = '') {
-    this.state.update(prev => ({
+    this.source.update(prev => ({
       columns: prev.columns.map(col =>
         col.id === columnId
           ? { ...col, cards: [...col.cards, { id: uid(), title, desc }] }
@@ -293,7 +293,7 @@ class KanbanApp extends FlowStateComponent {
 
   #moveCard(cardId, fromColumnId, toColumnId) {
     if (fromColumnId === toColumnId) return;
-    this.state.update(prev => {
+    this.source.update(prev => {
       let card;
       const columns = prev.columns.map(col => {
         if (col.id === fromColumnId) {
@@ -311,7 +311,7 @@ class KanbanApp extends FlowStateComponent {
   }
 
   #deleteCard(cardId, columnId) {
-    this.state.update(prev => ({
+    this.source.update(prev => ({
       columns: prev.columns.map(col =>
         col.id === columnId
           ? { ...col, cards: col.cards.filter(c => c.id !== cardId) }
@@ -351,7 +351,7 @@ class KanbanApp extends FlowStateComponent {
       this.#addCard(newColumnId, newTitle, newDesc);
     } else {
       // Editing an existing card
-      this.state.update(prev => {
+      this.source.update(prev => {
         let movedCard;
         const columns = prev.columns.map(col => {
           if (col.id === columnId) {
@@ -374,7 +374,7 @@ class KanbanApp extends FlowStateComponent {
   }
 
   #selectCard(card) {
-    this.state.update({ selectedCard: card });
+    this.source.update({ selectedCard: card });
   }
 }
 

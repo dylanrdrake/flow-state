@@ -181,7 +181,7 @@ appTemplate.innerHTML = HTML`
 const agoDays = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
 
 class BudgetApp extends HTMLElement {
-  #state;
+  #source;
   #txList;
   #txCount;
   #filters;
@@ -193,7 +193,7 @@ class BudgetApp extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets = [appSheet];
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
 
         transactions: [
           { id: 1,  description: 'Monthly salary',    amount: 4200,  type: 'income',  category: 'Work',         date: agoDays(14) },
@@ -273,17 +273,17 @@ class BudgetApp extends HTMLElement {
       const filter = e.target.dataset.filter;
       if (!filter) return;
       this.#filterBtns.forEach(btn => btn.toggleAttribute('active', btn.dataset.filter === filter));
-      this.#state.update({ filter });
+      this.#source.update({ filter });
     });
 
     // Sort select
     this.#sortSelect.addEventListener('change', (e) => {
-      this.#state.update({ sort: e.target.value });
+      this.#source.update({ sort: e.target.value });
     });
   }
 
   #addTransaction({ description, amount, type, category }) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       transactions: [
         ...prev.transactions,
         { id: Date.now(), description, amount, type, category, date: new Date().toISOString() },
@@ -292,7 +292,7 @@ class BudgetApp extends HTMLElement {
   }
 
   #deleteTransaction(id) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       transactions: prev.transactions.filter(t => t.id !== id),
     }));
   }

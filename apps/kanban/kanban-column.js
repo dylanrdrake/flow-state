@@ -81,7 +81,7 @@ class KanbanColumn extends FlowStateComponent {
 
   // Local state: which card in this column is selected, and the full columns list
   // (needed to populate the move-target select and render cards).
-  state = {
+  source = {
     columnData: null,    // { id, title, cards[] } — set by parent watcher
   };
 
@@ -108,7 +108,7 @@ class KanbanColumn extends FlowStateComponent {
   }
 
   disconnectedCallback() {
-    this.state?.destroy();
+    this.source?.destroy();
   }
 
   #render(columns) {
@@ -116,7 +116,7 @@ class KanbanColumn extends FlowStateComponent {
     if (!col) return;
 
     // Update local columnData so kanban-cards can watch it
-    this.state.update({ columnData: col });
+    this.source.update({ columnData: col });
 
     // Update header
     this.#colTitle.textContent  = col.title;

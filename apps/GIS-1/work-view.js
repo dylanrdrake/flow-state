@@ -160,7 +160,7 @@ const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
 class WorkView extends HTMLElement {
-  #state;
+  #source;
   #workView;
   #noItemMsg;
   #editor;
@@ -177,7 +177,7 @@ class WorkView extends HTMLElement {
     const shadowRoot =this.attachShadow({ mode: 'open' });
     shadowRoot.adoptedStyleSheets = [sheet];
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       edits: null,
     });
 
@@ -204,7 +204,7 @@ class WorkView extends HTMLElement {
 
     this.#closeBtn.addEventListener('click', () => {
       this.selectedWorkItem = null;
-      this.#state.update({ edits: {} });
+      this.#source.update({ edits: {} });
       this.#selectWorkItem(null);
     });
   }
@@ -222,7 +222,7 @@ class WorkView extends HTMLElement {
 
 
   set selectedWorkItem(workItem) {
-    this.#state.update({ edits: workItem || {} });
+    this.#source.update({ edits: workItem || {} });
     this.#editorFields.innerHTML = ''; // clear previous inputs
 
     if (!workItem) {
@@ -274,7 +274,7 @@ class WorkView extends HTMLElement {
         default:
           console.warn('Unsupported field type for key', key);
       }
-      this.#state.update((state) => {
+      this.#source.update((state) => {
         state.edits[key] = val;
         return state;
       });

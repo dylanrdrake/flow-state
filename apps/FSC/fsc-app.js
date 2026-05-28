@@ -20,18 +20,18 @@ class FSCApp extends FlowStateComponent {
     <title-editor></title-editor>
   `;
 
-  state = {
+  source = {
     title: 'Hello, FlowStateComponent!',
     message: 'This message is stored in FlowState and can be read with the button below.',
     changeTitle: this.#updateTitle.bind(this),
   };
 
   #updateTitle(newTitle) {
-    this.state.update({ title: newTitle });
+    this.source.update({ title: newTitle });
   }
 
   disconnectedCallback() {
-    this.state?.destroy();
+    this.source?.destroy();
   }
 }
 

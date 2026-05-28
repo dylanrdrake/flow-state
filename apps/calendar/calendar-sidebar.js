@@ -169,7 +169,7 @@ template.innerHTML = HTML`
 
 
 export class CalendarSidebar extends HTMLElement {
-  #state;
+  #source;
   #dateHeading;
   #eventsList;
   #titleInput;
@@ -185,7 +185,7 @@ export class CalendarSidebar extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.adoptedStyleSheets = [sheet];
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       eventInputValue: '',
       events: [],
       showNoEvents: flowCompute((events) => events.length === 0, ['events']),
@@ -218,7 +218,7 @@ export class CalendarSidebar extends HTMLElement {
     this.#addBtn.addEventListener('click', () => this.#submit());
     this.#titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.#submit(); });
     this.#titleInput.addEventListener('input', (e) => {
-      this.#state.update({ eventInputValue: e.target.value });
+      this.#source.update({ eventInputValue: e.target.value });
     });
   }
 
@@ -236,7 +236,7 @@ export class CalendarSidebar extends HTMLElement {
     const title = flowGet(this, 'eventInputValue').trim();
     if (!title || !this.#currentDate) return;
     this.#addEvent?.({ title, color: this.#selectedColor, date: this.#currentDate });
-    this.#state.update({ eventInputValue: '' });
+    this.#source.update({ eventInputValue: '' });
   }
 
   set selectedDate(date) {
@@ -253,7 +253,7 @@ export class CalendarSidebar extends HTMLElement {
       ...ev,
       dotStyle: `background:${COLOR_MAP[ev.color] ?? COLOR_MAP.indigo}`,
     }));
-    this.#state.update({ events: nextEvents });
+    this.#source.update({ events: nextEvents });
   }
 }
 

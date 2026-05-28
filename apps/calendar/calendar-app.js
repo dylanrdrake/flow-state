@@ -59,14 +59,14 @@ const seedEvents = [
 
 
 class CalendarApp extends HTMLElement {
-  #state;
+  #source;
 
   constructor() {
     super();
     const shadow = this.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets = [sheet];
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
 
         today,
         viewYear:     now.getFullYear(),
@@ -136,14 +136,14 @@ class CalendarApp extends HTMLElement {
   }
 
   #prevMonth() {
-    this.#state.update(s => ({
+    this.#source.update(s => ({
       viewMonth: s.viewMonth === 0 ? 11 : s.viewMonth - 1,
       viewYear:  s.viewMonth === 0 ? s.viewYear - 1 : s.viewYear,
     }));
   }
 
   #nextMonth() {
-    this.#state.update(s => ({
+    this.#source.update(s => ({
       viewMonth: s.viewMonth === 11 ? 0  : s.viewMonth + 1,
       viewYear:  s.viewMonth === 11 ? s.viewYear + 1 : s.viewYear,
     }));
@@ -151,21 +151,21 @@ class CalendarApp extends HTMLElement {
 
   #goToday() {
     const now = new Date();
-    this.#state.update({ viewYear: now.getFullYear(), viewMonth: now.getMonth(), selectedDate: localDate() });
+    this.#source.update({ viewYear: now.getFullYear(), viewMonth: now.getMonth(), selectedDate: localDate() });
   }
 
   #selectDate(date) {
-    this.#state.update({ selectedDate: date });
+    this.#source.update({ selectedDate: date });
   }
 
   #addEvent({ title, color, date }) {
-    this.#state.update(s => ({
+    this.#source.update(s => ({
       events: [...s.events, { id: Date.now(), title, color, date }],
     }));
   }
 
   #deleteEvent(id) {
-    this.#state.update(s => ({
+    this.#source.update(s => ({
       events: s.events.filter(e => e.id !== id),
     }));
   }

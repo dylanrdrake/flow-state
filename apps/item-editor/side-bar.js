@@ -19,7 +19,7 @@ template.innerHTML = HTML`
 `;
 
 class SideBar extends HTMLElement {
-  #state;
+  #source;
   #selectWorkItem;
 
   constructor() {
@@ -29,7 +29,7 @@ class SideBar extends HTMLElement {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
     // Create local FlowState for filter before children connect
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       filter: '',
       filteredItems: []
     });
@@ -51,7 +51,7 @@ class SideBar extends HTMLElement {
     });
 
     this.shadowRoot.getElementById('filter-input').addEventListener('input', e => {
-      this.#state.update({ filter: e.target.value });
+      this.#source.update({ filter: e.target.value });
     });
 
     this.shadowRoot.getElementById('list').addEventListener('click', e => {
@@ -65,7 +65,7 @@ class SideBar extends HTMLElement {
   #updateFilteredItems(items, filter, selected) {
     const f = (filter ?? '').toLowerCase();
     const filtered = f ? items.filter(i => i.name.toLowerCase().includes(f)) : items;
-    this.#state.update({
+    this.#source.update({
       filteredItems: filtered.map(i => ({
         ...i,
         class: `work-item${i.id === selected?.id ? ' selected' : ''}`

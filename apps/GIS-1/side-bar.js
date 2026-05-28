@@ -123,7 +123,7 @@ const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
 class SideBar extends HTMLElement {
-  #state;
+  #source;
   #selectWorkItem;
   #selectedWorkItem;
   #workItemsContainer;
@@ -139,7 +139,7 @@ class SideBar extends HTMLElement {
     this.#workItemsContainer = shadowRoot.getElementById('work-items-container');
     shadowRoot.addEventListener('click', this.#onItemClick);
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       history: [],
       hasHistory: flowCompute((history) => history.length > 0, ['history']),
     });
@@ -163,7 +163,7 @@ class SideBar extends HTMLElement {
   #workItemSelected(workItem) {
     this.#selectedWorkItem = workItem;
     if (workItem) {
-      this.#state.update((prev) => {
+      this.#source.update((prev) => {
         const newHistory = [workItem, ...prev.history.filter(item => item.id !== workItem.id)];
         return { history: newHistory };
       });

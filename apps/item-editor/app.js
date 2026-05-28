@@ -14,7 +14,7 @@ template.innerHTML = HTML`
 `;
 
 class ItemEditorApp extends HTMLElement {
-  #state;
+  #source;
 
   constructor() {
     super();
@@ -22,7 +22,7 @@ class ItemEditorApp extends HTMLElement {
   }
 
   async connectedCallback() {
-    if (this.#state) return;
+    if (this.#source) return;
 
     const config = await fetch(new URL('./config.json', import.meta.url)).then(r => r.json());
     const items = config.items.map(item => ({
@@ -32,7 +32,7 @@ class ItemEditorApp extends HTMLElement {
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       items,
       selectedItem: null,
       selectItem:   this.#selectWorkItem.bind(this),
@@ -43,11 +43,11 @@ class ItemEditorApp extends HTMLElement {
   }
 
   #selectWorkItem(workItem) {
-    this.#state.update({ selectedItem: workItem });
+    this.#source.update({ selectedItem: workItem });
   }
 
   #saveWorkItem(edits) {
-    this.#state.update(state => ({
+    this.#source.update(state => ({
       items: state.items.map(i =>
         i.id === state.selectedItem.id ? { ...i, ...edits } : i
       ),

@@ -57,7 +57,7 @@ sheet.replaceSync(styles);
 
 
 class Workspace extends HTMLElement {
-  #state;
+  #source;
   minWidth = 10;
 
   constructor() {
@@ -68,7 +68,7 @@ class Workspace extends HTMLElement {
   }
 
   connectedCallback() {
-    if (this.#state) return;
+    if (this.#source) return;
 
     const workItems = (flowGet(this, 'workItems') ?? []).map(item => ({
       ...item,
@@ -77,7 +77,7 @@ class Workspace extends HTMLElement {
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       workItems,
       selectedWorkItem: null,
       selectWorkItem: this.#selectWorkItemHook.bind(this),
@@ -118,12 +118,12 @@ class Workspace extends HTMLElement {
   }
 
   #selectWorkItemHook(workItem) {
-    this.#state.update({ selectedWorkItem: workItem });
+    this.#source.update({ selectedWorkItem: workItem });
     this.workView.selectedWorkItem = workItem;
   }
 
   #saveWorkItem(edits) {
-    this.#state.update((state) => {
+    this.#source.update((state) => {
       let updatedItem = { ...state.selectedWorkItem, ...edits };
       const updatedWorkItems = state.workItems.map(item => {
         if (item.id === state.selectedWorkItem.id) {

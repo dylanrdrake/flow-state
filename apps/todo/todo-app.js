@@ -156,7 +156,7 @@ sheet.replaceSync(styles);
 
 
 class TodoApp extends HTMLElement {
-  #state;
+  #source;
   #input;
   #addBtn;
   #todoList;
@@ -180,7 +180,7 @@ class TodoApp extends HTMLElement {
     this.#filterBtns = shadow.querySelectorAll('.filter-btn');
     this.#clearDoneBtn = shadow.getElementById('clear-done-btn');
 
-    this.#state = new FlowSource(this, {
+    this.#source = new FlowSource(this, {
       todos: [],
       filter: 'all',
 
@@ -224,12 +224,12 @@ class TodoApp extends HTMLElement {
       this.#filterBtns.forEach(btn => {
         btn.toggleAttribute('active', btn.dataset.filter === filter);
       });
-      this.#state.update({ filter });
+      this.#source.update({ filter });
     });
 
     // Clear done
     this.#clearDoneBtn.addEventListener('click', () => {
-      this.#state.update(prev => ({
+      this.#source.update(prev => ({
         todos: prev.todos.filter(t => !t.done)
       }));
     });
@@ -238,7 +238,7 @@ class TodoApp extends HTMLElement {
   #submitInput() {
     const text = this.#input.value.trim();
     if (!text) return;
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       todos: [...prev.todos, { id: Date.now(), text, done: false }]
     }));
     this.#input.value = '';
@@ -246,13 +246,13 @@ class TodoApp extends HTMLElement {
   }
 
   #toggleTodo(id) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       todos: prev.todos.map(t => t.id === id ? { ...t, done: !t.done } : t)
     }));
   }
 
   #deleteTodo(id) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       todos: prev.todos.filter(t => t.id !== id)
     }));
   }
