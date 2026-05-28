@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createFlowFrom, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { FlowSource, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
 
-describe('FlowState – actions', () => {
+describe('FlowSource – actions', () => {
   let root, state;
   const clickHandler = vi.fn();
   const deleteHandler = vi.fn();
@@ -9,7 +9,7 @@ describe('FlowState – actions', () => {
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = createFlowFrom(root, {
+    state = new FlowSource(root, {
       count: 0,
       onClick: clickHandler,
       onDelete: deleteHandler,

@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { createFlowFrom, flowThrough, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { FlowSource, flowThrough, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
 
-describe('FlowState – scope isolation between siblings', () => {
+describe('FlowSource – scope isolation between siblings', () => {
   it('updating one scope does not affect a sibling scope', async () => {
     const root1 = document.createElement('div');
     const root2 = document.createElement('div');
     document.body.appendChild(root1);
     document.body.appendChild(root2);
 
-    const state1 = createFlowFrom(root1, { count: 0 });
-    const state2 = createFlowFrom(root2, { count: 100 });
+    const state1 = new FlowSource(root1, { count: 0 });
+    const state2 = new FlowSource(root2, { count: 100 });
 
     await state1.update({ count: 5 });
 
@@ -26,8 +26,8 @@ describe('FlowState – scope isolation between siblings', () => {
     document.body.appendChild(root1);
     document.body.appendChild(root2);
 
-    const state1 = createFlowFrom(root1, { count: 0 });
-    const state2 = createFlowFrom(root2, { count: 0 });
+    const state1 = new FlowSource(root1, { count: 0 });
+    const state2 = new FlowSource(root2, { count: 0 });
 
     const spy = vi.fn();
     watchFlowFrom(root2, 'count', spy);
@@ -51,8 +51,8 @@ describe('FlowState – scope isolation between siblings', () => {
     root1.appendChild(child1);
     root2.appendChild(child2);
 
-    createFlowFrom(root1, { label: 'scope-1' });
-    createFlowFrom(root2, { label: 'scope-2' });
+    new FlowSource(root1, { label: 'scope-1' });
+    new FlowSource(root2, { label: 'scope-2' });
 
     expect(getFlowFrom(child1, 'label')).toBe('scope-1');
     expect(getFlowFrom(child2, 'label')).toBe('scope-2');
@@ -62,15 +62,15 @@ describe('FlowState – scope isolation between siblings', () => {
   });
 });
 
-describe('FlowState – child scope shadows parent key', () => {
-  it("a child FlowState's key shadows the parent's key within the child's subtree", () => {
+describe('FlowSource – child scope shadows parent key', () => {
+  it("a child FlowSource's key shadows the parent's key within the child's subtree", () => {
     const parent = document.createElement('div');
     const child = document.createElement('div');
     parent.appendChild(child);
     document.body.appendChild(parent);
 
-    createFlowFrom(parent, { theme: 'dark' });
-    createFlowFrom(child, { theme: 'light' }); // shadows parent
+    new FlowSource(parent, { theme: 'dark' });
+    new FlowSource(child, { theme: 'light' }); // shadows parent
 
     const inner = document.createElement('span');
     child.appendChild(inner);
@@ -89,8 +89,8 @@ describe('FlowState – child scope shadows parent key', () => {
     parent.appendChild(sibling);
     document.body.appendChild(parent);
 
-    createFlowFrom(parent, { theme: 'dark' });
-    createFlowFrom(child, { theme: 'light' }); // shadows only inside child
+    new FlowSource(parent, { theme: 'dark' });
+    new FlowSource(child, { theme: 'light' }); // shadows only inside child
 
     // sibling is not inside the child scope — should see parent's 'dark'
     expect(getFlowFrom(sibling, 'theme')).toBe('dark');
@@ -104,8 +104,8 @@ describe('FlowState – child scope shadows parent key', () => {
     parent.appendChild(child);
     document.body.appendChild(parent);
 
-    const parentState = createFlowFrom(parent, { state: { value: 'parent' } });
-    const childState = createFlowFrom(child, { state: { value: 'child' } });
+    const parentState = new FlowSource(parent, { state: { value: 'parent' } });
+    const childState = new FlowSource(child, { state: { value: 'child' } });
 
     const childSpy = vi.fn();
     watchFlowFrom(child, 'value', childSpy);
@@ -118,9 +118,9 @@ describe('FlowState – child scope shadows parent key', () => {
   });
 });
 
-describe('FlowState – closed shadow DOM and through()', () => {
+describe('FlowSource – closed shadow DOM and through()', () => {
   // Helper: create a custom element with a closed shadow root.
-  // FlowState is mounted on the host (light DOM) and the shadow is registered via through().
+  // FlowSource is mounted on the host (light DOM) and the shadow is registered via through().
   // Returns { host, shadow, state }.
   const makeClosedHost = (tag, config = {}) => {
     if (!customElements.get(tag)) {
@@ -129,7 +129,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
     const host = document.createElement(tag);
     document.body.appendChild(host);
     const shadow = host.attachShadow({ mode: 'closed' });
-    const state = createFlowFrom(host, config);
+    const state = new FlowSource(host, config);
     flowThrough(shadow);
     return { host, shadow, state };
   };
@@ -164,7 +164,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   it('through() registers a closed shadow so parent bindings reach elements inside it', async () => {
     const parent = document.createElement('div');
     document.body.appendChild(parent);
-    const parentState = createFlowFrom(parent, { status: 'idle' });
+    const parentState = new FlowSource(parent, { status: 'idle' });
 
     if (!customElements.get('closed-binding-child')) {
       customElements.define('closed-binding-child', class extends HTMLElement {});
@@ -188,7 +188,7 @@ describe('FlowState – closed shadow DOM and through()', () => {
   it('through() must be called before update to push values into a closed shadow binding', async () => {
     const parent = document.createElement('div');
     document.body.appendChild(parent);
-    const parentState = createFlowFrom(parent, { mode: 'light' });
+    const parentState = new FlowSource(parent, { mode: 'light' });
 
     if (!customElements.get('closed-late-through')) {
       customElements.define('closed-late-through', class extends HTMLElement {});

@@ -1,6 +1,6 @@
 export { FlowStateComponent } from './lib/FlowStateComponent.js';
 export {
-	createFlowFrom,
+	FlowSource,
 	getFlowFrom,
 	watchFlowFrom,
 	flowThrough,

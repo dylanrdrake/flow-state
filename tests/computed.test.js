@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createFlowFrom, flowCompute, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { FlowSource, flowCompute, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
 
-describe('FlowState – computed values', () => {
+describe('FlowSource – computed values', () => {
   let root, state;
 
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = createFlowFrom(root, {
+    state = new FlowSource(root, {
       price: 10,
       qty: 3,
       name: 'alice',
@@ -75,7 +75,7 @@ describe('FlowState – computed values', () => {
   it('multiple computed values can depend on the same key', async () => {
     const root2 = document.createElement('div');
     document.body.appendChild(root2);
-    const s = createFlowFrom(root2, {
+    const s = new FlowSource(root2, {
       x: 4,
       double: flowCompute((x) => x * 2, ['x']),
       triple: flowCompute((x) => x * 3, ['x']),
@@ -88,13 +88,13 @@ describe('FlowState – computed values', () => {
   });
 });
 
-describe('FlowState – computed values with nested object deps', () => {
+describe('FlowSource – computed values with nested object deps', () => {
   let root, state;
 
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = createFlowFrom(root, {
+    state = new FlowSource(root, {
       user:  { name: 'Alice', role: 'admin' },
       score: 42,
       label: flowCompute((user) => `${user.name} (${user.role})`, ['user']),
@@ -138,12 +138,12 @@ describe('FlowState – computed values with nested object deps', () => {
   });
 });
 
-describe('FlowState – computed values depending on computed values', () => {
+describe('FlowSource – computed values depending on computed values', () => {
   it('evaluates upstream computed deps before downstream computed values', async () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
 
-    const state = createFlowFrom(root, {
+    const state = new FlowSource(root, {
       price: 10,
       qty: 2,
       taxRate: 0.1,
@@ -165,7 +165,7 @@ describe('FlowState – computed values depending on computed values', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
 
-    const state = createFlowFrom(root, {
+    const state = new FlowSource(root, {
       price: 10,
       qty: 2,
       taxRate: 0.1,
@@ -189,7 +189,7 @@ describe('FlowState – computed values depending on computed values', () => {
     document.body.appendChild(root);
 
     expect(() => {
-      createFlowFrom(root, {
+      new FlowSource(root, {
         source: 1,
         a: flowCompute((b) => b + 1, ['b']),
         b: flowCompute((a) => a + 1, ['a']),

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
-  createFlowFrom,
+  FlowSource,
   getFlowFrom,
   watchFlowFrom,
   flowThrough,
@@ -18,7 +18,7 @@ describe('functional API – create/get/watch', () => {
     parent.appendChild(child);
     document.body.appendChild(parent);
 
-    state = createFlowFrom(parent, {
+    state = new FlowSource(parent, {
       count: 1,
       label: 'hello',
     });
@@ -26,7 +26,7 @@ describe('functional API – create/get/watch', () => {
 
   afterEach(() => parent.remove());
 
-  it('createFlowFrom creates a FlowState instance API', () => {
+  it('FlowSource creates a FlowState instance API', () => {
     expect(typeof state.update).toBe('function');
     expect(typeof state.destroy).toBe('function');
   });
@@ -57,11 +57,11 @@ describe('functional API – flowThrough/flowCompute', () => {
     expect(() => flowThrough(null)).toThrow();
   });
 
-  it('flowCompute creates computed descriptor consumed by FlowState', () => {
+  it('flowCompute creates computed descriptor consumed by FlowSource', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
 
-    const state = createFlowFrom(root, {
+    const state = new FlowSource(root, {
       price: 10,
       qty: 2,
       total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
@@ -79,7 +79,7 @@ describe('functional API – flowThrough/flowCompute', () => {
     const inner = document.createElement('span');
     shadow.appendChild(inner);
 
-    const state = createFlowFrom(host, { count: 0 });
+    const state = new FlowSource(host, { count: 0 });
     flowThrough(shadow);
 
     const spy = vi.fn();

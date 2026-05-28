@@ -1,17 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createFlowFrom, getFlowFrom, watchFlowFrom, flowCompute } from '../lib/FlowState.js';
+import { FlowSource, getFlowFrom, watchFlowFrom, flowCompute } from '../lib/FlowState.js';
 
-describe('FlowState – constructor and instance surface', () => {
-  it('throws when createFlowFrom root is not a DOM Node', () => {
-    expect(() => createFlowFrom({}, {})).toThrow();
-    expect(() => createFlowFrom(null, {})).toThrow();
-    expect(() => createFlowFrom('div', {})).toThrow();
+describe('FlowSource – constructor and instance surface', () => {
+  it('throws when FlowSource root is not a DOM Node', () => {
+    expect(() => new FlowSource({}, {})).toThrow();
+    expect(() => new FlowSource(null, {})).toThrow();
+    expect(() => new FlowSource('div', {})).toThrow();
   });
 
   it('returns instance with update/destroy only', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
-    const state = createFlowFrom(root, { count: 0 });
+    const state = new FlowSource(root, { count: 0 });
 
     expect(typeof state.update).toBe('function');
     expect(typeof state.destroy).toBe('function');
@@ -25,20 +25,20 @@ describe('FlowState – constructor and instance surface', () => {
   it('throws when a FlowState is already mounted on the root', () => {
     const root = document.createElement('div');
     document.body.appendChild(root);
-    createFlowFrom(root, {});
-    expect(() => createFlowFrom(root, {})).toThrow();
+    new FlowSource(root, {});
+    expect(() => new FlowSource(root, {})).toThrow();
     root.remove();
   });
 });
 
-describe('FlowState – update with functional read/watch APIs', () => {
+describe('FlowSource – update with functional read/watch APIs', () => {
   let root;
   let state;
 
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = createFlowFrom(root, {
+    state = new FlowSource(root, {
       count: 0,
       user: { role: 'admin', age: 30 },
       total: flowCompute((count) => count * 2, ['count']),
