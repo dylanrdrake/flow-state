@@ -405,17 +405,9 @@
     </div>
   </div>
   <script type="module">
-    const params = new URLSearchParams(window.location.search);
-    const useFlowStateDevtools = params.get('engine') === 'flowstate';
-
-    if (useFlowStateDevtools) {
-      const mod = await import('./devtools_flow_state.js');
-      mod.startFlowStateDevtools();
-      console.info('FlowState Devtools engine: flowstate');
-    } else {
-      await import('./devtools.js');
-      console.info('FlowState Devtools engine: legacy');
-    }
+    const mod = await import('./devtools_flow_state.js');
+    mod.startFlowStateDevtools();
+    console.info('FlowState Devtools engine: flowstate');
   </script>
 </body>
 </html>
