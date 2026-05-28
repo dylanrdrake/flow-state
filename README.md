@@ -29,6 +29,79 @@ Source instance API returned by `new FlowSource(root, config)`:
 - `state.update(patchOrUpdater)`
 - `state.destroy()`
 
+
+## Getting Started
+
+Preferred workflow:
+
+```bash
+npm install flow-state
+```
+
+Then import from `flow-state` in your app.
+
+### ⚠️ Temporary Until npm Publish
+
+Until `flow-state` is published, clone this repo and use an import map that points to `index.js`.
+
+```bash
+git clone https://github.com/dylanrdrake/flow-state.git
+```
+
+```html
+<script type="importmap">
+{
+	"imports": {
+		"flow-state": "/path/to/flow-state/index.js"
+	}
+}
+</script>
+```
+
+Then `import { FlowSource } from 'flow-state'` as you would with an npm module.
+
+## Devtools Quick Start
+
+Enable in app entry:
+
+```js
+import { flowDevtools } from 'flow-state';
+flowDevtools();
+```
+
+Run devtools server and open both pages on the same origin:
+```bash
+node node_modules/flow-state/devtools/server.js -r ./app/root/path -p 3300
+```
+
+```bash
+node lib/devtools/server.js -r ./app/root/path -p 3300
+```
+
+- `http://localhost:3300/`
+- `http://localhost:3300/devtools/`
+
+npm script example (once package is installed):
+
+```json
+{
+	"scripts": {
+		"devtools": "node ./node_modules/flow-state/lib/devtools/server.js -r . -p 3300"
+	}
+}
+```
+
+For this repository clone path, use:
+
+```json
+{
+	"scripts": {
+		"devtools": "node lib/devtools/server.js -r . -p 3300"
+	}
+}
+```
+
+
 ## Quick Start
 
 ```js
@@ -88,20 +161,3 @@ flowThrough(shadow);
 This is only necessary for closed shadow roots. Open shadow roots do not require `flowThrough`.
 Use it when FlowState values need to flow down into declarative bindings inside a closed shadow
 root. It is not needed for events flowing up from `flowGet()` / `flowWatch()`.
-
-## Installation
-
-> Not published to npm yet: `flow-state` is not currently available on npm.
-> Use the repository source directly for now.
-
-```bash
-npm install flow-state
-```
-
-## Scripts
-
-```bash
-npm run build
-npm test
-npm run test:watch
-```

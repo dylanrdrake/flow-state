@@ -33,6 +33,7 @@
     <div class="nav-section">
       <a class="nav-section-label" href="#introduction">Introduction</a>
       <a class="nav-link" href="#at-a-glance">At a Glance</a>
+      <a class="nav-link" href="#getting-started">Getting Started</a>
       <a class="nav-link" href="#core-concepts">Core Concepts</a>
       <a class="nav-link" href="#usage">Ways to Use</a>
     </div>
@@ -79,6 +80,46 @@
             </tbody>
           </table>
         </div>
+      </section>
+
+      <!-- ──────────────────────────────────── -->
+      <section id="getting-started">
+        <h2>Getting Started</h2>
+
+        <h3>Preferred workflow: npm package</h3>
+        <p>
+          FlowState is designed to be consumed as an npm dependency in your app.
+          Install the package, import from <code>flow-state</code>, and call
+          <code>flowDevtools()</code> once in your app entry.
+        </p>
+        <div class="cb"><pre><code>npm install flow-state</code></pre></div>
+        <div class="cb"><pre><code>import { FlowSource } from 'flow-state';
+
+const source = new FlowSource(document.getElementById('app'), {
+  count: 0,
+});</code></pre></div>
+
+        <h3>Temporary until npm publish: clone + import map</h3>
+        <p>
+          Until the package is published, use a local clone and map
+          <code>flow-state</code> to this repository's <code>index.js</code>.
+        </p>
+        <div class="cb"><pre><code># Clone the repository
+git clone https://github.com/dylanrdrake/flow-state.git
+
+</code></pre></div>
+        <p>In your HTML:</p>
+        <div class="cb"><pre><code data-nohl>&lt;script type="importmap"&gt;
+{
+  "imports": {
+    "flow-state": "/path/to/flow-state/index.js"
+  }
+}
+&lt;/script&gt;</code></pre></div>
+        <p>
+          Then import FlowState exactly as you would with npm and continue using
+          the same API.
+        </p>
       </section>
       <!-- ──────────────────────────────────── -->
       <section id="core-concepts">
@@ -779,14 +820,30 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
         </p>
         <p>
           The app and devtools page must be on the <strong>same origin</strong>
-          (same protocol + host + port), or the channel will not connect.
+          (same protocol + host + port), or the channel will not connect. FlowState ships with a development server to serve your app and the devtools UI together on the same origin.
         </p>
         <div class="cb"><pre><code># Run the packaged devtools server
 node lib/devtools/server.js -r /absolute/path/to/your/app -p 3300
 
 # Open app and devtools on the same origin
-http://localhost:3300/target/
+http://localhost:3300/
 http://localhost:3300/devtools/</code></pre></div>
+        <p>
+          npm script example:
+        </p>
+        <div class="cb"><pre><code>{
+  "scripts": {
+    "devtools": "node ./node_modules/flow-state/lib/devtools/server.js -r . -p 3300"
+  }
+}</code></pre></div>
+        <p>
+          While using the temporary clone/import-map path, use this repository-local script instead:
+        </p>
+        <div class="cb"><pre><code>{
+  "scripts": {
+    "devtools": "node lib/devtools/server.js -r . -p 3300"
+  }
+}</code></pre></div>
         <p>
           The devtools UI shows active FlowState scopes, current state values, watcher links, and
           source-element highlighting.
