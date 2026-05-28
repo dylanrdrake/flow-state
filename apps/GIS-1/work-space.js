@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './side-bar.js';
 import './work-view.js';
 
@@ -57,7 +57,7 @@ sheet.replaceSync(styles);
 
 
 class Workspace extends HTMLElement {
-  #state;
+  #source;
   minWidth = 10;
 
   constructor() {
@@ -68,16 +68,16 @@ class Workspace extends HTMLElement {
   }
 
   connectedCallback() {
-    if (this.#state) return;
+    if (this.#source) return;
 
-    const workItems = (Flow.get(this, 'workItems') ?? []).map(item => ({
+    const workItems = (flowGet(this, 'workItems') ?? []).map(item => ({
       ...item,
       initial: item.name.charAt(0).toUpperCase()
     }));
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new Flow(this, {
+    this.#source = new FlowSource(this, {
       workItems,
       selectedWorkItem: null,
       selectWorkItem: this.#selectWorkItemHook.bind(this),
@@ -118,12 +118,12 @@ class Workspace extends HTMLElement {
   }
 
   #selectWorkItemHook(workItem) {
-    this.#state.update({ selectedWorkItem: workItem });
+    this.#source.update({ selectedWorkItem: workItem });
     this.workView.selectedWorkItem = workItem;
   }
 
   #saveWorkItem(edits) {
-    this.#state.update((state) => {
+    this.#source.update((state) => {
       let updatedItem = { ...state.selectedWorkItem, ...edits };
       const updatedWorkItems = state.workItems.map(item => {
         if (item.id === state.selectedWorkItem.id) {

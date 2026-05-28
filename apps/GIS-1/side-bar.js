@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -123,7 +123,7 @@ const sheet = new CSSStyleSheet();
 sheet.replaceSync(styles);
 
 class SideBar extends HTMLElement {
-  #state;
+  #source;
   #selectWorkItem;
   #selectedWorkItem;
   #workItemsContainer;
@@ -139,15 +139,15 @@ class SideBar extends HTMLElement {
     this.#workItemsContainer = shadowRoot.getElementById('work-items-container');
     shadowRoot.addEventListener('click', this.#onItemClick);
 
-    this.#state = Flow.create(this, {
+    this.#source = new FlowSource(this, {
       history: [],
-      hasHistory: Flow.compute((history) => history.length > 0, ['history']),
+      hasHistory: flowCompute((history) => history.length > 0, ['history']),
     });
   }
 
   connectedCallback() {
-    this.#selectWorkItem = Flow.get(this, 'selectWorkItem');
-    Flow.watch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
+    this.#selectWorkItem = flowGet(this, 'selectWorkItem');
+    flowWatch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
   }
 
 
@@ -155,7 +155,7 @@ class SideBar extends HTMLElement {
     const el = e.target.closest('[data-work-item-id]');
     if (!el) return;
     const id = parseInt(el.getAttribute('data-work-item-id'));
-    const workItem = Flow.get(this, 'workItems')?.find(w => w.id === id);
+    const workItem = flowGet(this, 'workItems')?.find(w => w.id === id);
     if (workItem) this.#selectWorkItem(workItem);
   };
 
@@ -163,7 +163,7 @@ class SideBar extends HTMLElement {
   #workItemSelected(workItem) {
     this.#selectedWorkItem = workItem;
     if (workItem) {
-      this.#state.update((prev) => {
+      this.#source.update((prev) => {
         const newHistory = [workItem, ...prev.history.filter(item => item.id !== workItem.id)];
         return { history: newHistory };
       });

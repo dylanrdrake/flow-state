@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FlowState } from '../lib/FlowState.js';
+import { FlowSource, flowThrough } from '../lib/FlowState.js';
 
 // The constructor defers the initial binding update one microtask.
 // Awaiting this lets us see the initial bound values in DOM assertions.
 const waitForInitialBindings = () => Promise.resolve();
 
-describe('FlowState – declarative bindings (to-prop)', () => {
+describe('FlowSource – declarative bindings (to-prop)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -17,7 +17,7 @@ describe('FlowState – declarative bindings (to-prop)', () => {
       <span id="active-el"  flow-watch-active-to-prop="hidden"></span>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       name: 'Alice', active: false,
     });
 
@@ -45,7 +45,7 @@ describe('FlowState – declarative bindings (to-prop)', () => {
   });
 });
 
-describe('FlowState – declarative bindings (to-attr)', () => {
+describe('FlowSource – declarative bindings (to-attr)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -57,7 +57,7 @@ describe('FlowState – declarative bindings (to-attr)', () => {
       <img   id="avatar"      flow-watch-avatar-to-attr="src">
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       count: 0, avatar: '/img/default.png',
     });
 
@@ -82,7 +82,7 @@ describe('FlowState – declarative bindings (to-attr)', () => {
   });
 });
 
-describe('FlowState – declarative bindings (dot-notation keys)', () => {
+describe('FlowSource – declarative bindings (dot-notation keys)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -95,7 +95,7 @@ describe('FlowState – declarative bindings (dot-notation keys)', () => {
       <span id="role-el"  flow-watch-user-role-to-attr="data-role"></span>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       user: { city: 'NY', role: 'admin' },
     });
 
@@ -129,7 +129,7 @@ describe('FlowState – declarative bindings (dot-notation keys)', () => {
   });
 });
 
-describe('FlowState – list item bindings (flow-list)', () => {
+describe('FlowSource – list item bindings (flow-list)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -147,7 +147,7 @@ describe('FlowState – list item bindings (flow-list)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       users: [
         { id: 1, name: 'Alice', role: 'admin' },
         { id: 2, name: 'Bob',   role: 'viewer' },
@@ -182,7 +182,7 @@ describe('FlowState – list item bindings (flow-list)', () => {
   });
 });
 
-describe('FlowState – list item bindings (nested keys)', () => {
+describe('FlowSource – list item bindings (nested keys)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -200,7 +200,7 @@ describe('FlowState – list item bindings (nested keys)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       people: [
         { user: { city: 'NY', role: 'admin' } },
         { user: { city: 'LA', role: 'viewer' } },
@@ -240,7 +240,7 @@ describe('FlowState – list item bindings (nested keys)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       people: [{ displayName: 'Alice' }],
     });
 
@@ -250,7 +250,7 @@ describe('FlowState – list item bindings (nested keys)', () => {
   });
 });
 
-describe('FlowState – conditional bindings (flow-if)', () => {
+describe('FlowSource – conditional bindings (flow-if)', () => {
   let root, state;
 
   afterEach(() => root.remove());
@@ -268,7 +268,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: true });
+    state = new FlowSource(root, { isReady: true });
     await waitForInitialBindings();
 
     expect(root.querySelector('#pass')?.textContent).toBe('Ready');
@@ -292,7 +292,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = new FlowSource(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#fail')?.textContent).toBe('Not ready');
@@ -311,7 +311,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = new FlowSource(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#pass')).toBeNull();
@@ -330,7 +330,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { isReady: false });
+    state = new FlowSource(root, { isReady: false });
     await waitForInitialBindings();
 
     expect(root.querySelector('#fail')).not.toBeNull();
@@ -356,7 +356,7 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       showUsers: true,
       users: [{ name: 'Alice' }, { name: 'Bob' }],
     });
@@ -381,8 +381,8 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, { showEmpty: true });
-    state.through(closedShadow);
+    state = new FlowSource(root, { showEmpty: true });
+    flowThrough(closedShadow);
     await waitForInitialBindings();
 
     expect(closedShadow.querySelector('#empty')?.textContent).toBe('No items');
@@ -404,10 +404,10 @@ describe('FlowState – conditional bindings (flow-if)', () => {
       </div>
     `;
 
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       items: [{ name: 'A' }, { name: 'B' }],
     });
-    state.through(closedShadow);
+    flowThrough(closedShadow);
     await waitForInitialBindings();
 
     const names = [...closedShadow.querySelectorAll('.name')].map(el => el.textContent);

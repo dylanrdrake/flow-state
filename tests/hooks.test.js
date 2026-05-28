@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowState } from '../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch } from '../lib/FlowState.js';
 
-describe('FlowState – actions', () => {
+describe('FlowSource – actions', () => {
   let root, state;
   const clickHandler = vi.fn();
   const deleteHandler = vi.fn();
@@ -9,7 +9,7 @@ describe('FlowState – actions', () => {
   beforeEach(() => {
     root = document.createElement('div');
     document.body.appendChild(root);
-    state = new FlowState(root, {
+    state = new FlowSource(root, {
       count: 0,
       onClick: clickHandler,
       onDelete: deleteHandler,
@@ -22,21 +22,21 @@ describe('FlowState – actions', () => {
     deleteHandler.mockReset();
   });
 
-  it('state.get() returns the action function', () => {
-    expect(state.get('onClick')).toBe(clickHandler);
-    expect(state.get('onDelete')).toBe(deleteHandler);
+  it('flowGet() returns the action function', () => {
+    expect(flowGet(root, 'onClick')).toBe(clickHandler);
+    expect(flowGet(root, 'onDelete')).toBe(deleteHandler);
   });
 
-  it('state.watch() calls the callback immediately with the action', () => {
+  it('flowWatch() calls the callback immediately with the action', () => {
     const spy = vi.fn();
-    state.watch('onClick', spy);
+    flowWatch(root, 'onClick', spy);
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(clickHandler);
   });
 
   it('action watcher is NOT called again after a state update (actions are not reactive)', async () => {
     const spy = vi.fn();
-    state.watch('onClick', spy);
+    flowWatch(root, 'onClick', spy);
     spy.mockClear();
 
     // Updating a regular state key should not trigger hook watchers
@@ -44,13 +44,13 @@ describe('FlowState – actions', () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it('action watcher returns a no-op unsubscribe that does not throw', () => {
+  it('action watcher unsubscribe does not throw', () => {
     const spy = vi.fn();
-    const unsub = state.watch('onClick', spy);
+    const unsub = flowWatch(root, 'onClick', spy);
     expect(() => unsub()).not.toThrow();
   });
 
   it('actions do not interfere with regular state values', () => {
-    expect(state.get('count')).toBe(0);
+    expect(flowGet(root, 'count')).toBe(0);
   });
 });

@@ -1,8 +1,8 @@
-import { FlowState, FlowStateComponent } from '../../index.js';
+import { FlowStateComponent, startFlowDevtools } from '../../index.js';
 import './title-panel.js';
 import './title-editor.js';
 
-FlowState.devtools();
+startFlowDevtools();
 
 const HTML = String.raw;
 const CSS = String.raw;
@@ -20,18 +20,18 @@ class FSCApp extends FlowStateComponent {
     <title-editor></title-editor>
   `;
 
-  state = {
+  source = {
     title: 'Hello, FlowStateComponent!',
     message: 'This message is stored in FlowState and can be read with the button below.',
     changeTitle: this.#updateTitle.bind(this),
   };
 
   #updateTitle(newTitle) {
-    this.state.update({ title: newTitle });
+    this.source.update({ title: newTitle });
   }
 
   disconnectedCallback() {
-    this.state?.destroy();
+    this.source?.destroy();
   }
 }
 

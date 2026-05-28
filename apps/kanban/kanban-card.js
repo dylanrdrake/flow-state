@@ -1,4 +1,4 @@
-import { FlowState } from 'flow-state';
+import { flowGet, flowWatch } from 'flow-state';
 
 const HTML = String.raw;
 const CSS = String.raw;
@@ -119,13 +119,13 @@ class KanbanCard extends HTMLElement {
     this.#columnId = this.dataset.columnId;
 
     // Get actions from the nearest parent scope (KanbanColumn or KanbanApp)
-    this.#deleteCard = FlowState.get(this, 'deleteCard');
-    this.#selectCard = FlowState.get(this, 'selectCard');
-    this.#editCard   = FlowState.get(this, 'editCard');
+    this.#deleteCard = flowGet(this, 'deleteCard');
+    this.#selectCard = flowGet(this, 'selectCard');
+    this.#editCard   = flowGet(this, 'editCard');
 
     // Watch the parent column's local `columnData` to get this card's data.
     // KanbanColumn owns columnData in its own FlowState scope.
-    FlowState.watch(this, 'columnData', (columnData) => {
+    flowWatch(this, 'columnData', (columnData) => {
       const card = columnData?.cards?.find(c => c.id === this.#cardId);
       if (!card) return;
       this.#cardData = card;
@@ -134,7 +134,7 @@ class KanbanCard extends HTMLElement {
     });
 
     // Watch global selectedCard from KanbanApp to toggle selected attribute
-    FlowState.watch(this, 'selectedCard', (selectedCardId) => {
+    flowWatch(this, 'selectedCard', (selectedCardId) => {
       this.toggleAttribute('selected', selectedCardId === this.#cardId);
     });
 

@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
 
 const CSS = String.raw;
@@ -169,7 +169,7 @@ template.innerHTML = HTML`
 
 
 export class CalendarSidebar extends HTMLElement {
-  #state;
+  #source;
   #dateHeading;
   #eventsList;
   #titleInput;
@@ -185,10 +185,10 @@ export class CalendarSidebar extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'open' });
     shadow.adoptedStyleSheets = [sheet];
 
-    this.#state = Flow.create(this, {
+    this.#source = new FlowSource(this, {
       eventInputValue: '',
       events: [],
-      showNoEvents: Flow.compute((events) => events.length === 0, ['events']),
+      showNoEvents: flowCompute((events) => events.length === 0, ['events']),
     });
 
     shadow.appendChild(template.content.cloneNode(true));
@@ -218,25 +218,25 @@ export class CalendarSidebar extends HTMLElement {
     this.#addBtn.addEventListener('click', () => this.#submit());
     this.#titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') this.#submit(); });
     this.#titleInput.addEventListener('input', (e) => {
-      this.#state.update({ eventInputValue: e.target.value });
+      this.#source.update({ eventInputValue: e.target.value });
     });
   }
 
   connectedCallback() {
-    this.#addEvent = Flow.get(this, 'addEvent');
-    this.#deleteEvent = Flow.get(this, 'deleteEvent');
+    this.#addEvent = flowGet(this, 'addEvent');
+    this.#deleteEvent = flowGet(this, 'deleteEvent');
 
-    Flow.watch(this, 'eventInputValue', (value) => {
+    flowWatch(this, 'eventInputValue', (value) => {
       if (value.length > 0) this.#addBtn.removeAttribute('disabled');
       else this.#addBtn.setAttribute('disabled', '');
     });
   }
 
   #submit() {
-    const title = this.#state.get('eventInputValue').trim();
+    const title = flowGet(this, 'eventInputValue').trim();
     if (!title || !this.#currentDate) return;
     this.#addEvent?.({ title, color: this.#selectedColor, date: this.#currentDate });
-    this.#state.update({ eventInputValue: '' });
+    this.#source.update({ eventInputValue: '' });
   }
 
   set selectedDate(date) {
@@ -253,7 +253,7 @@ export class CalendarSidebar extends HTMLElement {
       ...ev,
       dotStyle: `background:${COLOR_MAP[ev.color] ?? COLOR_MAP.indigo}`,
     }));
-    this.#state.update({ events: nextEvents });
+    this.#source.update({ events: nextEvents });
   }
 }
 

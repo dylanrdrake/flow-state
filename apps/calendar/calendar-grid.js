@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
 
 const CSS = String.raw;
@@ -122,7 +122,7 @@ export class CalendarGrid extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#selectDate = Flow.get(this, 'selectDate');
+    this.#selectDate = flowGet(this, 'selectDate');
     console.log('CalendarGrid connected, selectDate:', this.#selectDate);
   }
 

@@ -1,9 +1,9 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './budget-summary-card.js';
 import { TransactionItem } from './transaction-item.js';
 import './transaction-form.js';
 
-Flow.devtools();
+startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -181,7 +181,7 @@ appTemplate.innerHTML = HTML`
 const agoDays = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
 
 class BudgetApp extends HTMLElement {
-  #state;
+  #source;
   #txList;
   #txCount;
   #filters;
@@ -193,7 +193,7 @@ class BudgetApp extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets = [appSheet];
 
-    this.#state = Flow.create(this, {
+    this.#source = new FlowSource(this, {
 
         transactions: [
           { id: 1,  description: 'Monthly salary',    amount: 4200,  type: 'income',  category: 'Work',         date: agoDays(14) },
@@ -214,7 +214,7 @@ class BudgetApp extends HTMLElement {
         // --- Computed values ---
 
         // Filtered + sorted slice of transactions for the list view
-        filteredTransactions: Flow.compute((transactions, filter, sort) => {
+        filteredTransactions: flowCompute((transactions, filter, sort) => {
           let txs = filter === 'all'
             ? transactions
             : transactions.filter(t => t.type === filter);
@@ -230,23 +230,23 @@ class BudgetApp extends HTMLElement {
         }, ['transactions', 'filter', 'sort']),
 
         // Objects consumed by budget-summary-card's `amount` setter
-        balanceSummary: Flow.compute((transactions) => ({
+        balanceSummary: flowCompute((transactions) => ({
           total: transactions.reduce((sum, t) => t.type === 'income' ? sum + t.amount : sum - t.amount, 0),
           count: transactions.length,
           label: 'transactions total',
         }), ['transactions']),
 
-        incomeSummary: Flow.compute((transactions) => {
+        incomeSummary: flowCompute((transactions) => {
           const txs = transactions.filter(t => t.type === 'income');
           return { total: txs.reduce((sum, t) => sum + t.amount, 0), count: txs.length, label: 'income entries' };
         }, ['transactions']),
 
-        expenseSummary: Flow.compute((transactions) => {
+        expenseSummary: flowCompute((transactions) => {
           const txs = transactions.filter(t => t.type === 'expense');
           return { total: txs.reduce((sum, t) => sum + t.amount, 0), count: txs.length, label: 'expense entries' };
         }, ['transactions']),
 
-        showEmptyMessage: Flow.compute((filteredTxs) => filteredTxs.length === 0, ['filteredTransactions']),
+        showEmptyMessage: flowCompute((filteredTxs) => filteredTxs.length === 0, ['filteredTransactions']),
 
       addTransaction:    this.#addTransaction.bind(this),
       deleteTransaction: this.#deleteTransaction.bind(this),
@@ -260,10 +260,10 @@ class BudgetApp extends HTMLElement {
     this.#sortSelect = shadow.getElementById('sort-select');
 
     // Pierce the closed shadow so child components can reach state
-    this.#state.through(shadow);
+    flowThrough(shadow);
 
     // Re-render list when filtered/sorted set changes
-    this.#state.watch('filteredTransactions', (txs) => {
+    flowWatch(this, 'filteredTransactions', (txs) => {
       this.#txCount.textContent = `${txs.length} item${txs.length !== 1 ? 's' : ''}`;
       this.#txList.replaceChildren(...txs.map(tx => new TransactionItem(tx)));
     });
@@ -273,17 +273,17 @@ class BudgetApp extends HTMLElement {
       const filter = e.target.dataset.filter;
       if (!filter) return;
       this.#filterBtns.forEach(btn => btn.toggleAttribute('active', btn.dataset.filter === filter));
-      this.#state.update({ filter });
+      this.#source.update({ filter });
     });
 
     // Sort select
     this.#sortSelect.addEventListener('change', (e) => {
-      this.#state.update({ sort: e.target.value });
+      this.#source.update({ sort: e.target.value });
     });
   }
 
   #addTransaction({ description, amount, type, category }) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       transactions: [
         ...prev.transactions,
         { id: Date.now(), description, amount, type, category, date: new Date().toISOString() },
@@ -292,7 +292,7 @@ class BudgetApp extends HTMLElement {
   }
 
   #deleteTransaction(id) {
-    this.#state.update(prev => ({
+    this.#source.update(prev => ({
       transactions: prev.transactions.filter(t => t.id !== id),
     }));
   }

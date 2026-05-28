@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./side-bar.css', import.meta.url)).then(r => r.text()));
 
@@ -19,7 +19,7 @@ template.innerHTML = HTML`
 `;
 
 class SideBar extends HTMLElement {
-  #state;
+  #source;
   #selectWorkItem;
 
   constructor() {
@@ -29,35 +29,35 @@ class SideBar extends HTMLElement {
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
     // Create local FlowState for filter before children connect
-    this.#state = Flow.create(this, {
+    this.#source = new FlowSource(this, {
       filter: '',
       filteredItems: []
     });
   }
 
   connectedCallback() {
-    this.#selectWorkItem = Flow.get(this, 'selectItem');
+    this.#selectWorkItem = flowGet(this, 'selectItem');
 
-    Flow.watch(this, 'items', items => {
-      this.#updateFilteredItems(items, this.#state.get('filter'), Flow.get(this, 'selectedItem'));
+    flowWatch(this, 'items', items => {
+      this.#updateFilteredItems(items, flowGet(this, 'filter'), flowGet(this, 'selectedItem'));
     });
 
-    Flow.watch(this, 'selectedItem', selected => {
-      this.#updateFilteredItems(Flow.get(this, 'items'), this.#state.get('filter'), selected);
+    flowWatch(this, 'selectedItem', selected => {
+      this.#updateFilteredItems(flowGet(this, 'items'), flowGet(this, 'filter'), selected);
     });
 
-    this.#state.watch('filter', filter => { // Could also use static Flow.watch(this, 'filter', ...)
-      this.#updateFilteredItems(Flow.get(this, 'items'), filter, Flow.get(this, 'selectedItem'));
+    flowWatch(this, 'filter', filter => { // Could also use static flowWatch(this, 'filter', ...)
+      this.#updateFilteredItems(flowGet(this, 'items'), filter, flowGet(this, 'selectedItem'));
     });
 
     this.shadowRoot.getElementById('filter-input').addEventListener('input', e => {
-      this.#state.update({ filter: e.target.value });
+      this.#source.update({ filter: e.target.value });
     });
 
     this.shadowRoot.getElementById('list').addEventListener('click', e => {
       const el = e.target.closest('[data-id]');
       if (!el) return;
-      const item = Flow.get(this, 'items').find(i => i.id === +el.dataset.id);
+      const item = flowGet(this, 'items').find(i => i.id === +el.dataset.id);
       if (item) this.#selectWorkItem(item);
     });
   }
@@ -65,7 +65,7 @@ class SideBar extends HTMLElement {
   #updateFilteredItems(items, filter, selected) {
     const f = (filter ?? '').toLowerCase();
     const filtered = f ? items.filter(i => i.name.toLowerCase().includes(f)) : items;
-    this.#state.update({
+    this.#source.update({
       filteredItems: filtered.map(i => ({
         ...i,
         class: `work-item${i.id === selected?.id ? ' selected' : ''}`

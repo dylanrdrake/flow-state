@@ -72,21 +72,21 @@
     const NODES = [
       { id: 'app',     x: 350, y: 160,  w: 320, h: 220, label: 'App',
         stateLines: [
-          'state = {',
+          'source = {',
           '  items,',
           '  selectedItem,',
           '  selectItem(item) {',
-          '    state.update({ selectedItem: item })',
+          '    source.update({ selectedItem: item })',
           '  },',
           '  saveItem(edits) {',
           '    // update items array',
           '  }',
           '}'
         ], root: true },
-      { id: 'sidebar', x: 175, y: 480, w: 310, h: 280, label: 'Sidebar', state: 'state = { filter }',
-        actions: ["", "selectItem = Flow.get('selectItem')", "", "Flow.watch('items', (items) => {", "  // render list", "})", "", "state.watch('filter', (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    state.update({ filter: e.target.value })", "  })"] },
-      { id: 'editor',  x: 525, y: 480, w: 295, h: 222, label: 'Editor',  state: 'state = { edits }',
-        actions: ["", "saveItem = Flow.get('saveItem')", "", "Flow.watch('selectedItem', (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
+      { id: 'sidebar', x: 175, y: 480, w: 310, h: 280, label: 'Sidebar', state: 'source = { filter }',
+        actions: ["", "selectItem = flowGet(this, 'selectItem')", "", "flowWatch(this, 'items', (items) => {", "  // render list", "})", "", "flowWatch(this, 'filter', (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    source.update({ filter: e.target.value })", "  })"] },
+      { id: 'editor',  x: 525, y: 480, w: 295, h: 222, label: 'Editor',  state: 'source = { edits }',
+        actions: ["", "saveItem = flowGet(this, 'saveItem')", "", "flowWatch(this, 'selectedItem', (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
     ];
 
     const EDGES = [
@@ -171,12 +171,12 @@
         boldActionIndices.editor = new Set([1, 3]);   // get and watch (indices 1 and 3)
         addAnn('sidebarmsg', "Get selectItem hook to use when an", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 3.3, align: 'left', bold: [{start: 4, end: 14}] });
         addAnn('sidebarmsg2', "item is selected from the list.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 30, { hold: 3.3, align: 'left' });
-        addAnn('sidebarmsg3', "Watch for changes to items state", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 26}] });
+        addAnn('sidebarmsg3', "Watch for changes to items source", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 27}] });
         addAnn('sidebarmsg4', "array and handle with renderItemList.", nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 22, end: 36}] });
         addAnn('editormsg1', "Get saveItem hook to use when the", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 16, { hold: 3.3, align: 'left', bold: [{start: 4, end: 12}] });
         addAnn('editormsg2', "user saves item edits.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 30, { hold: 3.3, align: 'left' });
         addAnn('editormsg3', "Watch for changes to selectedItem", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 58, { hold: 3.3, align: 'left', bold: [{start: 21, end: 33}] });
-        addAnn('editormsg4', "state and handle with renderEditor.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 22, end: 34}] });
+        addAnn('editormsg4', "source and handle with renderEditor.", nm.editor.x - nm.editor.w / 2 + 8, nm.editor.y + nm.editor.h / 2 + 72, { hold: 3.3, align: 'left', bold: [{start: 23, end: 35}] });
         spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
           addAnn('rootmsg1', 'Watchers registered.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 3.0, align: 'left' });
         }});
@@ -213,7 +213,7 @@
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set();
-        // Highlight just 'selectItem' in "selectItem = Flow.get('selectItem')" now at line 1
+        // Highlight just 'selectItem' in "selectItem = flowGet(this, 'selectItem')" now at line 1
         partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" is chars 0-10 at line 1
         partialBold.editor = {};
         partialBold.app = {};
@@ -221,7 +221,7 @@
         spawnUp('sidebar', 'app', { delay: 0.2, onDone: () => {
           glows.app = 1;
           boldActionIndices.app = new Set([4, 5, 6]); // selectItem function lines 4-6
-          addAnn('rootmsg', 'App sets selectedItem state.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
+          addAnn('rootmsg', 'App sets selectedItem source.', nm.app.x - nm.app.w / 2 + 8, nm.app.y - nm.app.h / 2 - 15, { hold: 2.3, align: 'left' });
         }});
       });
 
@@ -233,7 +233,7 @@
         glows.app = 1;
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set([3, 4, 5]); // watch callback
-        boldActionIndices.app = new Set([5]); // state.update line
+        boldActionIndices.app = new Set([5]); // source.update line
         partialBold.sidebar = {};
         partialBold.editor = {};
         partialBold.app = {};
@@ -252,7 +252,7 @@
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set([7, 8, 9, 10]); // save-btn listener block
         boldActionIndices.app = new Set();
-        // Highlight just 'saveItem' in "saveItem = Flow.get('saveItem')" at line 1
+        // Highlight just 'saveItem' in "saveItem = flowGet(this, 'saveItem')" at line 1
         partialBold.sidebar = {};
         partialBold.editor = { 1: { start: 0, end: 8 } }; // "saveItem" is chars 0-8 at line 1
         partialBold.app = {};
@@ -264,7 +264,7 @@
         }});
       });
 
-      // Phase D — App updates state
+      // Phase D — App updates source
       at('update_items', 15.5, () => {
         for (const k of ['rootmsg', 'editormsg']) {
           if (anns[k]) anns[k].alpha = 0;
@@ -289,14 +289,14 @@
           if (anns[k]) anns[k].alpha = 0;
         }
         glows.sidebar = 1;
-        boldActionIndices.sidebar = new Set([7, 8, 9, 11, 12, 13, 14]); // state.watch('filter') + filter-input listener
+        boldActionIndices.sidebar = new Set([7, 8, 9, 11, 12, 13, 14]); // flowWatch(this, 'filter') + filter-input listener
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set();
         partialBold.sidebar = {};
         partialBold.editor = {};
         partialBold.app = {};
         addAnn('sidebarmsg', 'User types in filter input.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 16, { hold: 2.3, align: 'left' });
-        addAnn('sidebarmsg2', 'Local-only state update and re-render.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
+        addAnn('sidebarmsg2', 'Local-only source update and re-render.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 44, { hold: 2.3, align: 'left' });
         addAnn('sidebarmsg3', 'Re-render filtered list.', nm.sidebar.x - nm.sidebar.w / 2 + 8, nm.sidebar.y + nm.sidebar.h / 2 + 58, { hold: 2.3, align: 'left' });
       });
     }

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FlowStateComponent } from '../lib/FlowStateComponent.js';
+import { flowGet, flowWatch } from '../lib/FlowState.js';
 
 // Each test registers a uniquely named custom element to avoid
 // "already defined" errors across tests.
@@ -9,16 +10,16 @@ const tag = () => `test-component-${counter++}`;
 describe('FlowStateComponent', () => {
   afterEach(() => document.body.innerHTML = '');
 
-  it('Creates a FlowState instance in this.state after connectedCallback', () => {
+  it('Creates a FlowState source instance in this.source after connectedCallback', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      state = { value: 42 };
+      source = { value: 42 };
 
       connectedCallback() {
         super.connectedCallback();
-        // state should be available here
-        expect(this.state).toBeDefined();
-        expect(this.state.get('value')).toBe(42);
+        // source should be available here
+        expect(this.source).toBeDefined();
+        expect(flowGet(this, 'value')).toBe(42);
       }
     }
     const name = tag();
@@ -31,7 +32,7 @@ describe('FlowStateComponent', () => {
   it('attaches a shadow root when shadowMode is set', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      state = {};
+      source = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -46,7 +47,7 @@ describe('FlowStateComponent', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<p id="msg">hello</p>';
-      state = {};
+      source = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -58,10 +59,10 @@ describe('FlowStateComponent', () => {
     expect(el.shadowRoot.querySelector('#msg').textContent).toBe('hello');
   });
 
-  it('state.update() and state.get() work correctly', async () => {
+  it('source.update() and flowGet() work correctly', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      state = { count: 0 };
+      source = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -69,14 +70,14 @@ describe('FlowStateComponent', () => {
     const el = document.createElement(name);
     document.body.appendChild(el);
 
-    await el.state.update({ count: 5 });
-    expect(el.state.get('count')).toBe(5);
+    await el.source.update({ count: 5 });
+    expect(flowGet(el, 'count')).toBe(5);
   });
 
-  it('state.watch() fires immediately with the current value', () => {
+  it('flowWatch() fires immediately with the current value', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      state = { label: 'hello' };
+      source = { label: 'hello' };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -85,14 +86,14 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     const spy = vi.fn();
-    el.state.watch('label', spy);
+    flowWatch(el, 'label', spy);
     expect(spy).toHaveBeenCalledWith('hello');
   });
 
-  it('does not reinitialize state when reconnected to the DOM', () => {
+  it('does not reinitialize source when reconnected to the DOM', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      state = { count: 0 };
+      source = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -100,21 +101,21 @@ describe('FlowStateComponent', () => {
     const el = document.createElement(name);
     document.body.appendChild(el);
 
-    const stateRef = el.state;
+    const sourceRef = el.source;
 
     // Disconnect and reconnect
     el.remove();
     document.body.appendChild(el);
 
-    // state reference should be the same object (no re-init)
-    expect(el.state).toBe(stateRef);
+    // source reference should be the same object (no re-init)
+    expect(el.source).toBe(sourceRef);
   });
 
-  it('declarative bindings in the template are updated when state changes', async () => {
+  it('declarative bindings in the template are updated when source changes', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<span id="name-el" flow-watch-name-to-prop="textContent"></span>';
-      state = { name: 'Alice' };
+      source = { name: 'Alice' };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -125,7 +126,7 @@ describe('FlowStateComponent', () => {
     // Wait for initial binding flush
     await Promise.resolve();
 
-    await el.state.update({ name: 'Bob' });
+    await el.source.update({ name: 'Bob' });
     expect(el.shadowRoot.querySelector('#name-el').textContent).toBe('Bob');
   });
 });

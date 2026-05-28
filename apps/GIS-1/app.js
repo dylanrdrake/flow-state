@@ -1,7 +1,7 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './work-space.js';
 
-Flow.devtools();
+startFlowDevtools();
 
 
 const CSS = String.raw;
@@ -29,7 +29,7 @@ appTemplate.innerHTML = HTML`
 
 
 class GIS1 extends HTMLElement {
-  #state;
+  #source;
   #shadow;
 
   constructor() {
@@ -39,16 +39,16 @@ class GIS1 extends HTMLElement {
   }
 
   async connectedCallback() {
-    if (this.#state) return;
+    if (this.#source) return;
 
     const config = await fetch(new URL('./config.json', import.meta.url)).then(r => r.json());
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new Flow(this, config);
+    this.#source = new FlowSource(this, config);
 
     // Allow declarative bindings inside the closed shadow to receive updates
-    this.#state.through(this.#shadow);
+    flowThrough(this.#shadow);
 
     this.#shadow.appendChild(appTemplate.content.cloneNode(true));
   }
