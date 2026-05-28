@@ -1,7 +1,7 @@
-import { FlowStateComponent, flowGet, flowWatch } from 'flow-state';
+import { FlowStateComponent, flowGet, flowWatch, flowDevtools } from 'flow-state';
 import './kanban-column.js';
 
-// flowDevtools();
+flowDevtools();
 
 const HTML = String.raw;
 const CSS = String.raw;
