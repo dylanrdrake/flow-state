@@ -179,6 +179,7 @@ export class CalendarSidebar extends HTMLElement {
   #currentDate = null;
   #addEvent;
   #deleteEvent;
+  #eventInputUnsub = () => {};
 
   constructor() {
     super();
@@ -226,10 +227,15 @@ export class CalendarSidebar extends HTMLElement {
     this.#addEvent = flowGet(this, 'addEvent');
     this.#deleteEvent = flowGet(this, 'deleteEvent');
 
-    flowWatch(this, 'eventInputValue', (value) => {
+    this.#eventInputUnsub = flowWatch(this, 'eventInputValue', (value) => {
       if (value.length > 0) this.#addBtn.removeAttribute('disabled');
       else this.#addBtn.setAttribute('disabled', '');
     });
+  }
+
+  disconnectedCallback() {
+    this.#eventInputUnsub();
+    this.#source?.destroy();
   }
 
   #submit() {

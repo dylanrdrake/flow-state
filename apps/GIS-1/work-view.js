@@ -171,6 +171,7 @@ class WorkView extends HTMLElement {
   #selectWorkItem;
   #map;
   #graphicsLayer;
+  #watchUnsubs = [];
 
   constructor() {
     super();
@@ -212,12 +213,19 @@ class WorkView extends HTMLElement {
   connectedCallback() {
     this.#saveWorkItem   = flowGet(this, 'saveWorkItem');
     this.#selectWorkItem = flowGet(this, 'selectWorkItem');
-    flowWatch(this, 'workItems', this.#workItemsUpdated.bind(this));
-    flowWatch(this, 'selectedWorkItem', (workItem) => {
-      if (workItem) {
-        this.#map.view.goTo({ center: [workItem.longitude, workItem.latitude], zoom: 14 });
-      }
-    });
+    this.#watchUnsubs = [
+      flowWatch(this, 'workItems', this.#workItemsUpdated.bind(this)),
+      flowWatch(this, 'selectedWorkItem', (workItem) => {
+        if (workItem) {
+          this.#map.view.goTo({ center: [workItem.longitude, workItem.latitude], zoom: 14 });
+        }
+      })
+    ];
+  }
+
+  disconnectedCallback() {
+    this.#watchUnsubs.forEach(unsub => unsub?.());
+    this.#source?.destroy();
   }
 
 

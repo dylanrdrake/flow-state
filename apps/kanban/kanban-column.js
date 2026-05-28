@@ -9,6 +9,7 @@ class KanbanColumn extends FlowStateComponent {
   #cardsList = null;
   #colTitle = null;
   #cardCount = null;
+  #columnsUnsub = () => {};
 
   shadowMode = 'closed';
 
@@ -104,10 +105,11 @@ class KanbanColumn extends FlowStateComponent {
 
     // Watch the full columns list from the parent to extract this column's data
     // and keep the move-target selector up to date.
-    flowWatch(this, 'columns', this.#render.bind(this));
+    this.#columnsUnsub = flowWatch(this, 'columns', this.#render.bind(this));
   }
 
   disconnectedCallback() {
+    this.#columnsUnsub();
     this.source?.destroy();
   }
 

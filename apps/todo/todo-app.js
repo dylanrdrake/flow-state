@@ -157,6 +157,7 @@ sheet.replaceSync(styles);
 
 class TodoApp extends HTMLElement {
   #source;
+  #filteredTodosUnsub = () => {};
   #input;
   #addBtn;
   #todoList;
@@ -202,7 +203,7 @@ class TodoApp extends HTMLElement {
     flowThrough(shadow);
 
     // Re-render the list whenever the filtered set changes
-    flowWatch(this, 'filteredTodos', (todos) => {
+    this.#filteredTodosUnsub = flowWatch(this, 'filteredTodos', (todos) => {
       const items = todos.map(todo => new TodoItem(todo));
       this.#todoList.replaceChildren(...items);
       this.#emptyMsg.toggleAttribute('visible', items.length === 0);
@@ -233,6 +234,11 @@ class TodoApp extends HTMLElement {
         todos: prev.todos.filter(t => !t.done)
       }));
     });
+  }
+
+  disconnectedCallback() {
+    this.#filteredTodosUnsub();
+    this.#source?.destroy();
   }
 
   #submitInput() {

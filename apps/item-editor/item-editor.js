@@ -1,4 +1,4 @@
-import { FlowSource, flowGet, flowWatch } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough } from '../../lib/FlowState.js';
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./item-editor.css', import.meta.url)).then(r => r.text()));
 
@@ -24,7 +24,8 @@ const STATUS_OPTIONS = ['Active', 'On Hold', 'Planning', 'Complete'];
 class ItemEditor extends HTMLElement {
   #source;
   #shadow;
-  #saveWorkItem;
+  #saveWorkItem = () => {};
+  #selectedItemUnsub = () => {};
 
   constructor() {
     super();
@@ -60,7 +61,7 @@ class ItemEditor extends HTMLElement {
   connectedCallback() {
     this.#saveWorkItem = flowGet(this, 'saveWorkItem');
 
-    flowWatch(this, 'selectedItem', item => {
+    this.#selectedItemUnsub = flowWatch(this, 'selectedItem', item => {
       this.#source.update({
         hasSelection: Boolean(item),
         edits: item ? { ...item } : null,
@@ -114,6 +115,11 @@ class ItemEditor extends HTMLElement {
       wrapper.appendChild(input);
       editorFields.appendChild(wrapper);
     });
+  }
+
+  disconnectedCallback() {
+    this.#source?.destroy();
+    this.#selectedItemUnsub();
   }
 }
 

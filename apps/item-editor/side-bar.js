@@ -21,6 +21,7 @@ template.innerHTML = HTML`
 class SideBar extends HTMLElement {
   #source;
   #selectWorkItem;
+  #watchUnsubs = [];
 
   constructor() {
     super();
@@ -38,17 +39,22 @@ class SideBar extends HTMLElement {
   connectedCallback() {
     this.#selectWorkItem = flowGet(this, 'selectItem');
 
-    flowWatch(this, 'items', items => {
-      this.#updateFilteredItems(items, flowGet(this, 'filter'), flowGet(this, 'selectedItem'));
-    });
+    this.#watchUnsubs = [
+      flowWatch(this, 'items', items => {
+        this.#updateFilteredItems(items, flowGet(this, 'filter'), flowGet(this, 'selectedItem'));
+      }),
+      flowWatch(this, 'selectedItem', selected => {
+        this.#updateFilteredItems(flowGet(this, 'items'), flowGet(this, 'filter'), selected);
+      }),
+      flowWatch(this, 'filter', filter => { // Could also use static flowWatch(this, 'filter', ...)
+        this.#updateFilteredItems(flowGet(this, 'items'), filter, flowGet(this, 'selectedItem'));
+      })
+    ];
+  }
 
-    flowWatch(this, 'selectedItem', selected => {
-      this.#updateFilteredItems(flowGet(this, 'items'), flowGet(this, 'filter'), selected);
-    });
-
-    flowWatch(this, 'filter', filter => { // Could also use static flowWatch(this, 'filter', ...)
-      this.#updateFilteredItems(flowGet(this, 'items'), filter, flowGet(this, 'selectedItem'));
-    });
+  disconnectedCallback() {
+    this.#watchUnsubs.forEach(unsub => unsub?.());
+    this.#source?.destroy();
 
     this.shadowRoot.getElementById('filter-input').addEventListener('input', e => {
       this.#source.update({ filter: e.target.value });

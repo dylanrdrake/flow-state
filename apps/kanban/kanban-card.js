@@ -101,6 +101,8 @@ class KanbanCard extends HTMLElement {
   #selectCard = () => {};
   #deleteCard = () => {};
   #editCard = () => {};
+  #columnDataUnsub = () => {};
+  #selectedCardUnsub = () => {};
 
   constructor() {
     super();
@@ -125,7 +127,7 @@ class KanbanCard extends HTMLElement {
 
     // Watch the parent column's local `columnData` to get this card's data.
     // KanbanColumn owns columnData in its own FlowState scope.
-    flowWatch(this, 'columnData', (columnData) => {
+    this.#columnDataUnsub = flowWatch(this, 'columnData', (columnData) => {
       const card = columnData?.cards?.find(c => c.id === this.#cardId);
       if (!card) return;
       this.#cardData = card;
@@ -134,7 +136,7 @@ class KanbanCard extends HTMLElement {
     });
 
     // Watch global selectedCard from KanbanApp to toggle selected attribute
-    flowWatch(this, 'selectedCard', (selectedCardId) => {
+    this.#selectedCardUnsub = flowWatch(this, 'selectedCard', (selectedCardId) => {
       this.toggleAttribute('selected', selectedCardId === this.#cardId);
     });
 
@@ -154,6 +156,11 @@ class KanbanCard extends HTMLElement {
       if (!confirm(`Delete ${title}? This cannot be undone.`)) return;
       this.#deleteCard?.(this.#cardId, this.#columnId);
     });
+  }
+
+  disconnectedCallback() {
+    this.#columnDataUnsub();
+    this.#selectedCardUnsub();
   }
 }
 

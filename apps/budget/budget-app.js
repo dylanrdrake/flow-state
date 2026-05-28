@@ -182,6 +182,7 @@ const agoDays = (n) => new Date(Date.now() - n * 86_400_000).toISOString();
 
 class BudgetApp extends HTMLElement {
   #source;
+  #filteredTransactionsUnsub = () => {};
   #txList;
   #txCount;
   #filters;
@@ -263,7 +264,7 @@ class BudgetApp extends HTMLElement {
     flowThrough(shadow);
 
     // Re-render list when filtered/sorted set changes
-    flowWatch(this, 'filteredTransactions', (txs) => {
+    this.#filteredTransactionsUnsub = flowWatch(this, 'filteredTransactions', (txs) => {
       this.#txCount.textContent = `${txs.length} item${txs.length !== 1 ? 's' : ''}`;
       this.#txList.replaceChildren(...txs.map(tx => new TransactionItem(tx)));
     });
@@ -280,6 +281,11 @@ class BudgetApp extends HTMLElement {
     this.#sortSelect.addEventListener('change', (e) => {
       this.#source.update({ sort: e.target.value });
     });
+  }
+
+  disconnectedCallback() {
+    this.#filteredTransactionsUnsub();
+    this.#source?.destroy();
   }
 
   #addTransaction({ description, amount, type, category }) {

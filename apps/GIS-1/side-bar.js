@@ -127,6 +127,7 @@ class SideBar extends HTMLElement {
   #selectWorkItem;
   #selectedWorkItem;
   #workItemsContainer;
+  #selectedItemUnsub = () => {};
 
 
   constructor() {
@@ -147,7 +148,12 @@ class SideBar extends HTMLElement {
 
   connectedCallback() {
     this.#selectWorkItem = flowGet(this, 'selectWorkItem');
-    flowWatch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
+    this.#selectedItemUnsub = flowWatch(this, 'selectedWorkItem', this.#workItemSelected.bind(this));
+  }
+
+  disconnectedCallback() {
+    this.#selectedItemUnsub();
+    this.#source?.destroy();
   }
 
 
