@@ -3,392 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>FlowState Tutorial</title>
   <link rel="icon" type="image/svg+xml" href="../../assets/FlowState3.svg">
+  <link rel="stylesheet" href="./tutorial.css">
   <script>
-    fetch('./colors.config.json').then(r => r.json()).then(c => {
-      const s = document.documentElement.style;
-      Object.entries(c).forEach(([k, v]) => s.setProperty('--' + k, v));
-    });
+    (() => {
+      const saved = localStorage.getItem('flowstate-tutorial-theme');
+      const theme = saved || 'light';
+      document.documentElement.dataset.theme = theme;
+      document.documentElement.style.colorScheme = theme;
+    })();
   </script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --bg:            #ffffff;
-      --surface:       #ffffff;
-      --surface2:      #ffffff;
-      --border:        #dcdcdc;
-      --text:          #0e1b1b;
-      --muted:         #636363;
-      --accent:        #4a4a4a;
-      --ink:           #0e1b1b;
-      --mid:           #4a4a4a;
-      --yellow:        #8a7820;
-      --red:           #a83838;
-      --code-bg:       #f6f6f6;
-      --nav-link:      #0e1b1b;
-      --nav-active-bg: rgba(14,27,27,0.06);
-      --hero-from:     #4a4a4a;
-      --hero-to:       #0e1b1b;
-      --brand:         #4a4a4a;
-      --syntax-kw:     #4a4a4a;
-      --syntax-str:    #c97b3a;
-      --syntax-cmt:    #aaaaaa;
-      --syntax-num:    #a04060;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-      line-height: 1.75;
-      font-size: 15px;
-    }
-
-    /* ── Layout ── */
-    .layout { display: flex; min-height: 100vh; }
-
-    /* ── Sidebar ── */
-    .sidebar {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      width: 256px;
-      flex-shrink: 0;
-      overflow-y: auto;
-      background: var(--surface2);
-      border-right: 1px solid var(--border);
-      padding: 0 0 3rem;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.65rem;
-      padding: 1.5rem 1.25rem 1.75rem;
-    }
-
-    .logo-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .logo-icon img {
-      width: 34px;
-      height: 34px;
-      display: block;
-    }
-
-    .logo-name {
-      display: block;
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: var(--text);
-      letter-spacing: -0.01em;
-    }
-
-    .logo-tag {
-      display: block;
-      font-size: 0.68rem;
-      color: var(--muted);
-      margin-top: 0.05rem;
-    }
-
-    .nav-section { margin-bottom: 0.25rem; }
-
-    .nav-section-label {
-      display: block;
-      padding: 0.5rem 1.5rem 0.2rem;
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.12s;
-    }
-
-    .nav-section-label:hover { color: var(--text); }
-
-    .group-heading {
-      font-size: 0.68rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--muted);
-      padding: 2.5rem 0 0.5rem;
-      border-top: 1px solid var(--border);
-      scroll-margin-top: 1.5rem;
-    }
-
-    .group-heading:first-child {
-      padding-top: 0;
-      border-top: none;
-    }
-
-    .group-heading + section h2 {
-      margin-top: 1rem;
-    }
-
-    .nav-link {
-      display: block;
-      padding: 0.3rem 1.5rem;
-      font-size: 0.83rem;
-      color: var(--nav-link);
-      text-decoration: none;
-      border-left: 2px solid transparent;
-      transition: color 0.12s, border-color 0.12s, background 0.12s;
-    }
-
-    .nav-link:hover { color: var(--text); background: rgba(0,0,0,0.04); }
-
-    .nav-link.active {
-      color: var(--accent);
-      background: var(--nav-active-bg);
-      border-left-color: var(--accent);
-      font-weight: 500;
-    }
-
-    /* ── Main ── */
-    .main { flex: 1; min-width: 0; }
-
-    /* ── Content ── */
-    .content {
-      max-width: 800px;
-      padding: 2.5rem 2.5rem 6rem;
-    }
-
-    /* ── Typography ── */
-    h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      margin: 3.5rem 0 1rem;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid var(--border);
-      scroll-margin-top: 1.5rem;
-    }
-
-    section:first-child h2 { margin-top: 0; }
-
-    h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--ink);
-      margin: 2rem 0 0.5rem;
-      scroll-margin-top: 1.5rem;
-    }
-
-    p { margin-bottom: 0.9rem; color: var(--text); }
-
-    strong { color: var(--text); font-weight: 600; }
-
-    em { color: var(--muted); font-style: italic; }
-
-    blockquote {
-      border-left: 3px solid var(--accent);
-      margin: 1.25rem 0;
-      padding: 0.85rem 1.1rem;
-      background: rgba(0,0,0,0.03);
-      color: var(--text);
-      font-size: 0.875rem;
-      line-height: 1.65;
-    }
-
-    blockquote strong { color: var(--text); }
-    blockquote code { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
-
-    ul, ol { padding-left: 1.4rem; margin-bottom: 0.9rem; }
-    li { color: var(--text); margin-bottom: 0.25rem; }
-
-    code:not(pre code) {
-      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.82em;
-      background: rgba(0,0,0,0.04);
-      border: 1px solid rgba(0,0,0,0.1);
-      color: var(--ink);
-      padding: 0.1em 0.38em;
-      border-radius: 4px;
-    }
-
-    hr { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-
-    /* ── Animation embed ── */
-    .anim-embed {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 1.75rem 0;
-      background: #ffffff;
-    }
-
-    .anim-embed iframe {
-      display: block;
-      width: 100%;
-      height: 720px;
-      border: none;
-    }
-
-    /* ── Resizable demo embed ── */
-    .anim-embed.resizable {
-      overflow: hidden;
-      position: relative;
-      height: 520px;
-      min-height: 260px;
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      scroll-margin-top: 2rem;
-    }
-
-    .anim-embed.resizable iframe {
-      height: 100%;
-    }
-
-    .resize-handle-x {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 10px;
-      height: 100%;
-      cursor: ew-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1;
-    }
-    .resize-handle-x::before {
-      content: '';
-      width: 3px;
-      height: 36px;
-      border-radius: 2px;
-      background: var(--border);
-    }
-    .resize-handle-x:hover::before { background: var(--accent); }
-
-    .resize-handle {
-      height: 10px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      margin: 0 0 1.75rem;
-      cursor: ns-resize;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-      flex-shrink: 0;
-    }
-
-    .resize-handle::before {
-      content: '';
-      width: 36px;
-      height: 3px;
-      border-radius: 2px;
-      background: var(--border);
-    }
-
-    .resize-handle:hover::before { background: var(--accent); }
-
-    /* ── Code blocks ── */
-    .cb { position: relative; margin: 1.1rem 0; }
-
-    pre {
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow-x: auto;
-      padding: 1.1rem 1rem;
-      line-height: 1.65;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-
-    pre code {
-      font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.82rem;
-      background: none;
-      border: none;
-      padding: 0;
-      color: var(--text);
-    }
-
-    .copy-btn {
-      position: absolute;
-      top: 0.45rem;
-      right: 0.45rem;
-      padding: 0.2rem 0.55rem;
-      font-size: 0.7rem;
-      font-family: system-ui, sans-serif;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      border-radius: 4px;
-      cursor: pointer;
-      transition: color 0.15s, border-color 0.15s;
-      line-height: 1.5;
-    }
-
-    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
-    .copy-btn.ok { color: var(--mid); border-color: var(--mid); }
-
-    /* ── Syntax highlight colors ── */
-    .kw  { color: var(--syntax-kw); font-weight: 600; }
-    .str { color: var(--syntax-str); }
-    .tpl { color: var(--syntax-str); }
-    .cmt { color: var(--syntax-cmt); font-style: italic; }
-    .num { color: var(--syntax-num); }
-    .mark-ok { color: #1f8f49; font-weight: 700; font-style: normal; font-size: 1.16em; }
-    .mark-bad { color: var(--red); font-weight: 700; font-style: normal; font-size: 1.16em; }
-
-    /* ── Table ── */
-    .table-wrap { overflow-x: auto; margin: 1.25rem 0; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-
-    th {
-      text-align: left;
-      padding: 0.55rem 0.8rem;
-      border-bottom: 1px solid var(--border);
-      color: var(--muted);
-      font-weight: 600;
-      font-size: 0.73rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      white-space: nowrap;
-    }
-
-    td {
-      padding: 0.5rem 0.8rem;
-      border-bottom: 1px solid rgba(0,0,0,0.07);
-      color: var(--text);
-      vertical-align: top;
-    }
-
-    td:first-child { white-space: nowrap; }
-    tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: rgba(0,0,0,0.03); }
-
-    .brand { color: var(--brand); font-weight: 700; }
-
-    /* ── Responsive ── */
-    @media (max-width: 860px) {
-      .sidebar { display: none; }
-      .content { padding: 2rem 1.25rem 4rem; }
-    }
-  </style>
 </head>
 <body>
 <div class="layout">
@@ -396,11 +22,12 @@
   <!-- ── Sidebar ── -->
   <nav class="sidebar" aria-label="Tutorial navigation">
     <div class="sidebar-logo">
-      <div class="logo-icon"><img src="../../assets/FlowState3.svg" alt="FlowState logo"></div>
+      <div class="logo-icon"><img id="tutorial-logo" src="../../assets/FlowState3.svg" alt="FlowState logo"></div>
       <div>
         <span class="logo-name">FlowState</span>
         <span class="logo-tag">Tutorial &amp; Reference</span>
       </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode">Dark</button>
     </div>
 
     <div class="nav-section">
@@ -1204,6 +831,68 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
 </div>
 
 <script>
+  // ── Theme / brand assets ───────────────────────────────
+  const THEME_KEY = 'flowstate-tutorial-theme';
+  const LIGHT_LOGO = '../../assets/FlowState3.svg';
+  const DARK_LOGO = '../../assets/FlowState_light.svg';
+
+  const palettes = {
+    light: {
+      bg: '#ffffff', surface: '#ffffff', surface2: '#ffffff', border: '#dcdcdc', text: '#0e1b1b',
+      muted: '#636363', accent: '#4a4a4a', ink: '#0e1b1b', mid: '#4a4a4a', yellow: '#8a7820',
+      red: '#a83838', 'code-bg': '#f6f6f6', 'nav-link': '#0e1b1b', 'nav-active-bg': 'rgba(14,27,27,0.06)',
+      'hero-from': '#4a4a4a', 'hero-to': '#0e1b1b', brand: '#4a4a4a', 'syntax-kw': '#4a4a4a',
+      'syntax-str': '#c97b3a', 'syntax-cmt': '#aaaaaa', 'syntax-num': '#a04060', 'nav-hover-bg': 'rgba(0,0,0,0.04)',
+      'blockquote-bg': 'rgba(0,0,0,0.03)', 'embed-bg': '#ffffff', 'copy-bg': 'rgba(255,255,255,0.95)',
+      'inline-code-bg': 'rgba(0,0,0,0.04)', 'inline-code-border': 'rgba(0,0,0,0.1)',
+      'table-row-hover': 'rgba(0,0,0,0.03)', 'table-row-border': 'rgba(0,0,0,0.07)',
+      'theme-btn-bg': '#f8f8f8', 'theme-btn-text': '#4a4a4a', 'theme-btn-hover': '#ffffff', 'theme-btn-border': '#dcdcdc',
+    },
+    dark: {
+      bg: '#12141c', surface: '#151826', surface2: '#1a1d2a', border: '#2a2f3f', text: '#e7ebf5',
+      muted: '#9aa4be', accent: '#7aa2f7', ink: '#f4f6fb', mid: '#b2bed8', yellow: '#e0af68',
+      red: '#f7768e', 'code-bg': '#1a1d2a', 'nav-link': '#d8def0', 'nav-active-bg': 'rgba(122,162,247,0.14)',
+      'hero-from': '#7aa2f7', 'hero-to': '#c0caf5', brand: '#7dcfff', 'syntax-kw': '#7aa2f7',
+      'syntax-str': '#9ece6a', 'syntax-cmt': '#7d859e', 'syntax-num': '#e0af68', 'nav-hover-bg': 'rgba(255,255,255,0.04)',
+      'blockquote-bg': 'rgba(255,255,255,0.03)', 'embed-bg': '#151826', 'copy-bg': 'rgba(21,24,38,0.96)',
+      'inline-code-bg': 'rgba(255,255,255,0.05)', 'inline-code-border': 'rgba(255,255,255,0.12)',
+      'table-row-hover': 'rgba(255,255,255,0.04)', 'table-row-border': 'rgba(255,255,255,0.08)',
+      'theme-btn-bg': '#1a1d2a', 'theme-btn-text': '#e7ebf5', 'theme-btn-hover': '#22263a', 'theme-btn-border': '#2a2f3f',
+    },
+  };
+
+  function applyTheme(theme) {
+    const next = theme === 'dark' ? 'dark' : 'light';
+    const root = document.documentElement;
+    root.dataset.theme = next;
+    root.style.colorScheme = next;
+
+    const styles = root.style;
+    Object.entries(palettes[next]).forEach(([key, value]) => {
+      styles.setProperty(`--${key}`, value);
+    });
+
+    const logo = document.getElementById('tutorial-logo');
+    if (logo) logo.src = next === 'dark' ? DARK_LOGO : LIGHT_LOGO;
+
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) favicon.href = next === 'dark' ? DARK_LOGO : LIGHT_LOGO;
+
+    const toggle = document.getElementById('theme-toggle');
+    if (toggle) {
+      toggle.textContent = next === 'dark' ? 'Light' : 'Dark';
+      toggle.setAttribute('aria-label', `Switch to ${next === 'dark' ? 'light' : 'dark'} mode`);
+    }
+  }
+
+  try {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    const initialTheme = savedTheme || document.documentElement.dataset.theme || 'light';
+    applyTheme(initialTheme);
+  } catch {
+    applyTheme(document.documentElement.dataset.theme || 'light');
+  }
+
   // ── Brand name highlighting ────────────────────────────
   const SKIP = new Set(['CODE', 'PRE', 'SCRIPT', 'STYLE', 'TITLE']);
   (function brandWalk(node) {
@@ -1345,6 +1034,19 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
       draggingX = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+    });
+  }
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        // Ignore storage errors.
+      }
     });
   }
 </script>
