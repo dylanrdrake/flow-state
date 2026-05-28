@@ -1,34 +1,52 @@
-import { defineConfig } from 'vite';
+import { defineConfig, build as viteBuild } from 'vite';
 import { fileURLToPath } from 'url';
 import { resolve, dirname } from 'path';
-import { cpSync, mkdirSync, writeFileSync } from 'fs';
+import { cpSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [
     {
-      name: 'ship-devtools-app',
-      closeBundle() {
-        const distDir = resolve(__dirname, 'dist');
-        const distDevtoolsDir = resolve(distDir, 'devtools');
+      name: 'build-devtools-entry',
+      apply: 'build',
+      async closeBundle() {
+        await viteBuild({
+          configFile: false,
+          root: resolve(__dirname, 'lib'),
+          publicDir: false,
+          build: {
+            minify: 'esbuild',
+            outDir: resolve(__dirname, 'dist'),
+            emptyOutDir: false,
+            rollupOptions: {
+              input: {
+                'devtools/index': resolve(__dirname, 'lib/devtools/index.html'),
+              },
+              output: {
+                entryFileNames: ({ name }) => {
+                  const safeName = String(name || 'index').replace(/^devtools\//, '');
+                  return `devtools/${safeName}-[hash].js`;
+                },
+                chunkFileNames: 'devtools/[name]-[hash].js',
+                assetFileNames: (assetInfo) => {
+                  if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+                    return 'devtools/[name]-[hash][extname]';
+                  }
+                  return 'assets/[name]-[hash][extname]';
+                },
+              },
+            },
+          },
+        });
 
-        mkdirSync(distDevtoolsDir, { recursive: true });
-
-        // Ship the devtools UI app inside dist so npm/build consumers can host it directly.
-        cpSync(resolve(__dirname, 'lib/devtools'), distDevtoolsDir, { recursive: true });
-        cpSync(resolve(__dirname, 'assets'), resolve(distDir, 'assets'), { recursive: true });
-
-        // Devtools FlowState engine imports ../FlowState.js, so provide a bridge in dist root.
-        writeFileSync(
-          resolve(distDir, 'FlowState.js'),
-          "export * from './flow-state.js';\n",
-          'utf8'
-        );
+        cpSync(resolve(__dirname, 'assets'), resolve(__dirname, 'dist/assets'), { recursive: true });
+        cpSync(resolve(__dirname, 'lib/devtools/server.js'), resolve(__dirname, 'dist/devtools/server.js'));
       },
     },
   ],
   build: {
+    minify: 'esbuild',
     lib: {
       entry: resolve(__dirname, 'index.js'),
       name: 'FlowState',
