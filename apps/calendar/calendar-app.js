@@ -1,9 +1,9 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowThrough, flowCompute, flowDevtools } from '../../lib/FlowState.js';
 import './calendar-nav.js';
 import './calendar-grid.js';
 import './calendar-sidebar.js';
 
-startFlowDevtools();
+flowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;

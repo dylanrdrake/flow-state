@@ -1,4 +1,4 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowCompute } from '../../lib/FlowState.js';
 
 const CSS = String.raw;
 const HTML = String.raw;

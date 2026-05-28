@@ -1,4 +1,4 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch } from '../../lib/FlowState.js';
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./item-editor.css', import.meta.url)).then(r => r.text()));
 

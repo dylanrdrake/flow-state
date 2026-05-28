@@ -15,7 +15,7 @@ Tutorial and instructional documentation:
 - `flowWatch(source, key, callback)`
 - `flowThrough(shadowRoot)`
 - `flowCompute(fn, deps)`
-- `startFlowDevtools()`
+- `flowDevtools()`
 - `FlowStateComponent`
 
 Source instance API returned by `new FlowSource(root, config)`:
@@ -32,10 +32,10 @@ import {
 	flowWatch,
 	flowThrough,
 	flowCompute,
-	startFlowDevtools,
+	flowDevtools,
 } from 'flow-state';
 
-startFlowDevtools();
+flowDevtools();
 
 const root = document.getElementById('app');
 const state = new FlowSource(root, {

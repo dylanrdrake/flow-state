@@ -1,4 +1,4 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../index.js';
+import { FlowSource, flowGet, flowWatch } from '../../index.js';
 
 const HTML = String.raw;
 

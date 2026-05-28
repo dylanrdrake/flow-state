@@ -5,5 +5,5 @@ export {
 	flowWatch,
 	flowThrough,
 	flowCompute,
-	startFlowDevtools,
+	flowDevtools,
 } from './lib/FlowState.js';

@@ -1,6 +1,6 @@
-import { flowGet, startFlowDevtools } from '../../index.js';
+import { flowGet, flowDevtools } from '../../index.js';
 
-startFlowDevtools();
+flowDevtools();
 
 const HTML = String.raw;
 

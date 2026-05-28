@@ -445,7 +445,7 @@
             <tbody>
               <tr><td><strong>Constructor</strong></td><td><code>new FlowSource(root, config)</code></td></tr>
               <tr><td><strong>2 source instance methods</strong></td><td><code>update</code> &middot; <code>destroy</code></td></tr>
-              <tr><td><strong>5 functional helpers</strong></td><td><code>flowWatch</code> &middot; <code>flowGet</code> &middot; <code>flowThrough</code> &middot; <code>flowCompute</code> &middot; <code>startFlowDevtools</code></td></tr>
+              <tr><td><strong>5 functional helpers</strong></td><td><code>flowWatch</code> &middot; <code>flowGet</code> &middot; <code>flowThrough</code> &middot; <code>flowCompute</code> &middot; <code>flowDevtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
               <tr><td><strong>2 structural directives</strong></td><td><code>flow-if</code> &middot; <code>flow-list</code></td></tr>
               <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
@@ -1084,7 +1084,7 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
       <!-- ──────────────────────────────────── -->
       <section id="devtools">
         <h2>Devtools</h2>
-        <div class="cb"><pre><code>startFlowDevtools();</code></pre></div>
+        <div class="cb"><pre><code>flowDevtools();</code></pre></div>
         <p>
           Call this once, early in your app entry point. It opens the devtools panel in a new tab
           and connects via <code>BroadcastChannel</code>. The devtools show all active FlowState
@@ -1142,7 +1142,7 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
                 <td>Link shadow into parent scope</td>
               </tr>
               <tr>
-                <td><code>startFlowDevtools()</code></td>
+                <td><code>flowDevtools()</code></td>
                 <td>app entry point</td>
                 <td>Open devtools panel</td>
               </tr>

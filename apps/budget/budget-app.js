@@ -1,9 +1,9 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowWatch, flowThrough, flowCompute, flowDevtools } from '../../lib/FlowState.js';
 import './budget-summary-card.js';
 import { TransactionItem } from './transaction-item.js';
 import './transaction-form.js';
 
-startFlowDevtools();
+flowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;
