@@ -1,6 +1,8 @@
-import { FlowSource } from '../../lib/FlowState.js';
+import { FlowSource, flowDevtools } from '../../lib/FlowState.js';
 import './side-bar.js';
 import './item-editor.js';
+
+// flowDevtools();
 
 const HTML = String.raw;
 

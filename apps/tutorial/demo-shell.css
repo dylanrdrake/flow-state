@@ -8,7 +8,6 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-/* ── Top tab bar ── */
 #tab-bar {
   display: flex;
   align-items: center;
@@ -32,10 +31,9 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   cursor: pointer;
   transition: color 0.12s, background 0.12s;
 }
-.tab:hover  { background: #f5f5f5; color: #212121; }
+.tab:hover { background: #f5f5f5; color: #212121; }
 .tab.active { background: #e3f2fd; color: #1565c0; }
 
-/* ── Panes ── */
 #preview-pane {
   flex: 1;
   overflow: hidden;
@@ -58,7 +56,6 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 }
 #code-pane[hidden] { display: none; }
 
-/* ── File tabs ── */
 #file-tabs {
   display: flex;
   align-items: center;
@@ -84,10 +81,9 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   white-space: nowrap;
   transition: color 0.12s, background 0.12s, border-color 0.12s;
 }
-.file-tab:hover  { background: #eeeeee; color: #212121; }
+.file-tab:hover { background: #eeeeee; color: #212121; }
 .file-tab.active { background: #fff; border-color: #e0e0e0; color: #1565c0; }
 
-/* ── Code scroll area ── */
 #code-scroll {
   flex: 1;
   overflow: auto;

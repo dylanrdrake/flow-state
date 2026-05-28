@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Shell - FlowState</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <link rel="stylesheet" href="./demo-shell.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+<div id="shell">
+  <div id="tab-bar">
+    <button class="tab active" data-view="preview">Preview</button>
+    <button class="tab" data-view="code">Code</button>
+  </div>
+
+  <div id="preview-pane">
+    <iframe id="preview-frame" src="about:blank" title="Demo"></iframe>
+  </div>
+
+  <div id="code-pane" hidden>
+    <div id="file-tabs"></div>
+    <div id="code-scroll">
+      <pre><code id="code-display"></code></pre>
+    </div>
+  </div>
+</div>
+<script src="./demo-shell.js"></script>
+</body>
+</html>
