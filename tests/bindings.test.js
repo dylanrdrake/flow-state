@@ -45,6 +45,41 @@ describe('FlowSource – declarative bindings (to-prop)', () => {
   });
 });
 
+describe('FlowSource – declarative bindings on the source root', () => {
+  let root, state;
+
+  beforeEach(async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.setAttribute('flow-watch-title-to-prop', 'textContent');
+    root.setAttribute('flow-watch-status-to-attr', 'data-status');
+
+    state = new FlowSource(root, {
+      title: 'Dashboard',
+      status: 'ready',
+    });
+
+    await waitForInitialBindings();
+  });
+
+  afterEach(() => root.remove());
+
+  it('sets a bound property on the source root', () => {
+    expect(root.textContent).toBe('Dashboard');
+  });
+
+  it('sets a bound attribute on the source root', () => {
+    expect(root.getAttribute('data-status')).toBe('ready');
+  });
+
+  it('updates bindings on the source root when state changes', async () => {
+    await state.update({ title: 'Reports', status: 'busy' });
+    expect(root.textContent).toBe('Reports');
+    expect(root.getAttribute('data-status')).toBe('busy');
+  });
+});
+
 describe('FlowSource – declarative bindings (to-attr)', () => {
   let root, state;
 
