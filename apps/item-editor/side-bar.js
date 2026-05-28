@@ -23,6 +23,17 @@ class SideBar extends HTMLElement {
   #selectWorkItem;
   #watchUnsubs = [];
 
+  #onFilterInput = (e) => {
+    this.#source.update({ filter: e.target.value });
+  };
+
+  #onListClick = (e) => {
+    const el = e.target.closest('[data-id]');
+    if (!el) return;
+    const item = flowGet(this, 'items').find(i => i.id === +el.dataset.id);
+    if (item) this.#selectWorkItem(item);
+  };
+
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
@@ -50,22 +61,16 @@ class SideBar extends HTMLElement {
         this.#updateFilteredItems(flowGet(this, 'items'), filter, flowGet(this, 'selectedItem'));
       })
     ];
+
+    this.shadowRoot.getElementById('filter-input').addEventListener('input', this.#onFilterInput);
+    this.shadowRoot.getElementById('list').addEventListener('click', this.#onListClick);
   }
 
   disconnectedCallback() {
     this.#watchUnsubs.forEach(unsub => unsub?.());
     this.#source?.destroy();
-
-    this.shadowRoot.getElementById('filter-input').addEventListener('input', e => {
-      this.#source.update({ filter: e.target.value });
-    });
-
-    this.shadowRoot.getElementById('list').addEventListener('click', e => {
-      const el = e.target.closest('[data-id]');
-      if (!el) return;
-      const item = flowGet(this, 'items').find(i => i.id === +el.dataset.id);
-      if (item) this.#selectWorkItem(item);
-    });
+    this.shadowRoot.getElementById('filter-input').removeEventListener('input', this.#onFilterInput);
+    this.shadowRoot.getElementById('list').removeEventListener('click', this.#onListClick);
   }
 
   #updateFilteredItems(items, filter, selected) {

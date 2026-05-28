@@ -547,6 +547,7 @@ document.getElementById('inc').addEventListener('click', () => {
 
 class MyCounter extends HTMLElement {
   #source;
+  #countUnsub = () => {};
 
   connectedCallback() {
     const shadow = this.attachShadow({ mode: 'open' });
@@ -560,7 +561,7 @@ class MyCounter extends HTMLElement {
 
     shadow.innerHTML = `&lt;button id="btn"&gt;Click me&lt;/button&gt;`;
 
-    flowWatch(this, 'count', n => {
+    this.#countUnsub = flowWatch(this, 'count', n => {
       shadow.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
@@ -570,9 +571,19 @@ class MyCounter extends HTMLElement {
   }
 
   disconnectedCallback() {
+    // Remove the watcher on the parent source when this element leaves the DOM.
+    // destroy() only cleans up this element's own FlowSource.
+    this.#countUnsub();
     this.#source?.destroy();
   }
 customElements.define('my-counter', MyCounter);</code></pre></div>
+        <p>
+          <code>flowWatch()</code> returns an <strong>unsubscribe function</strong>. Store it when
+          you create the watcher in a component, then call it in <code>disconnectedCallback()</code>
+          so the parent source stops tracking that watcher when the element is removed.
+          <code>source.destroy()</code> only cleans up the component's own FlowState source; it does
+          not remove watchers registered on an ancestor source.
+        </p>
         <p>
           Use <code>new FlowSource(root, config)</code> to create a scope.
         </p>
@@ -588,15 +599,16 @@ class MyCounter extends FlowStateComponent {
   shadowMode = 'open';
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`&lt;button id="btn"&gt;Click 0 times&lt;/button&gt;`;
+  #countUnsub = () => {};
 
-source = {
+  source = {
     count: 0,
   };
 
   connectedCallback() {
     super.connectedCallback(); // always call first
 
-    flowWatch(this, 'count', n => {
+    this.#countUnsub = flowWatch(this, 'count', n => {
       this.shadowRoot.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
@@ -607,6 +619,7 @@ source = {
 
   disconnectedCallback() {
     // ⚠️ Cleanup: destroy the FlowState scope when this component is torn down.
+    this.#countUnsub();
     this.source?.destroy();
   }
 }
@@ -624,15 +637,17 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
   // no shadowMode — renders into light DOM
   template = `&lt;p id="msg"&gt;&lt;/p&gt;`;
   source = { message: 'Hello' };
+  #messageUnsub = () => {};
 
   connectedCallback() {
     super.connectedCallback();
-    flowWatch(this, 'message', v => {
+    this.#messageUnsub = flowWatch(this, 'message', v => {
       this.querySelector('#msg').textContent = v;
     });
   }
 
   disconnectedCallback() {
+    this.#messageUnsub();
     this.source?.destroy();
   }
 }</code></pre></div>
@@ -754,12 +769,18 @@ discounted: flowCompute((total, discount) => total * (1 - discount), ['total', '
         <h3><code>flowWatch(element, key, callback)</code></h3>
         <p>
           Register a watcher from a child element. The event bubbles up until it finds a FlowState
-          source instance that owns <code>key</code>.
+          source instance that owns <code>key</code>. The returned unsubscribe function removes the
+          watcher again, which is useful in <code>disconnectedCallback()</code> when the element is
+          removed from the DOM.
         </p>
         <div class="cb"><pre><code>// Inside a child element's connectedCallback:
-flowWatch(this, 'items', items => {
+this.#itemsUnsub = flowWatch(this, 'items', items => {
   this.render(items);
-});</code></pre></div>
+});
+
+disconnectedCallback() {
+  this.#itemsUnsub();
+}</code></pre></div>
 
         <h3><code>flowGet(element, key)</code></h3>
         <p>
@@ -932,16 +953,25 @@ const deleteCard = flowGet(this, 'deleteCard');</code></pre></div>
 
         <h3>Parent → Children data flow</h3>
         <p>The canonical pattern. Parent owns state. Children watch it.</p>
-        <div class="cb"><pre><code>// parent.js
+        <div class="cb"><pre><code>class Child extends HTMLElement {
+  #itemsUnsub = () => {};
+
+  connectedCallback() {
+    this.#itemsUnsub = flowWatch(this, 'items', items => this.#render(items));
+    const remove = flowGet(this, 'removeItem');
+    this.#btn.addEventListener('click', () => remove(this.#id));
+  }
+
+  disconnectedCallback() {
+    this.#itemsUnsub();
+  }
+}
+
+// parent.js
 source = {
   items: [],
   removeItem: (id) => this.#remove(id), // top-level function → action
-};
-
-// child.js (connectedCallback)
-flowWatch(this, 'items', items => this.#render(items));
-const remove = flowGet(this, 'removeItem');
-this.#btn.addEventListener('click', () => remove(this.#id));</code></pre></div>
+};</code></pre></div>
 
         <p>
           The demo below shows this pattern in action. A <code>work-space</code> root owns
@@ -1026,8 +1056,16 @@ constructor() {
 }
 
 // ✓ Correct
-connectedCallback() {
-  flowWatch(this, 'items', cb);
+class Child extends HTMLElement {
+  #itemsUnsub = () => {};
+
+  connectedCallback() {
+    this.#itemsUnsub = flowWatch(this, 'items', cb);
+  }
+
+  disconnectedCallback() {
+    this.#itemsUnsub();
+  }
 }</code></pre></div>
 
         <h3>3. Await update before reading new state</h3>
@@ -1036,7 +1074,17 @@ connectedCallback() {
           <code>flowGet()</code> immediately after returns the old value.
         </p>
         <div class="cb"><pre><code>// ✓ Read in a watcher (fires after flush)
-flowWatch(this, 'count', n => console.log(n));
+class CounterView extends HTMLElement {
+  #countUnsub = () => {};
+
+  connectedCallback() {
+    this.#countUnsub = flowWatch(this, 'count', n => console.log(n));
+  }
+
+  disconnectedCallback() {
+    this.#countUnsub();
+  }
+}
 
 // ✓ Await the update
 await source.update({ count: 99 });
