@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./item-editor.css', import.meta.url)).then(r => r.text()));
 
@@ -34,16 +34,17 @@ class ItemEditor extends HTMLElement {
 
     // Create local FlowState and register the closed shadow so parent
     // bindings can reach elements inside it.
-    this.#state = Flow.create(this, {
+    this.#state = new FlowSource(this, {
       hasSelection: false,
       edits: null,
-    }).through(this.#shadow);
+    });
+    flowThrough(this.#shadow);
 
     this.#shadow.addEventListener('click', (e) => {
       const target = e.target;
       if (!(target instanceof Element) || target.id !== 'save-btn') return;
 
-      const edits = this.#state.get('edits');
+      const edits = flowGet(this, 'edits');
       if (edits && this.#saveWorkItem) {
         this.#saveWorkItem(edits);
         target.textContent = 'Saved!';
@@ -57,9 +58,9 @@ class ItemEditor extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#saveWorkItem = Flow.get(this, 'saveWorkItem');
+    this.#saveWorkItem = flowGet(this, 'saveWorkItem');
 
-    Flow.watch(this, 'selectedItem', item => {
+    flowWatch(this, 'selectedItem', item => {
       this.#state.update({
         hasSelection: Boolean(item),
         edits: item ? { ...item } : null,

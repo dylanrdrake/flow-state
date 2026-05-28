@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FlowStateComponent } from '../lib/FlowStateComponent.js';
-import { getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { flowGet, flowWatch } from '../lib/FlowState.js';
 
 // Each test registers a uniquely named custom element to avoid
 // "already defined" errors across tests.
@@ -19,7 +19,7 @@ describe('FlowStateComponent', () => {
         super.connectedCallback();
         // state should be available here
         expect(this.state).toBeDefined();
-        expect(getFlowFrom(this, 'value')).toBe(42);
+        expect(flowGet(this, 'value')).toBe(42);
       }
     }
     const name = tag();
@@ -59,7 +59,7 @@ describe('FlowStateComponent', () => {
     expect(el.shadowRoot.querySelector('#msg').textContent).toBe('hello');
   });
 
-  it('state.update() and getFlowFrom() work correctly', async () => {
+  it('state.update() and flowGet() work correctly', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       state = { count: 0 };
@@ -71,10 +71,10 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     await el.state.update({ count: 5 });
-    expect(getFlowFrom(el, 'count')).toBe(5);
+    expect(flowGet(el, 'count')).toBe(5);
   });
 
-  it('watchFlowFrom() fires immediately with the current value', () => {
+  it('flowWatch() fires immediately with the current value', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       state = { label: 'hello' };
@@ -86,7 +86,7 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     const spy = vi.fn();
-    watchFlowFrom(el, 'label', spy);
+    flowWatch(el, 'label', spy);
     expect(spy).toHaveBeenCalledWith('hello');
   });
 

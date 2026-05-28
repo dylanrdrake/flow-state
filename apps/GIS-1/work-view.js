@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js';
 import Graphic from '@arcgis/core/Graphic.js';
 import Point from '@arcgis/core/geometry/Point.js';
@@ -177,7 +177,7 @@ class WorkView extends HTMLElement {
     const shadowRoot =this.attachShadow({ mode: 'open' });
     shadowRoot.adoptedStyleSheets = [sheet];
 
-    this.#state = Flow.create(this, {
+    this.#state = new FlowSource(this, {
       edits: null,
     });
 
@@ -197,7 +197,7 @@ class WorkView extends HTMLElement {
 
     this.#saveBtn.addEventListener('click', () => {
       if (this.#saveWorkItem) {
-        const edits = this.#state.get('edits');
+        const edits = flowGet(this, 'edits');
         this.#saveWorkItem(edits);
       }
     });
@@ -210,10 +210,10 @@ class WorkView extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#saveWorkItem   = Flow.get(this, 'saveWorkItem');
-    this.#selectWorkItem = Flow.get(this, 'selectWorkItem');
-    Flow.watch(this, 'workItems', this.#workItemsUpdated.bind(this));
-    Flow.watch(this, 'selectedWorkItem', (workItem) => {
+    this.#saveWorkItem   = flowGet(this, 'saveWorkItem');
+    this.#selectWorkItem = flowGet(this, 'selectWorkItem');
+    flowWatch(this, 'workItems', this.#workItemsUpdated.bind(this));
+    flowWatch(this, 'selectedWorkItem', (workItem) => {
       if (workItem) {
         this.#map.view.goTo({ center: [workItem.longitude, workItem.latitude], zoom: 14 });
       }

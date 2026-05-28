@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
 
 const CSS = String.raw;
@@ -84,9 +84,9 @@ export class CalendarNav extends HTMLElement {
 
 
   connectedCallback() {
-    this.#prevMonth = Flow.get(this, 'prevMonth');
-    this.#nextMonth = Flow.get(this, 'nextMonth');
-    this.#goToday = Flow.get(this, 'goToday');
+    this.#prevMonth = flowGet(this, 'prevMonth');
+    this.#nextMonth = flowGet(this, 'nextMonth');
+    this.#goToday = flowGet(this, 'goToday');
   }
 
   set label(str) {

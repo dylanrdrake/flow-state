@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../index.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../index.js';
 
 const HTML = String.raw;
 
@@ -86,7 +86,7 @@ class TitlePanel extends HTMLElement {
     this.#readoutBtn = this.#shadow.getElementById('read-btn');
 
     this.#readoutBtn.addEventListener('click', () => {
-      const message = Flow.get(this.#shadow, 'message');
+      const message = flowGet(this.#shadow, 'message');
       this.#readout.textContent = `Fetched value: ${message}`;
     });
   }

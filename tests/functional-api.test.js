@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   FlowSource,
-  getFlowFrom,
-  watchFlowFrom,
+  flowGet,
+  flowWatch,
   flowThrough,
   flowCompute,
 } from '../lib/FlowState.js';
@@ -31,13 +31,13 @@ describe('functional API – create/get/watch', () => {
     expect(typeof state.destroy).toBe('function');
   });
 
-  it('getFlowFrom reads from descendant scope', () => {
-    expect(getFlowFrom(child, 'label')).toBe('hello');
+  it('flowGet reads from descendant scope', () => {
+    expect(flowGet(child, 'label')).toBe('hello');
   });
 
-  it('watchFlowFrom subscribes and unsubscribes', async () => {
+  it('flowWatch subscribes and unsubscribes', async () => {
     const spy = vi.fn();
-    const unsub = watchFlowFrom(child, 'count', spy);
+    const unsub = flowWatch(child, 'count', spy);
     expect(spy).toHaveBeenCalledWith(1);
 
     spy.mockClear();
@@ -67,7 +67,7 @@ describe('functional API – flowThrough/flowCompute', () => {
       total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
     });
 
-    expect(getFlowFrom(root, 'total')).toBe(20);
+    expect(flowGet(root, 'total')).toBe(20);
     state.destroy();
     root.remove();
   });
@@ -83,7 +83,7 @@ describe('functional API – flowThrough/flowCompute', () => {
     flowThrough(shadow);
 
     const spy = vi.fn();
-    watchFlowFrom(inner, 'count', spy);
+    flowWatch(inner, 'count', spy);
     spy.mockClear();
 
     await state.update({ count: 5 });

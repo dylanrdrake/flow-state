@@ -1,9 +1,9 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './calendar-nav.js';
 import './calendar-grid.js';
 import './calendar-sidebar.js';
 
-Flow.startFlowDevtools();
+startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -66,7 +66,7 @@ class CalendarApp extends HTMLElement {
     const shadow = this.attachShadow({ mode: 'closed' });
     shadow.adoptedStyleSheets = [sheet];
 
-    this.#state = Flow.create(this, {
+    this.#state = new FlowSource(this, {
 
         today,
         viewYear:     now.getFullYear(),
@@ -74,7 +74,7 @@ class CalendarApp extends HTMLElement {
         selectedDate: today,
         events:       seedEvents,
 
-        monthLabel: Flow.compute((viewYear, viewMonth) =>
+        monthLabel: flowCompute((viewYear, viewMonth) =>
           new Date(viewYear, viewMonth).toLocaleDateString('en-US', {
             month: 'long', year: 'numeric',
           })
@@ -82,7 +82,7 @@ class CalendarApp extends HTMLElement {
 
         // 42-cell (6×7) grid: prev-month overflow, current month, next-month overflow.
         // Each cell carries the date string, display flags, and event dot colors.
-        calendarDays: Flow.compute((viewYear, viewMonth, selectedDate, events, today) => {
+        calendarDays: flowCompute((viewYear, viewMonth, selectedDate, events, today) => {
           const yr = viewYear, mo = viewMonth;
           const firstDayOfWeek = new Date(yr, mo, 1).getDay();
           const daysInMonth    = new Date(yr, mo + 1, 0).getDate();
@@ -115,7 +115,7 @@ class CalendarApp extends HTMLElement {
           return days;
         }, ['viewYear', 'viewMonth', 'selectedDate', 'events', 'today']),
 
-        selectedDayEvents: Flow.compute((events, selectedDate) => events.filter(e => e.date === selectedDate), ['events', 'selectedDate']),
+        selectedDayEvents: flowCompute((events, selectedDate) => events.filter(e => e.date === selectedDate), ['events', 'selectedDate']),
 
       prevMonth:   this.#prevMonth.bind(this),
       nextMonth:   this.#nextMonth.bind(this),
@@ -127,7 +127,7 @@ class CalendarApp extends HTMLElement {
     });
 
     // Let FlowState pierce the closed shadow to find flow-watch attributes
-    Flow.through(shadow);
+    flowThrough(shadow);
 
     // Stamp template AFTER FlowState is initialized so that child connectedCallbacks
     // can synchronously resolve Flow.get/watch calls against the listener on `this`.

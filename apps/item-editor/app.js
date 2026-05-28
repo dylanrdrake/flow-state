@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './side-bar.js';
 import './item-editor.js';
 
@@ -32,7 +32,7 @@ class ItemEditorApp extends HTMLElement {
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new Flow(this, {
+    this.#state = new FlowSource(this, {
       items,
       selectedItem: null,
       selectItem:   this.#selectWorkItem.bind(this),

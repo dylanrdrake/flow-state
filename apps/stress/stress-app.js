@@ -1,6 +1,6 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
-Flow.startFlowDevtools();
+startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -342,7 +342,7 @@ class StressApp extends HTMLElement {
 
   constructor() {
     super();
-    this.#state = Flow.create(this, {
+    this.#state = new FlowSource(this, {
       tick: 0,
       ...initialCells,
       ...initialList,
@@ -357,7 +357,7 @@ class StressApp extends HTMLElement {
 
     this.#shadow = this.attachShadow({ mode: 'open' });
     this.#shadow.adoptedStyleSheets = [sheet];
-    this.#state.through(this.#shadow);
+    flowThrough(this.#shadow);
     this.#shadow.appendChild(template.content.cloneNode(true));
 
     this.#setupControls();

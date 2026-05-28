@@ -1,7 +1,7 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import { TodoItem } from './todo-item.js';
 
-Flow.startFlowDevtools();
+startFlowDevtools();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -180,29 +180,29 @@ class TodoApp extends HTMLElement {
     this.#filterBtns = shadow.querySelectorAll('.filter-btn');
     this.#clearDoneBtn = shadow.getElementById('clear-done-btn');
 
-    this.#state = Flow.create(this, {
+    this.#state = new FlowSource(this, {
       todos: [],
       filter: 'all',
 
       // Recomputes whenever todos or filter changes
-      filteredTodos: Flow.compute((todos, filter) => {
+      filteredTodos: flowCompute((todos, filter) => {
         if (filter === 'active') return todos.filter(t => !t.done);
         if (filter === 'done')   return todos.filter(t => t.done);
         return todos;
       }, ['todos', 'filter']),
 
       // DOM-bound via flow-watch-activeCount-to-prop
-      activeCount: Flow.compute((todos) => todos.filter(t => !t.done).length, ['todos']),
+      activeCount: flowCompute((todos) => todos.filter(t => !t.done).length, ['todos']),
 
       toggleTodo: this.#toggleTodo.bind(this),
       deleteTodo: this.#deleteTodo.bind(this),
     });
 
     // Pierce the closed shadow root so child components can reach state
-    this.#state.through(shadow);
+    flowThrough(shadow);
 
     // Re-render the list whenever the filtered set changes
-    this.#state.watch('filteredTodos', (todos) => {
+    flowWatch(this, 'filteredTodos', (todos) => {
       const items = todos.map(todo => new TodoItem(todo));
       this.#todoList.replaceChildren(...items);
       this.#emptyMsg.toggleAttribute('visible', items.length === 0);

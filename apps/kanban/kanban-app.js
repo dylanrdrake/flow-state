@@ -1,7 +1,7 @@
-import { FlowState, FlowStateComponent } from 'flow-state';
+import { FlowStateComponent, flowGet, flowWatch } from 'flow-state';
 import './kanban-column.js';
 
-// FlowState.startFlowDevtools();
+// startFlowDevtools();
 
 const HTML = String.raw;
 const CSS = String.raw;
@@ -230,7 +230,7 @@ class KanbanApp extends FlowStateComponent {
       .then(columns => this.state.update({ columns }))
       .catch(err => console.error('Failed to load kanban data:', err));
 
-    this.state.watch('columns', this.#renderColumns.bind(this));
+    flowWatch(this, 'columns', this.#renderColumns.bind(this));
 
     this.#newCardBtn.addEventListener('click', () => this.#openModal(null, null));
   }
@@ -277,7 +277,7 @@ class KanbanApp extends FlowStateComponent {
     fetch('/api/kanban', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(this.state.get('columns')),
+      body: JSON.stringify(flowGet(this, 'columns')),
     }).catch(err => console.error('Failed to save kanban data:', err));
   }
 
@@ -323,7 +323,7 @@ class KanbanApp extends FlowStateComponent {
   #openModal(card, columnId) {
     const isNew = card === null;
     // Default to first column when opening for a new card
-    const resolvedColumnId = columnId ?? this.state.get('columns')?.[0]?.id ?? '';
+    const resolvedColumnId = columnId ?? flowGet(this, 'columns')?.[0]?.id ?? '';
     this.#editingCard = { card, columnId: resolvedColumnId };
     this.#modalHeading.textContent = isNew ? 'New Card' : 'Edit Card';
     this.#modalTitle.value = card?.title ?? '';

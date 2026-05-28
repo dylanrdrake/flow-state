@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 
 
 const HTML = String.raw;
@@ -97,8 +97,8 @@ export class TodoItem extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#toggleTodoDone = Flow.get(this, 'toggleTodo');
-    this.#deleteTodo = Flow.get(this, 'deleteTodo');
+    this.#toggleTodoDone = flowGet(this, 'toggleTodo');
+    this.#deleteTodo = flowGet(this, 'deleteTodo');
   }
 }
 

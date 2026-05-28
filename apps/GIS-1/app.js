@@ -1,7 +1,7 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './work-space.js';
 
-Flow.startFlowDevtools();
+startFlowDevtools();
 
 
 const CSS = String.raw;
@@ -45,10 +45,10 @@ class GIS1 extends HTMLElement {
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new Flow(this, config);
+    this.#state = new FlowSource(this, config);
 
     // Allow declarative bindings inside the closed shadow to receive updates
-    this.#state.through(this.#shadow);
+    flowThrough(this.#shadow);
 
     this.#shadow.appendChild(appTemplate.content.cloneNode(true));
   }

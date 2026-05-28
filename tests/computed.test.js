@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowSource, flowCompute, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { FlowSource, flowCompute, flowGet, flowWatch } from '../lib/FlowState.js';
 
 describe('FlowSource – computed values', () => {
   let root, state;
@@ -19,30 +19,30 @@ describe('FlowSource – computed values', () => {
   afterEach(() => root.remove());
 
   it('state.get() returns the computed value', () => {
-    expect(getFlowFrom(root, 'total')).toBe(30);
-    expect(getFlowFrom(root, 'upper')).toBe('ALICE');
+    expect(flowGet(root, 'total')).toBe(30);
+    expect(flowGet(root, 'upper')).toBe('ALICE');
   });
 
   it('computed value is recalculated when a dependency changes', async () => {
     await state.update({ price: 20 });
-    expect(getFlowFrom(root, 'total')).toBe(60);
+    expect(flowGet(root, 'total')).toBe(60);
   });
 
   it('computed value updates when the other dependency changes', async () => {
     await state.update({ qty: 5 });
-    expect(getFlowFrom(root, 'total')).toBe(50);
+    expect(flowGet(root, 'total')).toBe(50);
   });
 
   it('watcher on a computed key fires immediately with the computed value', () => {
     const spy = vi.fn();
-    watchFlowFrom(root, 'total', spy);
+    flowWatch(root, 'total', spy);
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(30);
   });
 
   it('watcher on a computed key fires with the new value when a dependency changes', async () => {
     const spy = vi.fn();
-    watchFlowFrom(root, 'total', spy);
+    flowWatch(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ qty: 5 });
@@ -51,7 +51,7 @@ describe('FlowSource – computed values', () => {
 
   it('watcher on a computed key does NOT fire when an unrelated key changes', async () => {
     const spy = vi.fn();
-    watchFlowFrom(root, 'total', spy);
+    flowWatch(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ name: 'bob' });
@@ -63,7 +63,7 @@ describe('FlowSource – computed values', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await state.update({ total: 999 });
     expect(warn).toHaveBeenCalled();
-    expect(getFlowFrom(root, 'total')).toBe(30); // still computed from price * qty
+    expect(flowGet(root, 'total')).toBe(30); // still computed from price * qty
     warn.mockRestore();
   });
 
@@ -82,8 +82,8 @@ describe('FlowSource – computed values', () => {
     });
 
     await s.update({ x: 5 });
-    expect(getFlowFrom(root2, 'double')).toBe(10);
-    expect(getFlowFrom(root2, 'triple')).toBe(15);
+    expect(flowGet(root2, 'double')).toBe(10);
+    expect(flowGet(root2, 'triple')).toBe(15);
     root2.remove();
   });
 });
@@ -104,32 +104,32 @@ describe('FlowSource – computed values with nested object deps', () => {
   afterEach(() => root.remove());
 
   it('receives the full nested object as a positional argument', () => {
-    expect(getFlowFrom(root, 'label')).toBe('Alice (admin)');
+    expect(flowGet(root, 'label')).toBe('Alice (admin)');
   });
 
   it('re-evaluates when a nested property of the dep changes', async () => {
     await state.update({ user: { name: 'Bob' } }); // deep merge — role preserved
-    expect(getFlowFrom(root, 'label')).toBe('Bob (admin)');
+    expect(flowGet(root, 'label')).toBe('Bob (admin)');
   });
 
   it('re-evaluates when the whole dep object is replaced', async () => {
     await state.update({ user: { name: 'Carol', role: 'viewer' } });
-    expect(getFlowFrom(root, 'label')).toBe('Carol (viewer)');
+    expect(flowGet(root, 'label')).toBe('Carol (viewer)');
   });
 
   it('does NOT re-evaluate when an unrelated key changes', async () => {
     const spy = vi.fn();
-    watchFlowFrom(root, 'label', spy);
+    flowWatch(root, 'label', spy);
     spy.mockClear();
 
     await state.update({ score: 99 });
     expect(spy).not.toHaveBeenCalled();
-    expect(getFlowFrom(root, 'label')).toBe('Alice (admin)');
+    expect(flowGet(root, 'label')).toBe('Alice (admin)');
   });
 
   it('watcher fires with the new derived value after a nested dep update', async () => {
     const spy = vi.fn();
-    watchFlowFrom(root, 'label', spy);
+    flowWatch(root, 'label', spy);
     spy.mockClear();
 
     await state.update({ user: { name: 'Dave' } });
@@ -151,12 +151,12 @@ describe('FlowSource – computed values depending on computed values', () => {
       total: flowCompute((subtotal, taxRate) => subtotal * (1 + taxRate), ['subtotal', 'taxRate']),
     });
 
-    expect(getFlowFrom(root, 'subtotal')).toBe(20);
-    expect(getFlowFrom(root, 'total')).toBe(22);
+    expect(flowGet(root, 'subtotal')).toBe(20);
+    expect(flowGet(root, 'total')).toBe(22);
 
     await state.update({ qty: 3 });
-    expect(getFlowFrom(root, 'subtotal')).toBe(30);
-    expect(getFlowFrom(root, 'total')).toBe(33);
+    expect(flowGet(root, 'subtotal')).toBe(30);
+    expect(flowGet(root, 'total')).toBe(33);
 
     root.remove();
   });
@@ -174,7 +174,7 @@ describe('FlowSource – computed values depending on computed values', () => {
     });
 
     const spy = vi.fn();
-    watchFlowFrom(root, 'total', spy);
+    flowWatch(root, 'total', spy);
     spy.mockClear();
 
     await state.update({ price: 20 });

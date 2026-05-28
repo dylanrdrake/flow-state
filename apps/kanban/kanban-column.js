@@ -1,4 +1,4 @@
-import { FlowState, FlowStateComponent } from 'flow-state';
+import { FlowStateComponent, flowGet, flowWatch } from 'flow-state';
 import './kanban-card.js';
 
 const HTML = String.raw;
@@ -99,12 +99,12 @@ class KanbanColumn extends FlowStateComponent {
     this.#cardCount  = shadow.getElementById('card-count');
 
     // Get shared actions from parent KanbanApp scope
-    const moveCard   = FlowState.get(this, 'moveCard');
-    const deleteCard = FlowState.get(this, 'deleteCard');
+    const moveCard   = flowGet(this, 'moveCard');
+    const deleteCard = flowGet(this, 'deleteCard');
 
     // Watch the full columns list from the parent to extract this column's data
     // and keep the move-target selector up to date.
-    FlowState.watch(this, 'columns', this.#render.bind(this));
+    flowWatch(this, 'columns', this.#render.bind(this));
   }
 
   disconnectedCallback() {

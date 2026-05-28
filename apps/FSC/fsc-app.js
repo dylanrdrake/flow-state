@@ -1,8 +1,8 @@
-import { FlowState, FlowStateComponent } from '../../index.js';
+import { FlowStateComponent, startFlowDevtools } from '../../index.js';
 import './title-panel.js';
 import './title-editor.js';
 
-FlowState.startFlowDevtools();
+startFlowDevtools();
 
 const HTML = String.raw;
 const CSS = String.raw;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { FlowSource, flowThrough, getFlowFrom, watchFlowFrom } from '../lib/FlowState.js';
+import { FlowSource, flowThrough, flowGet, flowWatch } from '../lib/FlowState.js';
 
 describe('FlowSource – scope isolation between siblings', () => {
   it('updating one scope does not affect a sibling scope', async () => {
@@ -13,8 +13,8 @@ describe('FlowSource – scope isolation between siblings', () => {
 
     await state1.update({ count: 5 });
 
-    expect(getFlowFrom(root1, 'count')).toBe(5);
-    expect(getFlowFrom(root2, 'count')).toBe(100); // unchanged
+    expect(flowGet(root1, 'count')).toBe(5);
+    expect(flowGet(root2, 'count')).toBe(100); // unchanged
 
     root1.remove();
     root2.remove();
@@ -30,7 +30,7 @@ describe('FlowSource – scope isolation between siblings', () => {
     const state2 = new FlowSource(root2, { count: 0 });
 
     const spy = vi.fn();
-    watchFlowFrom(root2, 'count', spy);
+    flowWatch(root2, 'count', spy);
     spy.mockClear();
 
     await state1.update({ count: 42 });
@@ -54,8 +54,8 @@ describe('FlowSource – scope isolation between siblings', () => {
     new FlowSource(root1, { label: 'scope-1' });
     new FlowSource(root2, { label: 'scope-2' });
 
-    expect(getFlowFrom(child1, 'label')).toBe('scope-1');
-    expect(getFlowFrom(child2, 'label')).toBe('scope-2');
+    expect(flowGet(child1, 'label')).toBe('scope-1');
+    expect(flowGet(child2, 'label')).toBe('scope-2');
 
     root1.remove();
     root2.remove();
@@ -76,7 +76,7 @@ describe('FlowSource – child scope shadows parent key', () => {
     child.appendChild(inner);
 
     // inner is inside the child scope — should see 'light', not 'dark'
-    expect(getFlowFrom(inner, 'theme')).toBe('light');
+    expect(flowGet(inner, 'theme')).toBe('light');
 
     parent.remove();
   });
@@ -93,7 +93,7 @@ describe('FlowSource – child scope shadows parent key', () => {
     new FlowSource(child, { theme: 'light' }); // shadows only inside child
 
     // sibling is not inside the child scope — should see parent's 'dark'
-    expect(getFlowFrom(sibling, 'theme')).toBe('dark');
+    expect(flowGet(sibling, 'theme')).toBe('dark');
 
     parent.remove();
   });
@@ -108,7 +108,7 @@ describe('FlowSource – child scope shadows parent key', () => {
     const childState = new FlowSource(child, { state: { value: 'child' } });
 
     const childSpy = vi.fn();
-    watchFlowFrom(child, 'value', childSpy);
+    flowWatch(child, 'value', childSpy);
     childSpy.mockClear();
 
     await parentState.update({ value: 'parent-updated' });
@@ -136,25 +136,25 @@ describe('FlowSource – closed shadow DOM and through()', () => {
 
   afterEach(() => { document.body.innerHTML = ''; });
 
-  it('watchFlowFrom can reach a closed shadow scope via composed events', () => {
+  it('flowWatch can reach a closed shadow scope via composed events', () => {
     const { shadow } = makeClosedHost('closed-scope-watch', { label: 'hello' });
 
     const inner = document.createElement('span');
     shadow.appendChild(inner);
 
     const spy = vi.fn();
-    watchFlowFrom(inner, 'label', spy);
+    flowWatch(inner, 'label', spy);
     expect(spy).toHaveBeenCalledWith('hello');
   });
 
-  it('watchFlowFrom on a closed shadow child fires again after state.update', async () => {
+  it('flowWatch on a closed shadow child fires again after state.update', async () => {
     const { shadow, state } = makeClosedHost('closed-scope-update', { count: 0 });
 
     const inner = document.createElement('span');
     shadow.appendChild(inner);
 
     const spy = vi.fn();
-    watchFlowFrom(inner, 'count', spy);
+    flowWatch(inner, 'count', spy);
     spy.mockClear();
 
     await state.update({ count: 42 });
@@ -214,7 +214,7 @@ describe('FlowSource – closed shadow DOM and through()', () => {
 
     await state1.update({ x: 99 });
 
-    expect(getFlowFrom(document.querySelector('closed-sibling-a'), 'x')).toBe(99);
-    expect(getFlowFrom(document.querySelector('closed-sibling-b'), 'x')).toBe(100);
+    expect(flowGet(document.querySelector('closed-sibling-a'), 'x')).toBe(99);
+    expect(flowGet(document.querySelector('closed-sibling-b'), 'x')).toBe(100);
   });
 });

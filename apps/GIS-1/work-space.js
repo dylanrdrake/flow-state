@@ -1,4 +1,4 @@
-import { FlowState as Flow } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowCompute, startFlowDevtools } from '../../lib/FlowState.js';
 import './side-bar.js';
 import './work-view.js';
 
@@ -70,14 +70,14 @@ class Workspace extends HTMLElement {
   connectedCallback() {
     if (this.#state) return;
 
-    const workItems = (Flow.get(this, 'workItems') ?? []).map(item => ({
+    const workItems = (flowGet(this, 'workItems') ?? []).map(item => ({
       ...item,
       initial: item.name.charAt(0).toUpperCase()
     }));
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#state = new Flow(this, {
+    this.#state = new FlowSource(this, {
       workItems,
       selectedWorkItem: null,
       selectWorkItem: this.#selectWorkItemHook.bind(this),

@@ -1,6 +1,6 @@
-import { FlowState } from '../../index.js';
+import { flowGet, startFlowDevtools } from '../../index.js';
 
-FlowState.startFlowDevtools();
+startFlowDevtools();
 
 const HTML = String.raw;
 
@@ -53,7 +53,7 @@ class TitleEditor extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#updateTitleHook = FlowState.get(this.#shadow, 'changeTitle');
+    this.#updateTitleHook = flowGet(this.#shadow, 'changeTitle');
   }
 }
 
