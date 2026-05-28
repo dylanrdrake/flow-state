@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="../../assets/FlowState3.svg">
   <title>FlowState DevTools</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -80,7 +81,28 @@
       flex-shrink: 0;
     }
 
-    .logo { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 0.03em; }
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+    }
+
+    .logo-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .logo-icon-color { display: none; }
+    .logo-icon-mono { display: inline-block; }
+
+    :root[data-theme='light'] .logo-icon-color { display: inline-block; }
+    :root[data-theme='light'] .logo-icon-mono { display: none; }
 
     .header-right {
       display: flex;
@@ -344,7 +366,11 @@
 <body>
   <div id="app">
     <header>
-      <span class="logo">◈ FlowState DevTools</span>
+      <span class="logo">
+        <img class="logo-icon logo-icon-color" src="../../assets/FlowState3.svg" alt="FlowState logo color">
+        <img class="logo-icon logo-icon-mono" src="../../assets/FlowState_light.svg" alt="FlowState logo dark-mode variant">
+        <span>FlowState DevTools</span>
+      </span>
       <div class="header-right">
         <button id="theme-toggle" type="button" aria-label="Toggle color theme">Light</button>
         <span id="status">○ Waiting for app…</span>
@@ -378,6 +404,18 @@
       </div>
     </div>
   </div>
-  <script src="./devtools.js" type="module"></script>
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const useFlowStateDevtools = params.get('engine') === 'flowstate';
+
+    if (useFlowStateDevtools) {
+      const mod = await import('./devtools_flow_state.js');
+      mod.startFlowStateDevtools();
+      console.info('FlowState Devtools engine: flowstate');
+    } else {
+      await import('./devtools.js');
+      console.info('FlowState Devtools engine: legacy');
+    }
+  </script>
 </body>
 </html>

@@ -1,4 +1,10 @@
-<h1><img src="assets/FlowState3.svg" alt="FlowState logo" width="28" style="vertical-align: middle; margin-right: 8px;" />flow-state</h1>
+<h1>
+<picture>
+	<source media="(prefers-color-scheme: dark)" srcset="assets/FlowState_light.svg">
+	<source media="(prefers-color-scheme: light)" srcset="assets/FlowState3.svg">
+	<img src="assets/FlowState3.svg" alt="FlowState logo" width="28" style="vertical-align: middle; margin-right: 14px;" />
+</picture>
+flow-state</h1>
 
 A lightweight, DOM-native reactive state library for web components and vanilla JavaScript.
 
