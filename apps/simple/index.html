@@ -15,31 +15,22 @@
 <body>
   <div id="app">
     <div>
-      Count:<span flow-watch-count-to-prop="innerHTML"></span>
+      Count:<span flow-watch-count-to-prop="textContent"></span>
     </div>
     <button id="inc-btn">
       Increment
     </button>
   </div>
   <script type="module">
-    import { FlowState } from 'flow-state';
-
-    const body = document.querySelector('body');
-
-    const bodyState = FlowState.create(body, {
-      test: 'hello'
-    });
+    import { FlowSource, flowWatch } from 'flow-state';
 
     const appEl = document.querySelector('#app');
 
-    const state = FlowState.create(appEl, {
-      count: 0,
-      test: 'hll'
+    const state = new FlowSource(appEl, {
+      count: 0
     });
 
-    let test = bodyState.get('test');
-
-    state.watch('count', count => {
+    flowWatch(appEl, 'count', count => {
       console.log('count changed to', count);
     });
 
