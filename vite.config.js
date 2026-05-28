@@ -40,7 +40,7 @@ export default defineConfig({
           },
         });
 
-        cpSync(resolve(__dirname, 'assets'), resolve(__dirname, 'dist/assets'), { recursive: true });
+        cpSync(resolve(__dirname, 'lib/assets'), resolve(__dirname, 'dist/assets'), { recursive: true });
         cpSync(resolve(__dirname, 'lib/devtools/server.js'), resolve(__dirname, 'dist/devtools/server.js'));
       },
     },

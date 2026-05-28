@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light dark">
   <title>FlowState Tutorial</title>
-  <link rel="icon" type="image/svg+xml" href="../../assets/FlowState3_transparent.svg">
+  <link rel="icon" type="image/svg+xml" href="../../lib/assets/FlowState3_transparent.svg">
   <link rel="stylesheet" href="./tutorial.css">
   <script>
     (() => {
@@ -22,7 +22,7 @@
   <!-- ── Sidebar ── -->
   <nav class="sidebar" aria-label="Tutorial navigation">
     <div class="sidebar-logo">
-      <div class="logo-icon"><img id="tutorial-logo" src="../../assets/FlowState3_transparent.svg" alt="FlowState logo"></div>
+      <div class="logo-icon"><img id="tutorial-logo" src="../../lib/assets/FlowState3_transparent.svg" alt="FlowState logo"></div>
       <div>
         <span class="logo-name">FlowState</span>
         <span class="logo-tag">Tutorial &amp; Reference</span>
@@ -115,7 +115,7 @@
         </p>
 
         <div class="anim-embed">
-          <iframe src="../../assets/reactive_flow.html" title="FlowState reactive flow animation"></iframe>
+          <iframe src="../../lib/assets/reactive_flow.html" title="FlowState reactive flow animation"></iframe>
         </div>
         <p><a href="#demo-embed">See the above visualization in action and code!</a></p>
 
@@ -773,10 +773,23 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
         <h2>Devtools</h2>
         <div class="cb"><pre><code>flowDevtools();</code></pre></div>
         <p>
-          Call this once, early in your app entry point. It opens the devtools panel in a new tab
-          and connects via <code>BroadcastChannel</code>. The devtools show all active FlowState
-          scopes, their current state values, watchers, and the source element that registered each
-          watcher. Clicking a watcher in the panel highlights the corresponding element in the app.
+          Call this once, early in your app entry point. It enables FlowState devtools
+          communication over <code>BroadcastChannel</code>. It does <strong>not</strong> open the
+          panel for you; host the devtools UI yourself and open it in a browser tab.
+        </p>
+        <p>
+          The app and devtools page must be on the <strong>same origin</strong>
+          (same protocol + host + port), or the channel will not connect.
+        </p>
+        <div class="cb"><pre><code># Run the packaged devtools server
+node lib/devtools/server.js -r /absolute/path/to/your/app -p 3300
+
+# Open app and devtools on the same origin
+http://localhost:3300/target/
+http://localhost:3300/devtools/</code></pre></div>
+        <p>
+          The devtools UI shows active FlowState scopes, current state values, watcher links, and
+          source-element highlighting.
         </p>
       </section>
 
@@ -831,7 +844,7 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
               <tr>
                 <td><code>flowDevtools()</code></td>
                 <td>app entry point</td>
-                <td>Open devtools panel</td>
+                <td>Enable devtools channel communication</td>
               </tr>
             </tbody>
           </table>
@@ -845,8 +858,8 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
 <script>
   // ── Theme / brand assets ───────────────────────────────
   const THEME_KEY = 'flowstate-tutorial-theme';
-  const LIGHT_LOGO = '../../assets/FlowState3_transparent.svg';
-  const DARK_LOGO = '../../assets/FlowState_light_transparent.svg';
+  const LIGHT_LOGO = '../../lib/assets/FlowState3_transparent.svg';
+  const DARK_LOGO = '../../lib/assets/FlowState_light_transparent.svg';
 
   const palettes = {
     light: {

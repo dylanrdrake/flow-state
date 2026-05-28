@@ -1,8 +1,8 @@
 <h1>
 <picture>
-	<source media="(prefers-color-scheme: dark)" srcset="assets/FlowState_light_transparent.svg">
-	<source media="(prefers-color-scheme: light)" srcset="assets/FlowState3_transparent.svg">
-	<img src="assets/FlowState3_transparent.svg" alt="FlowState logo" width="28" style="vertical-align: middle; margin-right: 14px;" />
+	<source media="(prefers-color-scheme: dark)" srcset="lib/assets/FlowState_light_transparent.svg">
+	<source media="(prefers-color-scheme: light)" srcset="lib/assets/FlowState3_transparent.svg">
+	<img src="lib/assets/FlowState3_transparent.svg" alt="FlowState logo" width="28" style="vertical-align: middle; margin-right: 14px;" />
 </picture>
 flow-state</h1>
 
