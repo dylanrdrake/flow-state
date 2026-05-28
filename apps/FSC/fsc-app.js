@@ -29,10 +29,6 @@ class FSCApp extends FlowStateComponent {
   #updateTitle(newTitle) {
     this.source.update({ title: newTitle });
   }
-
-  disconnectedCallback() {
-    this.source?.destroy();
-  }
 }
 
 customElements.define('fsc-app', FSCApp);

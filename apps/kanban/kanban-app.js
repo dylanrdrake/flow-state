@@ -179,7 +179,6 @@ const uid = () => Date.now();
 class KanbanApp extends FlowStateComponent {
   #board;
   #newCardBtn;
-  #columnsUnsub = () => {};
   // Modal
   #modalBackdrop;
   #modalHeading;
@@ -231,15 +230,14 @@ class KanbanApp extends FlowStateComponent {
       .then(columns => this.source.update({ columns }))
       .catch(err => console.error('Failed to load kanban data:', err));
 
-    this.#columnsUnsub = flowWatch(this, 'columns', this.#renderColumns.bind(this));
+    flowWatch(this, 'columns', this.#renderColumns.bind(this));
 
     this.#newCardBtn.addEventListener('click', () => this.#openModal(null, null));
   }
 
   disconnectedCallback() {
-    this.#columnsUnsub();
+    super.disconnectedCallback();
     window.removeEventListener('keydown', this.#onEscapeKeydown);
-    this.source?.destroy();
   }
 
   #renderColumns(columns) {

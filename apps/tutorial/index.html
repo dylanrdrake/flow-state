@@ -226,7 +226,6 @@ class MyCounter extends FlowStateComponent {
   shadowMode = 'open';
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`&lt;button id="btn"&gt;Click 0 times&lt;/button&gt;`;
-  #countUnsub = () => {};
 
   source = {
     count: 0,
@@ -235,7 +234,7 @@ class MyCounter extends FlowStateComponent {
   connectedCallback() {
     super.connectedCallback(); // always call first
 
-    this.#countUnsub = flowWatch(this, 'count', n => {
+    flowWatch(this, 'count', n => {
       this.shadowRoot.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
@@ -244,16 +243,27 @@ class MyCounter extends FlowStateComponent {
     });
   }
 
+  // ⚠️ Not necessary unless you need custom cleanup,
+  // because FlowStateComponent auto-cleans owned watchers
+  // and destroys its own source scope in disconnectedCallback().
+  //If you do override it, call super.disconnectedCallback().
   disconnectedCallback() {
-    // ⚠️ Cleanup: destroy the FlowState scope when this component is torn down.
-    this.#countUnsub();
-    this.source?.destroy();
+    super.disconnectedCallback();
+    // Any component specific cleanup can go here as well.
   }
 }
 customElements.define('my-counter', MyCounter);</code></pre></div>
         <p>
           <code>FlowStateComponent</code> exposes <code>this.source</code> — the source instance API
           returned by the FlowState constructor.
+        </p>
+        <p>
+          <strong>Auto-cleanup:</strong> <code>FlowStateComponent</code> tracks
+          <code>flowWatch()</code> subscriptions created from the component host and its own
+          <code>ShadowRoot</code>, unsubscribes them, and destroys its own FlowState scope in
+          <code>disconnectedCallback()</code>.
+          If you override <code>disconnectedCallback()</code>, call
+          <code>super.disconnectedCallback()</code>.
         </p>
         <p>
           <strong>Light DOM mode</strong>: omit <code>shadowMode</code> entirely to render the
@@ -264,27 +274,20 @@ customElements.define('my-counter', MyCounter);</code></pre></div>
   // no shadowMode — renders into light DOM
   template = `&lt;p id="msg"&gt;&lt;/p&gt;`;
   source = { message: 'Hello' };
-  #messageUnsub = () => {};
-
   connectedCallback() {
     super.connectedCallback();
-    this.#messageUnsub = flowWatch(this, 'message', v => {
+    flowWatch(this, 'message', v => {
       this.querySelector('#msg').textContent = v;
     });
   }
-
-  disconnectedCallback() {
-    this.#messageUnsub();
-    this.source?.destroy();
-  }
 }</code></pre></div>
         <blockquote>
-          <strong>Cleanup warning:</strong> If a FlowState source scope is being removed permanently,
-          call <code>source.destroy()</code> in <code>disconnectedCallback()</code>.
-          This releases watchers, removes internal scope registration, and helps prevent memory
-          leaks in long-running apps.
+          <strong>Cleanup warning:</strong> <code>FlowStateComponent</code> already cleans up
+          owned watchers and destroys its own source scope in
+          <code>disconnectedCallback()</code>. If you override it, call
+          <code>super.disconnectedCallback()</code>.
           <br><br>
-          <code>disconnectedCallback() { this.source?.destroy(); }</code>
+          <code>disconnectedCallback() { super.disconnectedCallback(); }</code>
         </blockquote>
       </section>
 
@@ -366,6 +369,15 @@ const current = flowGet(root, 'count'); // 99 ✓</code></pre></div>
         </p>
         <div class="cb"><pre><code>disconnectedCallback() {
   this.source?.destroy();
+}</code></pre></div>
+        <p>
+          For <code>FlowStateComponent</code>, this is automatic. If you override
+          <code>disconnectedCallback()</code>, call <code>super.disconnectedCallback()</code>.
+        </p>
+        <div class="cb"><pre><code>class TaskPanel extends FlowStateComponent {
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  }
 }</code></pre></div>
         <p>
           Functional helpers like <code>flowWatch</code>, <code>flowGet</code>, and
@@ -635,12 +647,12 @@ source.update({ count: flowGet(root, 'count') + 1 });</code></pre></div>
 
         <h3>Cleanup on permanent unmount</h3>
         <p>
-          When a component is removed for good (not temporarily detached for a move), cleanup
-          its scope in <code>disconnectedCallback()</code>.
+          <code>FlowStateComponent</code> already cleans up owned watchers and destroys its source
+          in <code>disconnectedCallback()</code>. If you override it, preserve that behavior.
         </p>
         <div class="cb"><pre><code>class TaskPanel extends FlowStateComponent {
   disconnectedCallback() {
-    this.source?.destroy();
+    super.disconnectedCallback();
   }
 }</code></pre></div>
       </section>
