@@ -17,22 +17,12 @@ Tutorial and instructional documentation:
 
 `flow-state` exposes:
 
-- `FlowSource` constructor
-- `flowGet(source, key)`
-- `flowWatch(source, key, callback)`
-- `flowThrough(shadowRoot)`
-- `flowCompute(fn, deps)`
-- `flowDevtools()`
-- `flow-<source-key>-to-attr` declarative bindings to bind source values to DOM element attribute
-- `flow-<source-key>-to-prop` declarative bindings to bind source values to DOM element property
-- `flow-if` directive for boolean decisions in markup
-- `flow-ul` directive for composing lists from source state arrays in markup. Items use `flow-li-<item-key>-to-prop` / `flow-li-<item-key>-to-attr` for object item fields, or `flow-li-to-prop` / `flow-li-to-attr` for primitive item values.
+- Class: `FlowSource`
+- 2 source instance methods: `update` and `destroy`
+- 5 functional helpers: `flowWatch`, `flowGet`, `flowThrough`, `flowCompute`, `flowDevtools`
+- 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
+- 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
 - `FlowStateComponent`
-
-Source instance API returned by `new FlowSource(root, config)`:
-
-- `state.update(patchOrUpdater)`
-- `state.destroy()`
 
 
 ## Getting Started

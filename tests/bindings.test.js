@@ -310,6 +310,65 @@ describe('FlowSource – list item bindings (nested keys)', () => {
   });
 });
 
+describe('FlowSource – declarative bindings in closed shadow roots', () => {
+  let root, state;
+
+  afterEach(() => root.remove());
+
+  it('does not update closed-shadow bindings unless the shadow root is through-linked', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const closedShadow = root.attachShadow({ mode: 'closed' });
+    closedShadow.innerHTML = `
+      <span id="name" flow-watch-name-to-prop="textContent"></span>
+      <span id="role" flow-watch-role-to-attr="data-role"></span>
+    `;
+
+    state = new FlowSource(root, {
+      name: 'Alice',
+      role: 'admin',
+    });
+
+    await waitForInitialBindings();
+
+    expect(closedShadow.querySelector('#name').textContent).toBe('');
+    expect(closedShadow.querySelector('#role').getAttribute('data-role')).toBeNull();
+
+    await state.update({ name: 'Bob', role: 'viewer' });
+
+    expect(closedShadow.querySelector('#name').textContent).toBe('');
+    expect(closedShadow.querySelector('#role').getAttribute('data-role')).toBeNull();
+  });
+
+  it('updates closed-shadow bindings when the shadow root is through-linked', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    const closedShadow = root.attachShadow({ mode: 'closed' });
+    closedShadow.innerHTML = `
+      <span id="name" flow-watch-name-to-prop="textContent"></span>
+      <span id="role" flow-watch-role-to-attr="data-role"></span>
+    `;
+
+    state = new FlowSource(root, {
+      name: 'Alice',
+      role: 'admin',
+    });
+    flowThrough(closedShadow);
+
+    await waitForInitialBindings();
+
+    expect(closedShadow.querySelector('#name').textContent).toBe('Alice');
+    expect(closedShadow.querySelector('#role').getAttribute('data-role')).toBe('admin');
+
+    await state.update({ name: 'Bob', role: 'viewer' });
+
+    expect(closedShadow.querySelector('#name').textContent).toBe('Bob');
+    expect(closedShadow.querySelector('#role').getAttribute('data-role')).toBe('viewer');
+  });
+});
+
 describe('FlowSource – conditional bindings (flow-if)', () => {
   let root, state;
 
