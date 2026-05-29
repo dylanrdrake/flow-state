@@ -56,6 +56,16 @@ describe('flowDevtools', () => {
     expect(MockBroadcastChannel.instances[0].name).toBe('flowstate-devtools');
   });
 
+  it('sends init when devtools channel is created', async () => {
+    vi.resetModules();
+    const { flowDevtools } = await import('../lib/FlowState.js');
+
+    flowDevtools();
+
+    const channel = MockBroadcastChannel.instances[0];
+    expect(channel.messages).toContainEqual({ type: 'init' });
+  });
+
   it('broadcasts current snapshots when devtools sends ready', async () => {
     vi.resetModules();
     const { FlowSource, flowDevtools } = await import('../lib/FlowState.js');

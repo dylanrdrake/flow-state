@@ -48,6 +48,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "dev": "node dist/devtools/server.js -r . -p 3300",
     "build": "vite build",
     "test": "vitest run",
     "test:watch": "vitest"
