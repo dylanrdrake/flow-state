@@ -142,12 +142,12 @@ const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="date-heading" id="date-heading">Select a day</div>
   <div class="events" id="events-list">
-    <div id="events-items" flow-list="events">
+    <div id="events-items" flow-ul="events">
       <template>
-        <div class="event-item" flow-id-to-attr="data-event-id">
-          <span class="event-dot" flow-dotStyle-to-attr="style"></span>
-          <span class="event-title" flow-title-to-prop="textContent"></span>
-          <button class="del-btn" type="button" title="Delete" flow-id-to-attr="data-event-id">✕</button>
+        <div class="event-item" flow-li-id-to-attr="data-event-id">
+          <span class="event-dot" flow-li-dotStyle-to-attr="style"></span>
+          <span class="event-title" flow-li-title-to-prop="textContent"></span>
+          <button class="del-btn" type="button" title="Delete" flow-li-id-to-attr="data-event-id">✕</button>
         </div>
       </template>
     </div>

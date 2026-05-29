@@ -164,7 +164,7 @@ describe('FlowSource – declarative bindings (dot-notation keys)', () => {
   });
 });
 
-describe('FlowSource – list item bindings (flow-list)', () => {
+describe('FlowSource – list item bindings (flow-ul)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -172,11 +172,11 @@ describe('FlowSource – list item bindings (flow-list)', () => {
     document.body.appendChild(root);
 
     root.innerHTML = `
-      <div flow-list="users">
+      <div flow-ul="users">
         <template>
-          <div flow-id-to-attr="data-id">
-            <span class="name" flow-name-to-prop="textContent"></span>
-            <span class="role" flow-role-to-attr="data-role"></span>
+          <div flow-li-id-to-attr="data-id">
+            <span class="name" flow-li-name-to-prop="textContent"></span>
+            <span class="role" flow-li-role-to-attr="data-role"></span>
           </div>
         </template>
       </div>
@@ -225,12 +225,12 @@ describe('FlowSource – list item bindings (nested keys)', () => {
     document.body.appendChild(root);
 
     // Dashes in the attribute key map to nested property access:
-    // flow-user-city-to-prop reads item.user.city
+    // flow-li-user-city-to-prop reads item.user.city
     root.innerHTML = `
-      <div flow-list="people">
+      <div flow-ul="people">
         <template>
-          <span class="city"  flow-user-city-to-prop="textContent"></span>
-          <span class="badge" flow-user-role-to-attr="data-role"></span>
+          <span class="city"  flow-li-user-city-to-prop="textContent"></span>
+          <span class="badge" flow-li-user-role-to-attr="data-role"></span>
         </template>
       </div>
     `;
@@ -263,14 +263,14 @@ describe('FlowSource – list item bindings (nested keys)', () => {
     expect(root.querySelector('.badge').getAttribute('data-role')).toBe('editor');
   });
 
-  it('binds camelCase item keys even when flow-list attribute names are lowercased by HTML', async () => {
+  it('binds camelCase item keys even when flow-ul attribute names are lowercased by HTML', async () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
     root.innerHTML = `
-      <div flow-list="people">
+      <div flow-ul="people">
         <template>
-          <span class="display" flow-displayName-to-prop="textContent"></span>
+          <span class="display" flow-li-displayName-to-prop="textContent"></span>
         </template>
       </div>
     `;
@@ -374,16 +374,16 @@ describe('FlowSource – conditional bindings (flow-if)', () => {
     expect(root.querySelector('#fail')).toBeNull();
   });
 
-  it('renders flow-list inside pass element on first render', async () => {
+  it('renders flow-ul inside pass element on first render', async () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
     root.innerHTML = `
       <div id="cond">
         <template flow-if="showUsers">
-          <section id="users" flow-list="users">
+          <section id="users" flow-ul="users">
             <template>
-              <span class="name" flow-name-to-prop="textContent"></span>
+              <span class="name" flow-li-name-to-prop="textContent"></span>
             </template>
           </section>
           <p id="fallback">No users</p>
@@ -426,15 +426,15 @@ describe('FlowSource – conditional bindings (flow-if)', () => {
     expect(closedShadow.querySelector('#empty')).toBeNull();
   });
 
-  it('renders flow-list inside a through-linked closed shadow root', async () => {
+  it('renders flow-ul inside a through-linked closed shadow root', async () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
     const closedShadow = root.attachShadow({ mode: 'closed' });
     closedShadow.innerHTML = `
-      <div flow-list="items">
+      <div flow-ul="items">
         <template>
-          <span class="name" flow-name-to-prop="textContent"></span>
+          <span class="name" flow-li-name-to-prop="textContent"></span>
         </template>
       </div>
     `;

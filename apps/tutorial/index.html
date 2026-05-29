@@ -81,8 +81,7 @@
               <tr><td><strong>2 source instance methods</strong></td><td><code>update</code> &middot; <code>destroy</code></td></tr>
               <tr><td><strong>5 functional helpers</strong></td><td><code>flowWatch</code> &middot; <code>flowGet</code> &middot; <code>flowThrough</code> &middot; <code>flowCompute</code> &middot; <code>flowDevtools</code></td></tr>
               <tr><td><strong>2 scope bindings</strong></td><td><code>flow-watch-*-to-prop</code> &middot; <code>flow-watch-*-to-attr</code></td></tr>
-              <tr><td><strong>2 structural directives</strong></td><td><code>flow-if</code> &middot; <code>flow-list</code></td></tr>
-              <tr><td><strong>2 item bindings</strong></td><td><code>flow-&lt;key&gt;-to-prop</code> &middot; <code>flow-&lt;key&gt;-to-attr</code></td></tr>
+              <tr><td><strong>2 structural directives</strong></td><td><code>flow-if</code> &middot; <code>flow-ul</code> (<code>flow-li-&lt;item-key&gt;-to-prop</code> / <code>flow-li-&lt;item-key&gt;-to-attr</code>)</td></tr>
             </tbody>
           </table>
         </div>
@@ -571,30 +570,30 @@ source = {
   &lt;section&gt;No recently viewed items yet.&lt;/section&gt;
 &lt;/template&gt;</code></pre></div>
 
-        <h3>Render a list — <code>flow-list</code></h3>
+        <h3>Render a list — <code>flow-ul</code> (<code>flow-li-&lt;item-key&gt;-to-prop</code> / <code>flow-li-&lt;item-key&gt;-to-attr</code>)</h3>
         <p>
-          Place <code>flow-list="key"</code> on a container with a <code>&lt;template&gt;</code>
+          Place <code>flow-ul="key"</code> on a container with a <code>&lt;template&gt;</code>
           child. When the array state key updates, FlowState re-renders the container by cloning
           the template once per item. Inside the template, bind item fields with
-          <code>flow-&lt;key&gt;-to-prop</code> and <code>flow-&lt;key&gt;-to-attr</code>, where <code>&lt;key&gt;</code> is the field name from the item object:
+          <code>flow-li-&lt;item-key&gt;-to-prop</code> and <code>flow-li-&lt;item-key&gt;-to-attr</code>, where <code>&lt;item-key&gt;</code> is the field name from the item object:
         </p>
-        <div class="cb"><pre><code data-nohl>&lt;div flow-list="users"&gt;
+        <div class="cb"><pre><code data-nohl>&lt;div flow-ul="users"&gt;
   &lt;template&gt;
-    &lt;div flow-id-to-attr="data-user-id"&gt;
-      &lt;span flow-name-to-prop="textContent"&gt;&lt;/span&gt;
-      &lt;span flow-role-to-prop="textContent"&gt;&lt;/span&gt;
+    &lt;div flow-li-id-to-attr="data-user-id"&gt;
+      &lt;span flow-li-name-to-prop="textContent"&gt;&lt;/span&gt;
+      &lt;span flow-li-role-to-prop="textContent"&gt;&lt;/span&gt;
     &lt;/div&gt;
   &lt;/template&gt;
 &lt;/div&gt;</code></pre></div>
         <p>
           The item key is encoded in the attribute name itself, consistent with
           <code>flow-watch-*-to-prop</code> scope bindings. Use dashes to access nested
-          properties: <code>flow-user-city-to-prop</code> reads <code>item.user.city</code>.
+          properties: <code>flow-li-user-city-to-prop</code> reads <code>item.user.city</code> (nested key).
         </p>
         <blockquote>
           <strong>Timing note</strong>: If a <code>flowWatch()</code> watcher on the same array
           key also updates visual state (e.g. adding a <code>.selected</code> class), wrap that
-          update in <code>queueMicrotask()</code> to defer it until after <code>flow-list</code>
+          update in <code>queueMicrotask()</code> to defer it until after <code>flow-ul</code>
           has re-rendered the DOM.
         </blockquote>
       </section>

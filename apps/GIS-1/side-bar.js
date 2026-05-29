@@ -92,22 +92,22 @@ const styles = CSS`
 const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="section-label">Work Items</div>
-  <div id="work-items-container" flow-list="workItems">
+  <div id="work-items-container" flow-ul="workItems">
     <template>
-      <div class="work-item" flow-id-to-attr="data-work-item-id">
-        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
-        <span class="work-item-name" flow-name-to-prop="textContent"></span>
+      <div class="work-item" flow-li-id-to-attr="data-work-item-id">
+        <span class="work-item-avatar" flow-li-initial-to-prop="textContent"></span>
+        <span class="work-item-name" flow-li-name-to-prop="textContent"></span>
       </div>
     </template>
   </div>
   <template flow-if="hasHistory">
     <section id="recent-section">
       <div class="section-label">Recent</div>
-      <div id="work-history" flow-list="history">
+      <div id="work-history" flow-ul="history">
         <template>
-          <div class="work-item" flow-id-to-attr="data-work-item-id">
-            <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
-            <span class="work-item-name" flow-name-to-prop="textContent"></span>
+          <div class="work-item" flow-li-id-to-attr="data-work-item-id">
+            <span class="work-item-avatar" flow-li-initial-to-prop="textContent"></span>
+            <span class="work-item-name" flow-li-name-to-prop="textContent"></span>
           </div>
         </template>
       </div>
@@ -174,7 +174,7 @@ class SideBar extends HTMLElement {
         return { history: newHistory };
       });
     }
-    // Defer visual update so flow-list bindings have already re-rendered
+    // Defer visual update so flow-ul bindings have already re-rendered
     queueMicrotask(() => this.#visuallySelectWorkItem(workItem));
   }
 

@@ -8,11 +8,11 @@ const template = document.createElement('template');
 template.innerHTML = HTML`
   <div class="header">Work Items</div>
   <input id="filter-input" type="text" placeholder="Filter items…" />
-  <div id="list" flow-list="filteredItems">
+  <div id="list" flow-ul="filteredItems">
     <template>
-      <div flow-class-to-prop="className" flow-id-to-attr="data-id">
-        <span class="work-item-avatar" flow-initial-to-prop="textContent"></span>
-        <span class="work-item-name" flow-name-to-prop="textContent"></span>
+      <div flow-li-class-to-prop="className" flow-li-id-to-attr="data-id">
+        <span class="work-item-avatar" flow-li-initial-to-prop="textContent"></span>
+        <span class="work-item-name" flow-li-name-to-prop="textContent"></span>
       </div>
     </template>
   </div>
