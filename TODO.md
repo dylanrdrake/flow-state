@@ -20,7 +20,3 @@ this.#source = new FlowSource({
 
 
 should the initial value fire of watchers be removed and require explicit use of flowGet to get an initial value then set your watcher.  More explicit, no hidden behavior?
-
-
-what if a flow-list uses an array of primitves like: [1, 2, 3]. How would flow-li refer to them?
-flow-li-to-<prop/attr>, parsed as null so use value directly?
