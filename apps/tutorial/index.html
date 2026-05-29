@@ -85,13 +85,11 @@
       <!-- ──────────────────────────────────── -->
       <section id="getting-started">
         <h2>Getting Started</h2>
-
-        <h3>Preferred workflow: npm package</h3>
         <p>
-          FlowState is designed to be consumed as an npm dependency in your app.
-          Install the package, import from <code>flow-state</code>, and call
-          <code>flowDevtools()</code> once in your app entry.
+          FlowState is designed to be consumed as an npm dependency or just as a local clone.
+          Install the package, import from <code>flow-state</code>.
         </p>
+        <h3>Preferred workflow: npm package</h3>
         <div class="cb"><pre><code>npm install flow-state</code></pre></div>
         <div class="cb"><pre><code>import { FlowSource } from 'flow-state';
 
@@ -99,9 +97,9 @@ const source = new FlowSource(document.getElementById('app'), {
   count: 0,
 });</code></pre></div>
 
-        <h3>Temporary until npm publish: clone + import map</h3>
+        <h3>Local clone + import map</h3>
         <p>
-          Until the package is published, use a local clone and map
+          ⚠️ Until <code>flow-state</code> is published to npm,  use a local clone and map
           <code>flow-state</code> to this repository's <code>index.js</code>.
         </p>
         <div class="cb"><pre><code># Clone the repository
@@ -822,6 +820,14 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre></div>
           The app and devtools page must be on the <strong>same origin</strong>
           (same protocol + host + port), or the channel will not connect. FlowState ships with a development server to serve your app and the devtools UI together on the same origin.
         </p>
+        <p>
+          If you already run your own dev server, prefer hosting the devtools UI from that same
+          server (same domain and port as the app that calls <code>flowDevtools()</code>). For
+          example: app at <code>http://localhost:5173/</code> and devtools at
+          <code>http://localhost:5173/devtools/</code>. Avoid running devtools on a different
+          port like <code>http://localhost:3300/</code> while your app is on
+          <code>http://localhost:5173/</code>.
+        </p>
         <div class="cb"><pre><code># Run the packaged devtools server
 node lib/devtools/server.js -r /absolute/path/to/your/app -p 3300
 
@@ -837,7 +843,7 @@ http://localhost:3300/devtools/</code></pre></div>
   }
 }</code></pre></div>
         <p>
-          While using the temporary clone/import-map path, use this repository-local script instead:
+          If using the clone/import-map path, use this repository-local script instead:
         </p>
         <div class="cb"><pre><code>{
   "scripts": {
