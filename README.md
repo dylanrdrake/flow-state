@@ -6,7 +6,8 @@
 </picture>
 flow-state</h1>
 
-A lightweight, DOM-native reactive state library for web components and vanilla JavaScript.
+A simple, lightweight, reactive, composable, nestable, expressive, 0-dependency state library for vanilla JavaScript and Web Components or any other stack you're working with. Influenced by patterns observed in React and functional programming languages like Lisp and Clojure.
+
 
 Tutorial and instructional documentation:
 
