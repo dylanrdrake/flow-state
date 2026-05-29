@@ -1,0 +1,58 @@
+squad-column .squad {
+  border: 1px solid #dfe5ee;
+  border-radius: 12px;
+  padding: 10px;
+  background: #f9fbfd;
+  display: grid;
+  gap: 10px;
+}
+
+squad-column header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+squad-column h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #132d4b;
+}
+
+squad-column p {
+  margin: 2px 0 0;
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: #627188;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+squad-column button {
+  border: 1px solid #c7d6ec;
+  background: #edf4ff;
+  color: #2a4d78;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 8px;
+  cursor: pointer;
+  height: fit-content;
+}
+
+squad-column button:hover {
+  background: #dbe8fd;
+}
+
+squad-column .responders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  squad-column .responders {
+    grid-template-columns: 1fr;
+  }
+}

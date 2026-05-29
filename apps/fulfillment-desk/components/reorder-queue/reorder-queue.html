@@ -1,0 +1,51 @@
+<section class="panel">
+  <header class="head">Reorder Suggestions</header>
+  <div class="list" id="suggestions-list" flow-ul="reorderSuggestions">
+    <template>
+      <article class="item">
+        <div class="line">
+          <span class="sku" flow-li-sku-to-prop="textContent"></span>
+          <span class="qty">Qty <span flow-li-suggestedQty-to-prop="textContent"></span></span>
+        </div>
+        <div class="meta" flow-li-reason-to-prop="textContent"></div>
+        <button data-action="create" flow-li-sku-to-attr="data-sku" flow-li-suggestedQty-to-attr="data-qty">
+          Create PO
+        </button>
+      </article>
+    </template>
+  </div>
+  <template flow-if="hasReorderSuggestions">
+    <span></span>
+    <p class="empty">Nothing needs reordering.</p>
+  </template>
+</section>
+
+<section class="panel">
+  <header class="head">Purchase Orders</header>
+  <div class="list" id="purchase-orders-list" flow-ul="purchaseOrders">
+    <template>
+      <article class="item">
+        <div class="line">
+          <span class="sku" flow-li-sku-to-prop="textContent"></span>
+          <span class="qty">Qty <span flow-li-qty-to-prop="textContent"></span></span>
+        </div>
+        <div class="line">
+          <span class="status" flow-li-status-to-prop="textContent"></span>
+          <span class="meta">ETA <span flow-li-etaDays-to-prop="textContent"></span>d</span>
+        </div>
+        <button
+          class="receive-btn"
+          data-action="receive"
+          flow-li-id-to-attr="data-po-id"
+          flow-li-status-to-attr="data-status"
+        >
+          Receive
+        </button>
+      </article>
+    </template>
+  </div>
+  <template flow-if="hasPurchaseOrders">
+    <span></span>
+    <p class="empty">No purchase orders yet.</p>
+  </template>
+</section>

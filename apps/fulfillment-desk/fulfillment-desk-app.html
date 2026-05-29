@@ -1,0 +1,39 @@
+<div class="shell">
+  <header class="hero">
+    <div>
+      <h1>Inventory + Fulfillment Desk</h1>
+      <div class="sub">Manual FlowSource shell with FlowStateComponent modules</div>
+    </div>
+    <div class="sub">Devtools-ready reactive operations demo</div>
+  </header>
+
+  <section class="controls">
+    <input id="search" type="search" placeholder="Search SKU or product name">
+    <select id="supplier-filter">
+      <option value="all">All Suppliers</option>
+    </select>
+    <select id="stock-filter">
+      <option value="all">All Stock Levels</option>
+      <option value="low">Low Stock</option>
+      <option value="healthy">Healthy Stock</option>
+      <option value="out">Out of Stock</option>
+    </select>
+    <button id="simulate-demand">Simulate Demand Tick</button>
+  </section>
+
+  <inventory-stats></inventory-stats>
+
+  <section class="main">
+    <div class="stack">
+      <inventory-grid></inventory-grid>
+      <reorder-queue></reorder-queue>
+    </div>
+    <div class="stack">
+      <fulfillment-queue></fulfillment-queue>
+      <section class="activity">
+        <header class="activity-head">Recent Activity</header>
+        <ul class="activity-list" id="activity-list"></ul>
+      </section>
+    </div>
+  </section>
+</div>

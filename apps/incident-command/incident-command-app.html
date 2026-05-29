@@ -1,0 +1,35 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Devtools Demo</p>
+      <h1>Incident Command Grid</h1>
+      <p class="subtitle">Four-level FlowSource hierarchy with scoped state and cross-scope actions.</p>
+    </div>
+    <div class="actions">
+      <button id="toggle-alert">Toggle Global Alert</button>
+      <button id="load-spike">Inject Load Spike</button>
+    </div>
+  </header>
+
+  <section class="metrics">
+    <article>
+      <span class="label">Open Incident Tasks</span>
+      <strong flow-watch-openIncidents-to-prop="textContent">0</strong>
+    </article>
+    <article>
+      <span class="label">Active Responders</span>
+      <strong flow-watch-activeResponders-to-prop="textContent">0</strong>
+    </article>
+    <article>
+      <span class="label">Muted Regions</span>
+      <strong flow-watch-mutedRegions-to-prop="textContent">0</strong>
+    </article>
+  </section>
+
+  <section class="regions" id="region-grid"></section>
+
+  <section class="activity">
+    <h2>Activity Feed</h2>
+    <ul id="activity-list"></ul>
+  </section>
+</main>

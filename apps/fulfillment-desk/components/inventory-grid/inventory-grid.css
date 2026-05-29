@@ -1,0 +1,102 @@
+inventory-grid {
+  display: block;
+  background: white;
+  border: 1px solid #d9dee6;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+inventory-grid .head {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e4e7ec;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #68758a;
+  font-weight: 700;
+}
+
+inventory-grid .table-wrap {
+  overflow-x: auto;
+}
+
+inventory-grid table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+inventory-grid th,
+inventory-grid td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef1f5;
+  text-align: left;
+  font-size: 13px;
+  color: #101828;
+}
+
+inventory-grid th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #68758a;
+  font-weight: 700;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+inventory-grid .muted {
+  color: #68758a;
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+inventory-grid .supplier {
+  display: inline-block;
+  background: #eef4ff;
+  color: #2e4a85;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+inventory-grid .stock-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+inventory-grid .stock-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #ccd5e1;
+  background: white;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 700;
+  color: #22314d;
+}
+
+inventory-grid .stock-btn:hover {
+  border-color: #6c8bc8;
+  color: #1d4a9d;
+}
+
+inventory-grid .reorder-input {
+  width: 86px;
+  padding: 6px 8px;
+  border: 1px solid #ccd5e1;
+  border-radius: 8px;
+  font: inherit;
+  color: #101828;
+}
+
+inventory-grid .empty {
+  margin: 0;
+  padding: 18px 14px;
+  color: #68758a;
+  font-size: 13px;
+}

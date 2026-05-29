@@ -1,0 +1,38 @@
+inventory-stats {
+  display: block;
+}
+
+inventory-stats .grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+inventory-stats .card {
+  background: white;
+  border: 1px solid #d9dee6;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+inventory-stats .label {
+  color: #68758a;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+inventory-stats .value {
+  color: #101828;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+@media (max-width: 980px) {
+  inventory-stats .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

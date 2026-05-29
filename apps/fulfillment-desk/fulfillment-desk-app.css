@@ -1,0 +1,149 @@
+fulfillment-desk-app {
+  display: block;
+  padding: 22px;
+  color: #0f172a;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+fulfillment-desk-app .shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+fulfillment-desk-app .hero {
+  background: linear-gradient(135deg, #0f2747, #1d4a9d 45%, #0f2747);
+  color: white;
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: end;
+  gap: 10px;
+}
+
+fulfillment-desk-app h1 {
+  margin: 0;
+  font-size: 1.65rem;
+  letter-spacing: -0.03em;
+}
+
+fulfillment-desk-app .sub {
+  margin-top: 4px;
+  color: #d2e3ff;
+  font-size: 13px;
+}
+
+fulfillment-desk-app .controls {
+  background: white;
+  border: 1px solid #d9dee6;
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 8px;
+}
+
+fulfillment-desk-app input,
+fulfillment-desk-app select,
+fulfillment-desk-app button {
+  font: inherit;
+}
+
+fulfillment-desk-app input,
+fulfillment-desk-app select {
+  border: 1px solid #ccd5e1;
+  border-radius: 9px;
+  padding: 9px 10px;
+  color: #0f172a;
+  background: white;
+}
+
+fulfillment-desk-app button {
+  border: 1px solid #1d4a9d;
+  background: #f3f8ff;
+  color: #1d4a9d;
+  border-radius: 9px;
+  font-weight: 700;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+fulfillment-desk-app button:hover {
+  background: #e4efff;
+}
+
+fulfillment-desk-app .main {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+fulfillment-desk-app .stack {
+  display: grid;
+  gap: 14px;
+}
+
+fulfillment-desk-app .activity {
+  background: white;
+  border: 1px solid #d9dee6;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+fulfillment-desk-app .activity-head {
+  padding: 11px 13px;
+  border-bottom: 1px solid #e4e7ec;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #68758a;
+  font-weight: 700;
+}
+
+fulfillment-desk-app .activity-list {
+  margin: 0;
+  list-style: none;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+fulfillment-desk-app .activity-item {
+  border: 1px solid #e5e9f0;
+  border-radius: 9px;
+  padding: 7px 9px;
+  font-size: 12px;
+  color: #22314d;
+  background: #fcfdff;
+}
+
+fulfillment-desk-app .activity-item.warn {
+  border-color: #fecdca;
+  background: #fef3f2;
+}
+
+fulfillment-desk-app .activity-item.good {
+  border-color: #b7ebc6;
+  background: #ecfdf3;
+}
+
+fulfillment-desk-app .activity-empty {
+  color: #68758a;
+  font-size: 12px;
+}
+
+@media (max-width: 1080px) {
+  fulfillment-desk-app .controls {
+    grid-template-columns: 1fr;
+  }
+
+  fulfillment-desk-app .main {
+    grid-template-columns: 1fr;
+  }
+}

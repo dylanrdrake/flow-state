@@ -1,0 +1,50 @@
+<section class="head">Inventory Editor</section>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>SKU</th>
+        <th>Supplier</th>
+        <th>Stock</th>
+        <th>Reorder Point</th>
+        <th>Lead Days</th>
+        <th>Unit Cost</th>
+      </tr>
+    </thead>
+    <tbody id="rows" flow-ul="filteredInventory">
+      <template>
+        <tr>
+          <td>
+            <div flow-li-sku-to-prop="textContent"></div>
+            <div class="muted" flow-li-name-to-prop="textContent"></div>
+          </td>
+          <td><span class="supplier" flow-li-supplier-to-prop="textContent"></span></td>
+          <td>
+            <div class="stock-box">
+              <button class="stock-btn" data-action="dec" flow-li-sku-to-attr="data-sku">-</button>
+              <strong flow-li-stock-to-prop="textContent"></strong>
+              <button class="stock-btn" data-action="inc" flow-li-sku-to-attr="data-sku">+</button>
+            </div>
+          </td>
+          <td>
+            <input
+              class="reorder-input"
+              type="number"
+              min="0"
+              step="1"
+              data-field="reorder"
+              flow-li-sku-to-attr="data-sku"
+              flow-li-reorderPoint-to-prop="value"
+            >
+          </td>
+          <td flow-li-leadTimeDays-to-prop="textContent"></td>
+          <td flow-li-unitCostLabel-to-prop="textContent"></td>
+        </tr>
+      </template>
+    </tbody>
+  </table>
+</div>
+<template flow-if="hasFilteredInventory">
+  <span></span>
+  <p class="empty">No SKUs match the current filters.</p>
+</template>

@@ -1,0 +1,107 @@
+{
+  "seedInventory": [
+    {
+      "sku": "BAT-XL-12",
+      "name": "Battery Pack XL 12V",
+      "supplier": "Voltix",
+      "stock": 31,
+      "reorderPoint": 22,
+      "leadTimeDays": 4,
+      "unitCost": 18.5,
+      "dailyDemand": 4
+    },
+    {
+      "sku": "SEN-TEMP-A1",
+      "name": "Temperature Sensor A1",
+      "supplier": "Northwind",
+      "stock": 12,
+      "reorderPoint": 18,
+      "leadTimeDays": 5,
+      "unitCost": 9.75,
+      "dailyDemand": 5
+    },
+    {
+      "sku": "MOT-DRIVE-8",
+      "name": "Drive Motor 8mm",
+      "supplier": "Atlas Parts",
+      "stock": 7,
+      "reorderPoint": 14,
+      "leadTimeDays": 6,
+      "unitCost": 27.2,
+      "dailyDemand": 3
+    },
+    {
+      "sku": "PCB-CTRL-M2",
+      "name": "Control Board M2",
+      "supplier": "Northwind",
+      "stock": 16,
+      "reorderPoint": 15,
+      "leadTimeDays": 7,
+      "unitCost": 34.9,
+      "dailyDemand": 2
+    },
+    {
+      "sku": "CAB-USB-C2",
+      "name": "Shielded USB-C Cable",
+      "supplier": "Voltix",
+      "stock": 48,
+      "reorderPoint": 24,
+      "leadTimeDays": 3,
+      "unitCost": 3.2,
+      "dailyDemand": 6
+    },
+    {
+      "sku": "VALVE-SM-4",
+      "name": "Solenoid Valve SM-4",
+      "supplier": "Atlas Parts",
+      "stock": 3,
+      "reorderPoint": 9,
+      "leadTimeDays": 8,
+      "unitCost": 42.6,
+      "dailyDemand": 2
+    }
+  ],
+  "seedOrders": [
+    {
+      "id": 5012,
+      "sku": "SEN-TEMP-A1",
+      "qty": 5,
+      "status": "queued",
+      "createdMinutesAgo": 140
+    },
+    {
+      "id": 5013,
+      "sku": "VALVE-SM-4",
+      "qty": 2,
+      "status": "queued",
+      "createdMinutesAgo": 95
+    },
+    {
+      "id": 5014,
+      "sku": "BAT-XL-12",
+      "qty": 3,
+      "status": "picking",
+      "createdMinutesAgo": 60
+    },
+    {
+      "id": 5015,
+      "sku": "MOT-DRIVE-8",
+      "qty": 1,
+      "status": "packed",
+      "createdMinutesAgo": 25
+    }
+  ],
+  "nextOrderStatus": {
+    "queued": "picking",
+    "picking": "packed",
+    "packed": "shipped",
+    "shipped": "shipped"
+  },
+  "initialActivity": [
+    {
+      "id": 1,
+      "tone": "good",
+      "text": "Desk initialized with sample inventory and order backlog."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+<section class="region">
+  <header>
+    <div>
+      <p class="region-name" flow-watch-regionName-to-prop="textContent">Region</p>
+      <p class="region-meta">
+        <span flow-watch-regionStatus-to-prop="textContent">nominal</span>
+        <span>Escalations: <strong flow-watch-escalations-to-prop="textContent">0</strong></span>
+      </p>
+    </div>
+    <button class="mute-btn" data-action="mute" flow-watch-muteLabel-to-prop="textContent">Mute</button>
+  </header>
+
+  <div class="squad-list" id="squad-list"></div>
+</section>

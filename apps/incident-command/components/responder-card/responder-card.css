@@ -1,0 +1,83 @@
+responder-card .card {
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+  padding: 8px;
+  background: white;
+  display: grid;
+  gap: 8px;
+}
+
+responder-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+responder-card .name {
+  margin: 0;
+  font-weight: 700;
+  color: #143055;
+  font-size: 12px;
+}
+
+responder-card .status {
+  margin: 2px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6a798f;
+  font-size: 10px;
+}
+
+responder-card button {
+  border: 1px solid #bdd0eb;
+  background: #ecf4ff;
+  color: #24507f;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+responder-card button:hover {
+  background: #dbeafd;
+}
+
+responder-card button:disabled {
+  border-color: #cfd7e3;
+  background: #f1f4f8;
+  color: #8a95a6;
+  cursor: not-allowed;
+}
+
+responder-card .queue {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+responder-card .queue li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 6px;
+  border: 1px solid #e1e8f0;
+  border-radius: 7px;
+  font-size: 11px;
+  color: #29405f;
+  background: #f8fbff;
+}
+
+responder-card .pri {
+  text-transform: uppercase;
+  color: #6f7f94;
+  font-size: 10px;
+}
+
+responder-card .empty {
+  margin: 0;
+  color: #74839a;
+  font-size: 11px;
+}

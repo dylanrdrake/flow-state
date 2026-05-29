@@ -1,0 +1,24 @@
+<article class="card">
+  <header>
+    <div>
+      <p class="name" flow-watch-name-to-prop="textContent">Responder</p>
+      <p class="status" flow-watch-status-to-prop="textContent">idle</p>
+    </div>
+    <button data-action="advance">Advance</button>
+  </header>
+
+  <div class="queue-wrap">
+    <ul class="queue" flow-ul="queue">
+      <template>
+        <li>
+          <span flow-li-title-to-prop="textContent"></span>
+          <span class="pri" flow-li-priority-to-prop="textContent"></span>
+        </li>
+      </template>
+    </ul>
+    <template flow-if="hasQueue">
+      <span></span>
+      <p class="empty">Queue clear.</p>
+    </template>
+  </div>
+</article>

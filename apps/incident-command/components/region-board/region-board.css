@@ -1,0 +1,57 @@
+region-board .region {
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+region-board header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+region-board .region-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #10243c;
+}
+
+region-board .region-meta {
+  margin: 2px 0 0;
+  color: #607086;
+  font-size: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+region-board .mute-btn {
+  border: 1px solid #c6d6f0;
+  background: #eef4ff;
+  color: #23436a;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+region-board .mute-btn:hover {
+  background: #dde8fb;
+}
+
+region-board[data-alert="true"] .region {
+  border-color: #f0c58d;
+  box-shadow: 0 0 0 2px #fff3e1 inset;
+}
+
+region-board .squad-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}

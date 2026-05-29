@@ -1,0 +1,111 @@
+{
+  "regions": [
+    {
+      "id": "north-hub",
+      "name": "North Hub",
+      "muted": false,
+      "squads": [
+        {
+          "id": "n-alpha",
+          "name": "Alpha Unit",
+          "responders": [
+            {
+              "id": "n-a1",
+              "name": "Mina",
+              "status": "busy",
+              "queue": [
+                { "title": "Restore edge router", "priority": "high" },
+                { "title": "Verify packet loss", "priority": "medium" }
+              ]
+            },
+            {
+              "id": "n-a2",
+              "name": "Josef",
+              "status": "monitoring",
+              "queue": [
+                { "title": "Patch node firmware", "priority": "medium" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "n-bravo",
+          "name": "Bravo Unit",
+          "responders": [
+            {
+              "id": "n-b1",
+              "name": "Tariq",
+              "status": "busy",
+              "queue": [
+                { "title": "Backfill alert rules", "priority": "low" }
+              ]
+            },
+            {
+              "id": "n-b2",
+              "name": "Liv",
+              "status": "idle",
+              "queue": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "coastal-grid",
+      "name": "Coastal Grid",
+      "muted": false,
+      "squads": [
+        {
+          "id": "c-charlie",
+          "name": "Charlie Unit",
+          "responders": [
+            {
+              "id": "c-c1",
+              "name": "Edda",
+              "status": "busy",
+              "queue": [
+                { "title": "Rebuild cache cluster", "priority": "high" },
+                { "title": "Drain stale sessions", "priority": "low" }
+              ]
+            },
+            {
+              "id": "c-c2",
+              "name": "Noel",
+              "status": "monitoring",
+              "queue": [
+                { "title": "Audit failover paths", "priority": "medium" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "c-delta",
+          "name": "Delta Unit",
+          "responders": [
+            {
+              "id": "c-d1",
+              "name": "Priya",
+              "status": "busy",
+              "queue": [
+                { "title": "Rotate cert bundle", "priority": "medium" }
+              ]
+            },
+            {
+              "id": "c-d2",
+              "name": "Hugo",
+              "status": "idle",
+              "queue": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "initialActivity": [
+    {
+      "id": 1,
+      "tone": "good",
+      "text": "Incident command grid online. Open devtools to inspect nested scopes."
+    }
+  ]
+}

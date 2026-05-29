@@ -1,0 +1,24 @@
+<header class="head">Fulfillment Queue</header>
+<div class="list" id="orders-list" flow-ul="fulfillmentQueue">
+	<template>
+		<article class="item">
+			<div class="line">
+				<span class="order-id">Order <span flow-li-id-to-prop="textContent"></span></span>
+				<span class="status" flow-li-status-to-prop="textContent"></span>
+			</div>
+			<div class="line">
+				<span class="sku" flow-li-sku-to-prop="textContent"></span>
+				<span class="meta">Qty <span flow-li-qty-to-prop="textContent"></span></span>
+			</div>
+			<div class="line">
+				<span class="meta" flow-li-createdLabel-to-prop="textContent"></span>
+				<span flow-li-availabilityClass-to-attr="class" flow-li-availabilityLabel-to-prop="textContent"></span>
+			</div>
+			<button data-action="advance" flow-li-id-to-attr="data-order-id" flow-li-nextLabel-to-prop="textContent"></button>
+		</article>
+	</template>
+</div>
+<template flow-if="hasFulfillmentQueue">
+	<span></span>
+	<p class="empty">No active orders.</p>
+</template>
