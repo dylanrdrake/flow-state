@@ -283,6 +283,31 @@ describe('FlowSource – list item bindings (nested keys)', () => {
 
     expect(root.querySelector('.display').textContent).toBe('Alice');
   });
+
+  it('binds primitive list item values when flow-li omits an item key (flow-li-to-attr/to-prop)', async () => {
+    root = document.createElement('div');
+    document.body.appendChild(root);
+
+    root.innerHTML = `
+      <div flow-ul="levels">
+        <template>
+          <span class="level" flow-li-to-attr="data-level"></span>
+          <span class="level-prop" flow-li-to-prop="textContent"></span>
+        </template>
+      </div>
+    `;
+
+    state = new FlowSource(root, {
+      levels: [1, 2, 3],
+    });
+
+    await waitForInitialBindings();
+
+    const levels = [...root.querySelectorAll('.level')].map(el => el.getAttribute('data-level'));
+    const levelProps = [...root.querySelectorAll('.level-prop')].map(el => el.textContent);
+    expect(levels).toEqual(['1', '2', '3']);
+    expect(levelProps).toEqual(['1', '2', '3']);
+  });
 });
 
 describe('FlowSource – conditional bindings (flow-if)', () => {

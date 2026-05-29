@@ -589,7 +589,15 @@ source = {
           The item key is encoded in the attribute name itself, consistent with
           <code>flow-watch-*-to-prop</code> scope bindings. Use dashes to access nested
           properties: <code>flow-li-user-city-to-prop</code> reads <code>item.user.city</code> (nested key).
+          For primitive arrays like <code>[1, 2, 3]</code>, omit <code>&lt;item-key&gt;</code> and
+          bind the item value directly with <code>flow-li-to-prop</code> or <code>flow-li-to-attr</code>.
         </p>
+        <div class="cb"><pre><code data-nohl>&lt;div flow-ul="levels"&gt;
+  &lt;template&gt;
+    &lt;span flow-li-to-prop="textContent"&gt;&lt;/span&gt;
+    &lt;span flow-li-to-attr="data-level"&gt;&lt;/span&gt;
+  &lt;/template&gt;
+&lt;/div&gt;</code></pre></div>
         <blockquote>
           <strong>Timing note</strong>: If a <code>flowWatch()</code> watcher on the same array
           key also updates visual state (e.g. adding a <code>.selected</code> class), wrap that

@@ -26,7 +26,7 @@ Tutorial and instructional documentation:
 - `flow-<source-key>-to-attr` declarative bindings to bind source values to DOM element attribute
 - `flow-<source-key>-to-prop` declarative bindings to bind source values to DOM element property
 - `flow-if` directive for boolean decisions in markup
-- `flow-ul` directive for composing lists from source state arrays in markup. Items use `flow-li-<item-key>-to-prop` / `flow-li-<item-key>-to-attr` to bind state of list items. Supports declarative bindings from source state within list and list items.
+- `flow-ul` directive for composing lists from source state arrays in markup. Items use `flow-li-<item-key>-to-prop` / `flow-li-<item-key>-to-attr` for object item fields, or `flow-li-to-prop` / `flow-li-to-attr` for primitive item values.
 - `FlowStateComponent`
 
 Source instance API returned by `new FlowSource(root, config)`:
