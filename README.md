@@ -95,6 +95,13 @@ For this repository clone path, use:
 }
 ```
 
+### Devtools in Action
+
+Open both in the same browser:
+
+- <a href="https://dylanrdrake.github.io/flow-state/apps/incident-command/" target="_blank" rel="noreferrer">Incident Command app</a>
+- <a href="https://dylanrdrake.github.io/flow-state/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
+
 
 ## Quick Start
 
@@ -124,33 +131,50 @@ const increment = flowGet(root, 'increment');
 increment();
 ```
 
-## Common Patterns
+## Devtools Quick Start
 
-Create state on a host element:
-
-```js
-const state = new FlowSource(this, {
-	items: [],
-	selectedId: null,
-});
-```
-
-Read or watch from descendants:
+Enable in app entry:
 
 ```js
-const items = flowGet(this, 'items');
-const unsub = flowWatch(this, 'selectedId', (id) => {
-	// update child UI
-});
+import { flowDevtools } from 'flow-state';
+flowDevtools();
 ```
 
-Link a closed shadow root for declarative bindings:
-
-```js
-const shadow = this.attachShadow({ mode: 'closed' });
-flowThrough(shadow);
+Run devtools server and open both pages on the same origin:
+```bash
+node node_modules/flow-state/devtools/server.js -r ./app/root/path -p 3300
 ```
 
-This is only necessary for closed shadow roots. Open shadow roots do not require `flowThrough`.
-Use it when FlowState values need to flow down into declarative bindings inside a closed shadow
-root. It is not needed for events flowing up from `flowGet()` / `flowWatch()`.
+```bash
+node lib/devtools/server.js -r ./app/root/path -p 3300
+```
+
+- `http://localhost:3300/`
+- `http://localhost:3300/devtools/`
+
+npm script example (once package is installed):
+
+```json
+{
+	"scripts": {
+		"devtools": "node ./node_modules/flow-state/lib/devtools/server.js -r . -p 3300"
+	}
+}
+```
+
+For this repository clone path, use:
+
+```json
+{
+	"scripts": {
+		"devtools": "node lib/devtools/server.js -r . -p 3300"
+	}
+}
+```
+
+### Devtools in Action
+
+Open both in the same browser:
+
+- <a href="https://dylanrdrake.github.io/flow-state/apps/incident-command/" target="_blank" rel="noreferrer">Incident Command app</a>
+- <a href="https://dylanrdrake.github.io/flow-state/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
