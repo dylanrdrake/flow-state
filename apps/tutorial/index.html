@@ -95,7 +95,7 @@
             <h2>At a Glance</h2>
             <p>
               The entire FlowState API is the FlowSource constructor, 2 source
-              instance methods, 5 functional helpers, and 5 HTML attributes:
+              instance methods, 5 functional helpers, and 4 HTML attributes:
             </p>
             <div class="table-wrap">
               <table>
@@ -201,8 +201,8 @@ git clone https://github.com/dylanrdrake/flow-state.git
               instance.
             </p>
             <blockquote>
-              To extend FlowState into a shadow to update bindings (flowGet, flowWatch work from withing a shadow), use
-              <code>flowThrough(shadowRoot)</code>.
+              To extend FlowState into a shadow to update bindings, use
+              <code>flowThrough(shadowRoot)</code> (flowGet, flowWatch work from within a shadow).
             </blockquote>
             <div class="cb">
               <pre><code data-nohl>&lt;my-app&gt;          ← FlowState root
