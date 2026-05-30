@@ -95,13 +95,6 @@ For this repository clone path, use:
 }
 ```
 
-### Devtools in Action
-
-Open both in the same browser:
-
-- <a href="https://dylanrdrake.github.io/flow-state/apps/incident-command/" target="_blank" rel="noreferrer">Incident Command app</a>
-- <a href="https://dylanrdrake.github.io/flow-state/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
-
 
 ## Quick Start
 
@@ -177,4 +170,4 @@ For this repository clone path, use:
 Open both in the same browser:
 
 - <a href="https://dylanrdrake.github.io/flow-state/apps/incident-command/" target="_blank" rel="noreferrer">Incident Command app</a>
-- <a href="https://dylanrdrake.github.io/flow-state/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
+- <a href="https://dylanrdrake.github.io/flow-state/lib/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
