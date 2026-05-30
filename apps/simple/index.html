@@ -22,7 +22,9 @@
     </button>
   </div>
   <script type="module">
-    import { FlowSource, flowWatch } from 'flow-state';
+    import { FlowSource, flowWatch, flowDevtools } from 'flow-state';
+
+    flowDevtools();
 
     const appEl = document.querySelector('#app');
 
