@@ -38,32 +38,32 @@
     }
 
     :root[data-theme='light'] {
-      --bg:       #f5f7fb;
+      --bg:       #ffffff;
       --bg2:      #ffffff;
-      --bg3:      #edf2ff;
-      --border:   #d6def0;
-      --text:     #1d2942;
-      --text-dim: #5c6f96;
-      --bright:   #0f1d3d;
-      --accent:   #2b66f6;
-      --green:    #1d8c4f;
-      --yellow:   #a36a14;
-      --red:      #cf3e58;
-      --purple:   #7b58d9;
-      --cyan:     #0f7a9c;
-      --graph-bg-end: #f0f4ff;
-      --graph-node-fill: rgba(43,102,246,0.08);
-      --graph-node-stroke: rgba(43,102,246,0.42);
-      --graph-node-selected-fill: rgba(43,102,246,0.16);
-      --graph-node-flash-start: rgba(43,102,246,0.26);
-      --graph-node-flash-end: rgba(43,102,246,0.1);
-      --graph-edge-stroke: rgba(43,102,246,0.3);
-      --graph-label: #0f7a9c;
-      --graph-stats: #5c6f96;
-      --theme-button-bg: #f5f8ff;
-      --theme-button-bg-hover: #e9efff;
-      --theme-button-border: #cdd8f0;
-      --theme-button-text: #1d2942;
+      --bg3:      #f6f6f6;
+      --border:   #dcdcdc;
+      --text:     #0e1b1b;
+      --text-dim: #636363;
+      --bright:   #0e1b1b;
+      --accent:   #4a4a4a;
+      --green:    #3f7a52;
+      --yellow:   #8a7820;
+      --red:      #a83838;
+      --purple:   #7359b5;
+      --cyan:     #2f6f7a;
+      --graph-bg-end: #f6f6f6;
+      --graph-node-fill: rgba(74,74,74,0.06);
+      --graph-node-stroke: rgba(74,74,74,0.38);
+      --graph-node-selected-fill: rgba(74,74,74,0.12);
+      --graph-node-flash-start: rgba(74,74,74,0.2);
+      --graph-node-flash-end: rgba(74,74,74,0.08);
+      --graph-edge-stroke: rgba(74,74,74,0.28);
+      --graph-label: #4a4a4a;
+      --graph-stats: #636363;
+      --theme-button-bg: #f8f8f8;
+      --theme-button-bg-hover: #ffffff;
+      --theme-button-border: #dcdcdc;
+      --theme-button-text: #4a4a4a;
     }
 
     html, body { height: 100%; font-family: 'Menlo', 'Consolas', 'Monaco', monospace; background: var(--bg); color: var(--text); font-size: 12px; line-height: 1.5; }
@@ -155,7 +155,7 @@
     }
 
     #inspector-section {
-      min-height: 180px;
+      min-height: 90px;
     }
 
     #sidebar-split-handle {
@@ -213,6 +213,12 @@
       width: 100%;
       height: 100%;
       display: block;
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #graph-svg.panning {
+      cursor: grabbing;
     }
 
     .graph-empty {
@@ -239,6 +245,12 @@
     .graph-node.selected rect {
       stroke: var(--accent);
       fill: var(--graph-node-selected-fill);
+    }
+
+    .graph-node.highlighted rect {
+      stroke: rgba(224, 175, 104, 0.95);
+      fill: rgba(224, 175, 104, 0.18);
+      stroke-width: 1.4;
     }
 
     .graph-node.flash rect {
@@ -307,7 +319,13 @@
     /* ── Detail content ──────────────────────── */
     .detail-header {
       display: flex; align-items: baseline; gap: 10px;
-      margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+      margin: -14px -18px 14px;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      position: sticky;
+      top: 0;
+      z-index: 2;
     }
     .detail-tag { font-size: 17px; font-weight: 700; color: var(--accent); }
     .detail-id  { font-size: 10px; color: var(--text-dim); }
