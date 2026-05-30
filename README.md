@@ -17,12 +17,11 @@ Tutorial and instructional documentation:
 
 `flow-state` exposes:
 
-- Class: `FlowSource`
-- 2 source instance methods: `update` and `destroy`
+- 2 Classes: `FlowSource` and `FlowStateComponent`
+- 2 `FlowSource` instance methods: `update` and `destroy`
 - 5 functional helpers: `flowWatch`, `flowGet`, `flowThrough`, `flowCompute`, `flowDevtools`
 - 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
 - 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
-- `FlowStateComponent`
 
 
 ## Getting Started
@@ -104,7 +103,6 @@ import {
 	FlowSource,
 	flowGet,
 	flowWatch,
-	flowThrough,
 	flowCompute,
 	flowDevtools,
 } from 'flow-state';
