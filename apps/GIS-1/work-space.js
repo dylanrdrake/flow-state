@@ -70,7 +70,7 @@ class Workspace extends HTMLElement {
   connectedCallback() {
     if (this.#source) return;
 
-    const workItems = (flowGet(this, 'workItems') ?? []).map(item => ({
+    const workItems = (flowGet(this, 'appConfig.workItems') ?? []).map(item => ({
       ...item,
       initial: item.name.charAt(0).toUpperCase()
     }));

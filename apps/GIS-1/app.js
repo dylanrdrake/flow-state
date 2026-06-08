@@ -45,7 +45,9 @@ class GIS1 extends HTMLElement {
 
     // Initialize FlowState BEFORE stamping the template so the listener
     // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
-    this.#source = new FlowSource(this, config);
+    this.#source = new FlowSource(this, {
+      appConfig: config
+    });
 
     // Allow declarative bindings inside the closed shadow to receive updates
     flowThrough(this.#shadow);
