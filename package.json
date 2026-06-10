@@ -12,11 +12,7 @@
     }
   },
   "files": [
-    "dist/",
-    "index.js",
-    "lib/",
-    "devtools/",
-    "apps/"
+    "dist/"
   ],
   "keywords": [
     "state",
@@ -48,6 +44,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "prepare": "vite build",
     "dev": "node dist/devtools/server.js -r . -p 3300",
     "build": "vite build",
     "test": "vitest run",
