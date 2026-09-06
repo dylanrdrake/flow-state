@@ -112,6 +112,10 @@ class PerfLab extends FlowStateComponent {
   #useShadow = false;
   #scenario = SCENARIOS[0].id;
   #busy = false;
+  // Export-only record of every scenario run. Kept out of the source so raw sample
+  // arrays don't ride along in every flush and devtools snapshot.
+  #runs = [];
+  #currentRun = null;
   #longTaskCount = 0;
   #longTaskObserver = null;
   #initialized = false;
@@ -166,7 +170,12 @@ class PerfLab extends FlowStateComponent {
     this.querySelector('#rebuild-btn').addEventListener('click', () => this.#guard(() => this.#rebuildTree()));
     this.querySelector('#run-btn').addEventListener('click', () => this.#guard(() => this.#run(this.#scenario)));
     this.querySelector('#run-all-btn').addEventListener('click', () => this.#guard(() => this.#runAll()));
-    this.querySelector('#clear-btn').addEventListener('click', () => this.source.update({ results: [] }));
+    this.querySelector('#clear-btn').addEventListener('click', () => {
+      this.#runs = [];
+      this.#currentRun = null;
+      this.source.update({ results: [] });
+    });
+    this.querySelector('#export-btn').addEventListener('click', () => this.#exportJson());
   }
 
   #observeLongTasks() {
@@ -261,11 +270,88 @@ class PerfLab extends FlowStateComponent {
     if (hint) hint.textContent = `${this.#projectedNodes()} sources`;
   }
 
-  #log(scenario, detail, value) {
+  #log(scenario, detail, value, raw = {}) {
     const results = flowGet(this, 'results') ?? [];
-    return this.source.update({
-      results: [...results, { scenario, detail, value }].slice(-60),
-    });
+    const row = {
+      scenario,
+      detail,
+      value,
+      ms: raw.ms ?? null,
+      ratio: raw.ratio ?? null,
+      shape: this.#shapeLabel(),
+      // The shape the run was measured against, not the live count — Mount tears the
+      // tree down before it logs, and churn adds and removes subtrees as it goes.
+      sources: this.#currentRun?.shape.sources ?? totalNodes(),
+      at: new Date().toISOString(),
+    };
+    this.#currentRun?.rows.push(row);
+    return this.source.update({ results: [...results, row].slice(-200) });
+  }
+
+  #shapeLabel() {
+    return `d${this.#depth}×b${this.#branch}${this.#useShadow ? '+shadow' : ''}`;
+  }
+
+  // --- export --------------------------------------------------------------
+
+  /** Attach a raw series to the run in progress. Display rows stay flat; this does not. */
+  #record(key, value) {
+    if (this.#currentRun) this.#currentRun.series[key] = value;
+  }
+
+  #shapeSnapshot() {
+    return {
+      depth: this.#depth,
+      branch: this.#branch,
+      shadow: this.#useShadow,
+      label: this.#shapeLabel(),
+      sources: totalNodes(),
+      leaves: nodesAtDepth(this.#depth).length,
+    };
+  }
+
+  #exportJson() {
+    if (!this.#runs.length) {
+      this.source.update({ status: 'nothing to export' });
+      return;
+    }
+
+    const payload = {
+      tool: 'flow-state perf-lab',
+      generatedAt: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      hardwareConcurrency: navigator.hardwareConcurrency ?? null,
+      deviceMemory: navigator.deviceMemory ?? null,
+      devtoolsEnabled: new URLSearchParams(location.search).has('devtools'),
+      shapeAtExport: this.#shapeSnapshot(),
+      constants: {
+        fanoutRounds: FANOUT_ROUNDS,
+        resolveBatch: RESOLVE_BATCH,
+        resolveRounds: RESOLVE_ROUNDS,
+        churnRounds: CHURN_ROUNDS,
+      },
+      runs: this.#runs,
+    };
+
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const shape = this.#shapeLabel().replace('\u00d7', 'x');
+    this.#downloadFile(
+      `flow-state-perf-${shape}-${stamp}.json`,
+      JSON.stringify(payload, null, 2),
+      'application/json',
+    );
+    this.source.update({ status: `exported ${this.#runs.length} runs` });
+  }
+
+  #downloadFile(filename, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   }
 
   #report(samples) {
@@ -291,6 +377,15 @@ class PerfLab extends FlowStateComponent {
   async #run(id) {
     const scenario = SCENARIOS.find((s) => s.id === id);
     this.#longTaskCount = 0;
+    this.#currentRun = {
+      scenario: id,
+      label: scenario.label,
+      startedAt: new Date().toISOString(),
+      shape: this.#shapeSnapshot(),
+      rows: [],
+      series: {},
+    };
+    this.#runs.push(this.#currentRun);
     await this.source.update({ running: true, status: `running · ${scenario.label}` });
     await nextPaint();
 
@@ -316,9 +411,11 @@ class PerfLab extends FlowStateComponent {
     const teardownMs = performance.now() - teardownStarted;
     clearRegistry();
 
-    await this.#log('Mount', `${nodes} nested sources`, fmt(mountMs));
-    await this.#log('Mount', 'per source', fmt(mountMs / Math.max(1, nodes)));
-    await this.#log('Unmount', `${nodes} sources destroyed`, fmt(teardownMs));
+    await this.#log('Mount', `${nodes} nested sources`, fmt(mountMs), { ms: mountMs });
+    const perSource = mountMs / Math.max(1, nodes);
+    await this.#log('Mount', 'per source', fmt(perSource), { ms: perSource });
+    await this.#log('Unmount', `${nodes} sources destroyed`, fmt(teardownMs), { ms: teardownMs });
+    this.#record('mount', { nodes, mountMs, perSourceMs: perSource, teardownMs });
 
     // Leave a usable tree behind.
     this.#rebuildTree();
@@ -353,15 +450,27 @@ class PerfLab extends FlowStateComponent {
       }
 
       const median = percentile(perCall, 50);
-      rows.push({ depth, perCall, median });
-      await this.#log(label, `depth ${depth} · ${nodes.length} nodes · median of ${RESOLVE_ROUNDS}`, fmt(median));
+      rows.push({ depth, nodes: nodes.length, perCall, median });
+      await this.#log(label, `depth ${depth} · ${nodes.length} nodes · median of ${RESOLVE_ROUNDS}`, fmt(median), { ms: median });
     }
+
+    this.#record(`resolution:${label}`, rows.map((row) => ({
+      depth: row.depth,
+      nodes: row.nodes,
+      medianMs: row.median,
+      perCallMs: row.perCall,
+    })));
 
     if (rows.length > 1) {
       const first = rows[0].median;
       const last = rows[rows.length - 1].median;
-      const ratio = first > 0 ? (last / first).toFixed(2) : '–';
-      await this.#log(label, `d${rows[0].depth} → d${rows[rows.length - 1].depth} slowdown`, `${ratio}×`);
+      const ratio = first > 0 ? last / first : null;
+      await this.#log(
+        label,
+        `d${rows[0].depth} → d${rows[rows.length - 1].depth} slowdown`,
+        ratio === null ? '–' : `${ratio.toFixed(2)}×`,
+        { ratio },
+      );
     }
 
     return rows;
@@ -383,9 +492,13 @@ class PerfLab extends FlowStateComponent {
     }
 
     const leaves = nodesAtDepth(this.#depth).length;
-    await this.#log('Fan-out', `enqueue → flush · ${leaves} watchers · p50`, fmt(percentile(flushSamples, 50)));
-    await this.#log('Fan-out', 'enqueue → flush · p95', fmt(percentile(flushSamples, 95)));
-    await this.#log('Fan-out', 'enqueue → paint · p50', fmt(percentile(paintSamples, 50)));
+    const flushP50 = percentile(flushSamples, 50);
+    const flushP95 = percentile(flushSamples, 95);
+    const paintP50 = percentile(paintSamples, 50);
+    await this.#log('Fan-out', `enqueue → flush · ${leaves} watchers · p50`, fmt(flushP50), { ms: flushP50 });
+    await this.#log('Fan-out', 'enqueue → flush · p95', fmt(flushP95), { ms: flushP95 });
+    await this.#log('Fan-out', 'enqueue → paint · p50', fmt(paintP50), { ms: paintP50 });
+    this.#record('fanout', { watchers: leaves, flushMs: flushSamples, paintMs: paintSamples });
     await this.#report(flushSamples);
   }
 
@@ -408,8 +521,10 @@ class PerfLab extends FlowStateComponent {
       perLeaf.push(performance.now() - leafStarted);
     }
 
-    await this.#log('Leaf-local', `${leaves.length} sources updated in one tick`, fmt(totalMs));
-    await this.#log('Leaf-local', 'per source, one at a time · p50', fmt(percentile(perLeaf, 50)));
+    const perLeafP50 = percentile(perLeaf, 50);
+    await this.#log('Leaf-local', `${leaves.length} sources updated in one tick`, fmt(totalMs), { ms: totalMs });
+    await this.#log('Leaf-local', 'per source, one at a time · p50', fmt(perLeafP50), { ms: perLeafP50 });
+    this.#record('leafLocal', { leaves: leaves.length, allInOneTickMs: totalMs, perLeafMs: perLeaf });
     await this.#report(perLeaf);
   }
 
@@ -427,8 +542,10 @@ class PerfLab extends FlowStateComponent {
     const deepest = (rows) => rows[rows.length - 1]?.median ?? 0;
     const before = deepest(plain);
     const after = deepest(shadowed);
-    const delta = before > 0 ? `${((1 - after / before) * 100).toFixed(0)}% faster` : '–';
-    await this.#log('Key shadowing', `deepest leaf, owner at d${shadowDepth} vs root`, delta);
+    const ratio = before > 0 ? after / before : null;
+    const delta = ratio === null ? '–' : `${((1 - ratio) * 100).toFixed(0)}% faster`;
+    await this.#log('Key shadowing', `deepest leaf, owner at d${shadowDepth} vs root`, delta, { ratio });
+    this.#record('keyShadowing', { ownerDepth: shadowDepth, deepestToRootMs: before, deepestToOwnerMs: after, ratio });
 
     this.#rebuildTree();
     await this.#report(shadowed.flatMap((row) => row.perCall));
@@ -455,8 +572,11 @@ class PerfLab extends FlowStateComponent {
 
     // The churn subtrees deregister on disconnect; restore the counts for the real tree.
     await this.#syncTreeFacts();
-    await this.#log('Churn', `mount + unmount × ${CHURN_ROUNDS} · p50`, fmt(percentile(samples, 50)));
-    await this.#log('Churn', 'p95', fmt(percentile(samples, 95)));
+    const churnP50 = percentile(samples, 50);
+    const churnP95 = percentile(samples, 95);
+    await this.#log('Churn', `mount + unmount × ${CHURN_ROUNDS} · p50`, fmt(churnP50), { ms: churnP50 });
+    await this.#log('Churn', 'p95', fmt(churnP95), { ms: churnP95 });
+    this.#record('churn', { rounds: CHURN_ROUNDS, mountUnmountMs: samples });
     await this.#report(samples);
   }
 }

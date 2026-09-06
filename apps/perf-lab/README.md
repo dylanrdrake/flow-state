@@ -46,6 +46,33 @@ pass, or the watcher notifications. This app awaits the returned promise instead
 Set **branch = 1** to build a deep chain and isolate depth from breadth — the shape that makes
 the resolution curve legible.
 
+## Exporting
+
+**Export JSON** downloads the whole session: run metadata (user agent, hardware
+concurrency, tree shape, whether devtools was on, the scenario constants) plus one entry per
+scenario run. Each run carries the flat rows shown in the table *and* a `series` object with
+the raw measurements behind them — the per-depth resolution arrays, every fan-out flush and
+paint sample, per-leaf update times, churn timings. That is the part a CSV would flatten away.
+
+```
+flow-state-perf-d4xb3-2026-09-06T16-27-49.json
+{
+  "shapeAtExport": { "depth": 4, "branch": 3, "shadow": false, "sources": 121, "leaves": 81 },
+  "constants": { "fanoutRounds": 60, "resolveBatch": 1000, ... },
+  "runs": [
+    {
+      "scenario": "resolveDepth",
+      "rows": [ { "detail": "depth 0 · 1 nodes · median of 9", "value": "3µs", "ms": 0.003 } ],
+      "series": { "resolution:Resolve": [ { "depth": 0, "nodes": 1, "medianMs": 0.0015, "perCallMs": [...] } ] }
+    }
+  ]
+}
+```
+
+Rows keep both `value` (formatted, as displayed) and `ms`/`ratio` (raw), so runs are
+comparable across machines and shapes without re-parsing strings. **Clear results** resets the
+export buffer too.
+
 ## Baseline
 
 Chromium 151 headless, one machine, single run. Relative shape matters, absolute numbers do not.
