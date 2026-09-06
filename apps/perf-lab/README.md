@@ -73,9 +73,38 @@ Rows keep both `value` (formatted, as displayed) and `ms`/`ratio` (raw), so runs
 comparable across machines and shapes without re-parsing strings. **Clear results** resets the
 export buffer too.
 
+## What the lab is careful about
+
+Two things keep the lab from measuring itself:
+
+- **`broadcast` is owned by the tree root**, the depth-0 `perf-node` — not by the lab
+  component. `#updateBindingsForKey` re-queries from the source root on every update, so a
+  key owned by the lab would drag the controls, readout and results table into every
+  fan-out binding pass.
+- **The results table is capped** at the last `RESULTS_DISPLAY_LIMIT` rows. Update cost
+  scales with total DOM under a source, so an unbounded table drifts the numbers it is
+  displaying. The export buffer keeps every row regardless.
+
+Both matter more than they sound. With `broadcast` owned by the lab and the table
+uncapped, five consecutive `Run all` cycles degraded like this — 116 accumulated rows, and
+nothing wrong with the library:
+
+| cycle | rows in DOM | fan-out p50 | mount µs/source | churn p50 |
+| --- | --- | --- | --- | --- |
+| 1 | 0 | 0.80ms | 50.4 | 2.50ms |
+| 5 | 116 | 3.30ms | 220.7 | 15.90ms |
+
+Key resolution, unmount and leaf-local updates stayed flat across the same five cycles,
+which is what identified it: `flowGet` dispatch stops at the owning source and never walks
+the DOM, so only the DOM-walking measurements moved.
+
 ## Baseline
 
 Chromium 151 headless, one machine, single run. Relative shape matters, absolute numbers do not.
+
+> Measured before `broadcast` moved to the tree root. The fan-out figures were taken with
+> the lab shell inside the walked subtree, so they read high; the shape of the results
+> holds.
 
 Depth chain (d12 × b1), `flowGet` of a root-owned key:
 

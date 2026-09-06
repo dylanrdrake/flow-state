@@ -37,14 +37,17 @@ class PerfNode extends FlowStateComponent {
 
     if (this.hasAttribute('use-shadow')) this.shadowMode = 'open';
 
+    // The tree root always owns `broadcast`, so the fan-out binding pass is scoped to the
+    // tree instead of to the lab shell around it. `shadow-key` gives a mid-tree node its
+    // own copy, which is what the key-shadowing scenario measures.
+    const ownsBroadcast = shadowed || this.#depth === 0;
+
     this.sourceConfig = {
       depthLabel: `d${this.#depth}`,
       nodeLabel: path,
       localTick: 0,
       status: 'idle',
-      // When set, this node owns `broadcast` itself, so descendants resolve the key
-      // here instead of walking all the way to the root source.
-      ...(shadowed ? { broadcast: 0 } : {}),
+      ...(ownsBroadcast ? { broadcast: 0 } : {}),
     };
 
     super.connectedCallback();

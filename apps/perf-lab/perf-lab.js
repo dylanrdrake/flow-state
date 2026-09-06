@@ -28,6 +28,10 @@ const FANOUT_ROUNDS = 60;
 const RESOLVE_BATCH = 1000;  // flowGet calls timed as one batch
 const RESOLVE_ROUNDS = 9;    // batches per depth
 const CHURN_ROUNDS = 20;
+// Rows kept in the DOM. Update cost scales with total DOM under a source, so an
+// unbounded results table would drift the very numbers it displays. The export
+// buffer (#runs) keeps every row regardless.
+const RESULTS_DISPLAY_LIMIT = 40;
 
 const SCENARIOS = [
   {
@@ -91,8 +95,11 @@ class PerfLab extends FlowStateComponent {
   template = template;
 
   sourceConfig = {
-    // The key every leaf watches and every node binds to. Owned here, at the root.
-    broadcast: 0,
+    // `broadcast` is deliberately NOT here. It is owned by the tree root (the depth-0
+    // perf-node) so that its binding pass walks only the tree. Owning it on the lab put
+    // the results table inside the measured subtree, and since #updateBindingsForKey
+    // re-queries from the source root on every update, fan-out then got slower with every
+    // row logged — the lab measured itself rather than the library.
     sourceCount: 0,
     leafCount: 0,
     treeShape: '–',
@@ -245,16 +252,23 @@ class PerfLab extends FlowStateComponent {
     return elapsed;
   }
 
+  /** The depth-0 perf-node's source — owner of `broadcast`, and the tree's actual root. */
+  #rootNode() {
+    return nodesAtDepth(0)[0] ?? null;
+  }
+
   #syncTreeFacts() {
+    const root = this.#rootNode();
+    // Re-push the root-owned key. flowWatch hands a new subscriber the current value
+    // immediately, so rebuilt leaves are correct on mount, but template bindings are
+    // push-only — without this, a freshly mounted node keeps its placeholder until the
+    // next update. The asymmetry is worth seeing; a stale-looking tree is not.
+    root?.source?.update({ broadcast: flowGet(root, 'broadcast') ?? 0 });
+
     return this.source.update({
       sourceCount: totalNodes(),
       leafCount: nodesAtDepth(this.#depth).length,
       treeShape: `d${this.#depth} × b${this.#branch}${this.#useShadow ? ' · shadow' : ''}`,
-      // Re-push the root-owned key. flowWatch hands a new subscriber the current value
-      // immediately, so rebuilt leaves are correct on mount, but template bindings are
-      // push-only — without this, a freshly mounted node keeps its placeholder until the
-      // next update. The asymmetry is worth seeing; a stale-looking tree is not.
-      broadcast: flowGet(this, 'broadcast') ?? 0,
     });
   }
 
@@ -285,7 +299,7 @@ class PerfLab extends FlowStateComponent {
       at: new Date().toISOString(),
     };
     this.#currentRun?.rows.push(row);
-    return this.source.update({ results: [...results, row].slice(-200) });
+    return this.source.update({ results: [...results, row].slice(-RESULTS_DISPLAY_LIMIT) });
   }
 
   #shapeLabel() {
@@ -355,6 +369,17 @@ class PerfLab extends FlowStateComponent {
   }
 
   #report(samples) {
+    // Also pin the summary onto the run so the export carries it — longTasks in
+    // particular was live-only, and it is the signal for a dropped frame.
+    if (this.#currentRun) {
+      this.#currentRun.summary = {
+        p50Ms: percentile(samples, 50),
+        p95Ms: percentile(samples, 95),
+        p99Ms: percentile(samples, 99),
+        samples: samples.length,
+        longTasks: this.#longTaskCount,
+      };
+    }
     return this.source.update({
       p50: fmt(percentile(samples, 50)),
       p95: fmt(percentile(samples, 95)),
@@ -480,13 +505,21 @@ class PerfLab extends FlowStateComponent {
     const flushSamples = [];
     const paintSamples = [];
 
+    // Updates go to the tree root, not to the lab. Anything owned by the lab source would
+    // drag the controls, readout and results table into the measured binding pass.
+    const root = this.#rootNode();
+    if (!root?.source) {
+      await this.#log('Fan-out', 'no tree mounted', '—');
+      return;
+    }
+
     for (let i = 0; i < FANOUT_ROUNDS; i++) {
       const started = performance.now();
-      await this.source.update({ broadcast: i });
+      await root.source.update({ broadcast: i });
       flushSamples.push(performance.now() - started);
 
       const paintStarted = performance.now();
-      await this.source.update({ broadcast: i });
+      await root.source.update({ broadcast: i });
       await nextPaint();
       paintSamples.push(performance.now() - paintStarted);
     }
