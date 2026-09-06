@@ -42,6 +42,7 @@ export default defineConfig({
 
         cpSync(resolve(__dirname, 'lib/assets'), resolve(__dirname, 'dist/assets'), { recursive: true });
         cpSync(resolve(__dirname, 'lib/devtools/server.js'), resolve(__dirname, 'dist/devtools/server.js'));
+        cpSync(resolve(__dirname, 'types/index.d.ts'), resolve(__dirname, 'dist/flow-state.d.ts'));
       },
     },
   ],

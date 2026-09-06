@@ -87,6 +87,38 @@ describe('flowDevtools', () => {
     root.remove();
   });
 
+  it('builds a snapshot for a shadow-rooted source without throwing', async () => {
+    vi.resetModules();
+    const { FlowSource, flowDevtools } = await import('../lib/FlowState.js');
+
+    // The flow-through check only inspects *other* registry entries, so a second
+    // source has to exist for the shadow-rooted snapshot to reach it.
+    const outerRoot = document.createElement('div');
+    document.body.appendChild(outerRoot);
+    const outerSource = new FlowSource(outerRoot, { outer: true });
+
+    const host = document.createElement('div');
+    outerRoot.appendChild(host);
+    const shadowRoot = host.attachShadow({ mode: 'open' });
+    const source = new FlowSource(shadowRoot, { count: 1 });
+
+    flowDevtools();
+    const channel = MockBroadcastChannel.instances[0];
+    channel.emitMessage({ type: 'ready' });
+    vi.advanceTimersByTime(60);
+
+    const snapshot = channel.messages.find(
+      (message) => message?.type === 'snapshot' && message?.isShadow
+    );
+    expect(snapshot).toBeTruthy();
+    expect(snapshot.values.count).toBe(1);
+    expect(snapshot.isFlowThrough).toBe(false);
+
+    source.destroy();
+    outerSource.destroy();
+    outerRoot.remove();
+  });
+
   it('broadcasts an updated snapshot after state updates in dev mode', async () => {
     vi.resetModules();
     const { FlowSource, flowDevtools } = await import('../lib/FlowState.js');

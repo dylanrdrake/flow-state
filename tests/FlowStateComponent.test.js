@@ -13,7 +13,7 @@ describe('FlowStateComponent', () => {
   it('Creates a FlowState source instance in this.source after connectedCallback', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = { value: 42 };
+      sourceConfig = { value: 42 };
 
       connectedCallback() {
         super.connectedCallback();
@@ -48,7 +48,7 @@ describe('FlowStateComponent', () => {
   it('attaches a shadow root when shadowMode is set', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = {};
+      sourceConfig = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -63,7 +63,7 @@ describe('FlowStateComponent', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<p id="msg">hello</p>';
-      source = {};
+      sourceConfig = {};
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -78,7 +78,7 @@ describe('FlowStateComponent', () => {
   it('source.update() and flowGet() work correctly', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = { count: 0 };
+      sourceConfig = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -93,7 +93,7 @@ describe('FlowStateComponent', () => {
   it('flowWatch() fires immediately with the current value', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = { label: 'hello' };
+      sourceConfig = { label: 'hello' };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -109,7 +109,7 @@ describe('FlowStateComponent', () => {
   it('does not reinitialize source when reconnected to the DOM', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = { count: 0 };
+      sourceConfig = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -131,7 +131,7 @@ describe('FlowStateComponent', () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
       template = '<span id="name-el" flow-watch-name-to-prop="textContent"></span>';
-      source = { name: 'Alice' };
+      sourceConfig = { name: 'Alice' };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -149,7 +149,7 @@ describe('FlowStateComponent', () => {
   it('automatically unsubscribes flowWatch listeners on disconnect', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      source = { count: 0 };
+      sourceConfig = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);
@@ -172,7 +172,7 @@ describe('FlowStateComponent', () => {
 
   it('does not auto-unsubscribe flowWatch listeners created by light DOM descendants while connected', async () => {
     class MyComp extends FlowStateComponent {
-      source = { count: 0 };
+      sourceConfig = { count: 0 };
       template = '<span id="child"></span>';
     }
     const name = tag();
@@ -194,7 +194,7 @@ describe('FlowStateComponent', () => {
 
   it('auto-destroys its source scope on disconnect', async () => {
     class MyComp extends FlowStateComponent {
-      source = { count: 0 };
+      sourceConfig = { count: 0 };
     }
     const name = tag();
     customElements.define(name, MyComp);

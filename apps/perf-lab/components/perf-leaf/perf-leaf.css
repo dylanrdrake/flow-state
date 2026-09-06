@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+perf-leaf {
+  display: block;
+  min-width: 0;
+}
+
+.leaf {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border: 1px solid #1d2942;
+  border-radius: 6px;
+  background: #0f1728;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.leaf-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #64748b;
+}
+
+.leaf-local,
+.leaf-echo {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.leaf-local { color: #cbd5e1; }
+.leaf-echo { color: #7dd3fc; }
+
+.chip {
+  flex: none;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.chip.hot { background: #4c1d24; color: #fca5a5; }
+.chip.cool { background: #17303a; color: #67e8f9; }
+
+.bar {
+  flex: none;
+  width: 34px;
+  height: 4px;
+  border-radius: 2px;
+  background: #1d2942;
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8);
+  width: 0;
+}

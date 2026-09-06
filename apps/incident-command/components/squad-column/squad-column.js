@@ -17,7 +17,7 @@ class SquadColumn extends FlowStateComponent {
   styles = styles;
   template = template;
 
-  source = {
+  sourceConfig = {
     squadName: '',
     responders: [],
     workload: 0,

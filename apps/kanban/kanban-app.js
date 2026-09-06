@@ -194,7 +194,7 @@ class KanbanApp extends FlowStateComponent {
 
   template = template;
 
-  source = {
+  sourceConfig = {
     columns: [],
     selectedCard: null,
     moveCard:   (...args) => this.#moveCard(...args),

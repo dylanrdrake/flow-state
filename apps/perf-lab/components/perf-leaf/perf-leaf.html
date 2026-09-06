@@ -1,0 +1,12 @@
+<div class="leaf">
+  <span class="leaf-path" flow-watch-leafPath-to-prop="textContent">0.0</span>
+  <span class="leaf-local" title="This leaf's own source">
+    <span flow-watch-localValue-to-prop="textContent">0</span>
+  </span>
+  <span class="leaf-echo" id="echo" title="Root-owned key, delivered via flowWatch">–</span>
+  <template flow-if="hot">
+    <span class="chip hot">hot</span>
+    <span class="chip cool">cool</span>
+  </template>
+  <span class="bar"><i flow-watch-barStyle-to-attr="style"></i></span>
+</div>

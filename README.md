@@ -20,6 +20,7 @@ Tutorial and instructional documentation:
 - 2 Classes: `FlowSource` and `FlowStateComponent`
 - 2 `FlowSource` instance methods: `update` and `destroy`
 - 5 functional helpers: `flowWatch`, `flowGet`, `flowThrough`, `flowCompute`, `flowDevtools`
+- 1 component config field: `sourceConfig` (the instance lands on `source`)
 - 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
 - 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
 
@@ -165,9 +166,63 @@ For this repository clone path, use:
 }
 ```
 
+## TypeScript
+
+Types ship with the package — no `@types` install, nothing to configure:
+
+```ts
+import { FlowSource, flowGet, flowWatch } from 'flow-state';
+
+const state = new FlowSource(root, {
+  count: 0,
+  user: { name: 'Ada' },
+});
+
+state.update({ count: 1 });                                   // ✅
+state.update((prev) => ({ count: prev.count + 1 }));          // ✅ prev is deeply readonly
+state.update({ count: 'nope' });                              // ❌ Type 'string' is not assignable
+```
+
+State is inferred from the config literal. Actions (plain functions) and computed keys are
+recognized by shape and excluded from `update()`, since neither is settable.
+
+For components, declare the config as `sourceConfig`; `source` holds the resulting instance:
+
+```ts
+class MyCounter extends FlowStateComponent<{ count: number }> {
+  sourceConfig = { count: 0 };
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.source?.update((prev) => ({ count: prev.count + 1 }));
+  }
+}
+```
+
+### Two limits worth knowing
+
+`flowGet` and `flowWatch` take a DOM Node, and the owning source is resolved at runtime by a
+bubbling event. There is no static link between the two, so the value type cannot be inferred —
+supply it at the call site:
+
+```ts
+const squads = flowGet<Squad[]>(this, 'squads');
+flowWatch<number>(this, 'count', (n) => n.toFixed(0));
+```
+
+The HTML attribute bindings (`flow-watch-…`, `flow-if`, `flow-ul`, `flow-li-…`) live in template
+strings and get no type coverage.
+
 ### Devtools in Action
 
 Open both in the same browser:
 
 - <a href="https://dylanrdrake.github.io/flow-state/apps/incident-command/" target="_blank" rel="noreferrer">Incident Command app</a>
 - <a href="https://dylanrdrake.github.io/flow-state/lib/devtools/" target="_blank" rel="noreferrer">FlowState Devtools</a>
+
+## Performance
+
+`apps/perf-lab` measures nested sources specifically — key-resolution cost by depth, root
+fan-out across a tree of sources, mount/unmount churn, and what a shadow root at every level
+costs. See <a href="apps/perf-lab/README.md">its README</a> for the scenarios and a baseline.
+`apps/stress` remains the flat, single-source throughput demo.

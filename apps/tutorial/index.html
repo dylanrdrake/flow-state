@@ -377,7 +377,7 @@ class MyCounter extends FlowStateComponent {
   styles = CSS`button { font-size: 1.5rem; }`;
   template = HTML`&lt;button id="btn"&gt;Click 0 times&lt;/button&gt;`;
 
-  source = {
+  sourceConfig = {
     count: 0,
   };
 
@@ -405,7 +405,8 @@ class MyCounter extends FlowStateComponent {
 customElements.define('my-counter', MyCounter);</code></pre>
             </div>
             <p>
-              <code>FlowStateComponent</code> exposes <code>this.source</code> —
+              Declare the config as <code>sourceConfig</code>;
+              <code>FlowStateComponent</code> then exposes <code>this.source</code> —
               the source instance API returned by the FlowState constructor.
             </p>
             <p>
@@ -429,7 +430,7 @@ customElements.define('my-counter', MyCounter);</code></pre>
               <pre><code>class MyBanner extends FlowStateComponent {
   // no shadowMode — renders into light DOM
   template = `&lt;p id="msg"&gt;&lt;/p&gt;`;
-  source = { message: 'Hello' };
+  sourceConfig = { message: 'Hello' };
   connectedCallback() {
     super.connectedCallback();
     flowWatch(this, 'message', v => {
@@ -682,7 +683,7 @@ deleteItem(this.#itemId);</code></pre>
             </p>
             <div class="cb">
               <pre><code>
-source = {
+sourceConfig = {
   filteredTransactions: flowCompute((transactions, filter, sort) => {
     const filtered = filter === 'all'
       ? transactions
@@ -711,7 +712,7 @@ source = {
 
             <div class="cb">
               <pre><code>
-source = {
+sourceConfig = {
   history: [],
   hasHistory: flowCompute((history) => history.length &gt; 0, ['history']),
 };
@@ -791,7 +792,7 @@ source = {
             </p>
             <div class="cb">
               <pre><code>// Parent
-source = {
+sourceConfig = {
   cards: [],
   deleteCard: (id) => this.#deleteCard(id), // top-level function → action
 };
@@ -836,7 +837,7 @@ const deleteCard = flowGet(this, 'deleteCard');</code></pre>
 }
 
 // parent.js
-source = {
+sourceConfig = {
   items: [],
   removeItem: (id) => this.#remove(id), // top-level function → action
 };</code></pre>
@@ -868,7 +869,7 @@ source = {
             </p>
             <div class="cb">
               <pre><code>class KanbanColumn extends FlowStateComponent {
-  source = {
+  sourceConfig = {
     selectedCardId: null, // local only
   };
 }</code></pre>

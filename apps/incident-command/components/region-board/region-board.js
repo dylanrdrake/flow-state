@@ -17,7 +17,7 @@ class RegionBoard extends FlowStateComponent {
   styles = styles;
   template = template;
 
-  source = {
+  sourceConfig = {
     regionName: '',
     regionStatus: 'nominal',
     escalations: 0,

@@ -5,8 +5,10 @@
   "type": "module",
   "main": "./dist/flow-state.umd.cjs",
   "module": "./dist/flow-state.js",
+  "types": "./dist/flow-state.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/flow-state.d.ts",
       "import": "./dist/flow-state.js",
       "require": "./dist/flow-state.umd.cjs"
     }
@@ -48,10 +50,12 @@
     "dev": "node dist/devtools/server.js -r . -p 3300",
     "build": "vite build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.lib.json --noEmit"
   },
   "devDependencies": {
     "happy-dom": "^20.9.0",
+    "typescript": "^7.0.2",
     "vite": "^8.0.14",
     "vitest": "^3.1.2"
   },

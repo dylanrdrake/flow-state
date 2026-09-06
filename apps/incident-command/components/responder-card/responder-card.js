@@ -16,7 +16,7 @@ class ResponderCard extends FlowStateComponent {
   styles = styles;
   template = template;
 
-  source = {
+  sourceConfig = {
     name: '',
     status: 'idle',
     queue: [],

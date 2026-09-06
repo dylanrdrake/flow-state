@@ -1,0 +1,74 @@
+<header class="lab-head">
+  <div class="titles">
+    <h1>FlowState Perf Lab</h1>
+    <p class="sub">Nested sources, key-resolution depth, and fan-out cost.</p>
+  </div>
+  <div class="facts">
+    <span class="fact"><em flow-watch-sourceCount-to-prop="textContent">0</em> sources</span>
+    <span class="fact"><em flow-watch-leafCount-to-prop="textContent">0</em> leaves</span>
+    <span class="fact"><em flow-watch-treeShape-to-prop="textContent">–</em> shape</span>
+  </div>
+</header>
+
+<section class="controls">
+  <div class="control-row">
+    <label class="field">
+      <span>Depth</span>
+      <select id="depth-select"></select>
+    </label>
+    <label class="field">
+      <span>Branch</span>
+      <select id="branch-select"></select>
+    </label>
+    <label class="field checkbox">
+      <input type="checkbox" id="shadow-toggle">
+      <span>Shadow DOM per level</span>
+    </label>
+    <span class="shape-hint" id="shape-hint">–</span>
+    <button class="btn ghost" id="rebuild-btn">Rebuild tree</button>
+  </div>
+
+  <div class="control-row scenarios" id="scenario-buttons"></div>
+
+  <div class="control-row">
+    <button class="btn primary" id="run-btn">Run scenario</button>
+    <button class="btn ghost" id="run-all-btn">Run all</button>
+    <button class="btn ghost" id="clear-btn">Clear results</button>
+    <template flow-if="running">
+      <span class="status busy" flow-watch-status-to-prop="textContent">running</span>
+      <span class="status idle" flow-watch-status-to-prop="textContent">idle</span>
+    </template>
+  </div>
+
+  <p class="desc" flow-watch-scenarioDesc-to-prop="textContent"></p>
+</section>
+
+<section class="readout">
+  <div class="metric"><span class="label">p50</span><span class="value" flow-watch-p50-to-prop="textContent">–</span></div>
+  <div class="metric"><span class="label">p95</span><span class="value" flow-watch-p95-to-prop="textContent">–</span></div>
+  <div class="metric"><span class="label">p99</span><span class="value" flow-watch-p99-to-prop="textContent">–</span></div>
+  <div class="metric"><span class="label">samples</span><span class="value" flow-watch-samples-to-prop="textContent">0</span></div>
+  <div class="metric"><span class="label">long tasks</span><span class="value" flow-watch-longTasks-to-prop="textContent">0</span></div>
+  <div class="metric"><span class="label">broadcast</span><span class="value" flow-watch-broadcast-to-prop="textContent">0</span></div>
+</section>
+
+<section class="results">
+  <div class="results-head">
+    <span>Scenario</span><span>Detail</span><span>Result</span>
+  </div>
+  <div class="results-body" flow-ul="results">
+    <template>
+      <div class="result-row">
+        <span class="r-scenario" flow-li-scenario-to-prop="textContent"></span>
+        <span class="r-detail" flow-li-detail-to-prop="textContent"></span>
+        <span class="r-value" flow-li-value-to-prop="textContent"></span>
+      </div>
+    </template>
+  </div>
+</section>
+
+<section class="tree-wrap">
+  <div class="tree-head">Source tree</div>
+  <div class="tree-host" id="tree-host"></div>
+  <div class="churn-host" id="churn-host"></div>
+</section>

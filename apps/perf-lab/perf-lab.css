@@ -1,0 +1,251 @@
+perf-lab {
+  --edge: #23304a;
+  --panel: #131c2e;
+  --ink: #e2e8f0;
+  --dim: #64748b;
+  --accent: #7dd3fc;
+  display: block;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 24px 28px 60px;
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+perf-lab h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: #f8fafc;
+}
+
+perf-lab .sub {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--dim);
+}
+
+perf-lab .lab-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+perf-lab .facts {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+perf-lab .fact em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+perf-lab .controls {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--panel);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+
+perf-lab .control-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+perf-lab .control-row + .control-row {
+  margin-top: 10px;
+}
+
+perf-lab .field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--dim);
+}
+
+perf-lab .field.checkbox {
+  cursor: pointer;
+  user-select: none;
+}
+
+perf-lab select {
+  background: #0f1728;
+  color: var(--ink);
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font: inherit;
+  font-size: 12px;
+}
+
+perf-lab .btn {
+  border: 1px solid var(--edge);
+  border-radius: 7px;
+  background: #1a2438;
+  color: #a9b8d4;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+perf-lab .btn:hover:not(:disabled) {
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+perf-lab .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+perf-lab .btn.primary {
+  background: #1d4ed8;
+  border-color: #2563eb;
+  color: #eff6ff;
+}
+
+perf-lab .scenario-btn[active] {
+  border-color: var(--accent);
+  color: #e0f2fe;
+  background: #10263a;
+}
+
+perf-lab .status {
+  font-size: 11px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+}
+
+perf-lab .status.busy { background: #422006; color: #fbbf24; }
+perf-lab .status.idle { background: #14231c; color: #4ade80; }
+
+perf-lab .desc {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #94a3b8;
+  max-width: 90ch;
+}
+
+perf-lab .readout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+perf-lab .metric {
+  border: 1px solid var(--edge);
+  border-radius: 9px;
+  background: var(--panel);
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+perf-lab .metric .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+}
+
+perf-lab .metric .value {
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #f1f5f9;
+}
+
+perf-lab .results {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--panel);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+perf-lab .results-head,
+perf-lab .result-row {
+  display: grid;
+  grid-template-columns: 190px 1fr 130px;
+  gap: 12px;
+  padding: 7px 14px;
+  font-size: 12px;
+}
+
+perf-lab .results-head {
+  color: var(--dim);
+  border-bottom: 1px solid var(--edge);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+perf-lab .results-body {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+perf-lab .result-row + .result-row {
+  border-top: 1px solid #1a2338;
+}
+
+perf-lab .r-scenario { color: #a9b8d4; font-weight: 500; }
+perf-lab .r-detail { color: var(--dim); }
+perf-lab .r-value {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+}
+
+perf-lab .tree-wrap {
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: #0d1524;
+  padding: 12px;
+}
+
+perf-lab .tree-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dim);
+  margin-bottom: 10px;
+}
+
+perf-lab .tree-host {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+perf-lab .churn-host {
+  display: none;
+}
+
+perf-lab .shape-hint {
+  font-size: 11px;
+  color: var(--dim);
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+}
