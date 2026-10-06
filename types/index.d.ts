@@ -5,7 +5,7 @@
  * rather than silently under-typed:
  *
  * 1. `flowGet` / `flowWatch` take a DOM Node, not a source reference. The owning
- *    `FlowSource` is resolved at runtime by a bubbling, composed CustomEvent, so there
+ *    `FlowSource` is resolved at runtime from the node's position in the DOM, so there
  *    is no static edge from consumer to producer. Supply the value type at the call
  *    site: `flowGet<Squad[]>(this, 'squads')`.
  * 2. The HTML attribute bindings (`flow-watch-<key>-to-prop|attr`, `flow-if`, `flow-ul`,
@@ -151,7 +151,10 @@ export declare function flowWatch<T = unknown>(
   callback: (value: T) => void,
 ): (() => void) | undefined;
 
-/** Propagate bindings into a shadow root that would otherwise block event bubbling. */
+/**
+ * Link a shadow root into the sources above it, so their bindings reach inside. Needed for a
+ * closed shadow root, and for an open one attached after its host was already in the DOM.
+ */
 export declare function flowThrough(shadowRoot: ShadowRoot): void;
 
 /**

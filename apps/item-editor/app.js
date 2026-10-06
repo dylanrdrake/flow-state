@@ -32,8 +32,8 @@ class ItemEditorApp extends HTMLElement {
       initial: item.name.charAt(0).toUpperCase()
     }));
 
-    // Initialize FlowState BEFORE stamping the template so the listener
-    // is registered before child connectedCallbacks fire and dispatch flow-state-get/watch events.
+    // Initialize FlowState BEFORE stamping the template so the source
+    // exists before child connectedCallbacks fire and call flowGet/flowWatch.
     this.#source = new FlowSource(this, {
       items,
       selectedItem: null,

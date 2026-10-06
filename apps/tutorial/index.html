@@ -206,7 +206,8 @@ git clone https://github.com/dylanrdrake/flow-state.git
               <code>new FlowSource(shadowRoot, config)</code>. Use
               <code>flowThrough(shadowRoot)</code> when a parent scope outside a
               <strong>closed</strong> shadow needs to make declarative binding updates
-              inside that shadow.
+              inside that shadow, or when an <strong>open</strong> shadow root is attached
+              after its host is already in the DOM.
             </blockquote>
             <div class="cb">
               <pre><code data-nohl>&lt;my-app&gt;          ← FlowState root
@@ -216,9 +217,9 @@ git clone https://github.com/dylanrdrake/flow-state.git
             </div>
             <p>
               When a child calls <code>flowWatch()</code> or
-              <code>flowGet()</code>, it dispatches a
-              <code>CustomEvent</code> that <strong>bubbles up</strong> the DOM.
-              The first ancestor that owns that key intercepts it. Scopes nest
+              <code>flowGet()</code>, FlowState looks <strong>up</strong> from
+              that element through the sources above it.
+              The first ancestor that owns that key answers. Scopes nest
               naturally — a child component with a key shared by a parent will
               shadow that key from the children and override it.
             </p>
@@ -567,7 +568,7 @@ discounted: flowCompute((total, discount) => total * (1 - discount), ['total', '
 
             <h3><code>flowWatch(element, key, callback)</code></h3>
             <p>
-              Register a watcher from a child element. The event bubbles up
+              Register a watcher from a child element. The lookup goes up
               until it finds a FlowState source instance that owns
               <code>key</code>. The returned unsubscribe function removes the
               watcher again, which is useful in
@@ -599,12 +600,13 @@ deleteItem(this.#itemId);</code></pre>
             <h3><code>flowThrough(shadowRoot)</code></h3>
             <p>
               Only necessary for <strong>state flowing down</strong> through a
-              <strong>closed</strong> shadow boundary, so
+              <strong>closed</strong> shadow boundary, or into an
+              <strong>open</strong> shadow root that was attached after its host
+              was already in the DOM, so
               <strong>declarative bindings</strong> inside that shadow root
-              receive updates. It is <em>not</em> needed for events flowing up
-              from <code>flowWatch()</code> / <code>flowGet()</code>, because
-              those use <code>composed: true</code> and already cross shadow
-              boundaries automatically.
+              receive updates. It is <em>not</em> needed for
+              <code>flowWatch()</code> / <code>flowGet()</code>, because
+              those look up through every shadow boundary on their own.
             </p>
             <p>
               Reminder: a <code>ShadowRoot</code>'s host is its ancestor
@@ -910,12 +912,11 @@ source.update({ count: flowGet(root, 'count') + 1 });</code></pre>
 
             <h3>1. Create FlowSource BEFORE appending children</h3>
             <p>
-              FlowState registers event listeners on the root. When a child
-              element's
-              <code>connectedCallback</code> fires, it immediately dispatches
-              <code>flow-state-watch</code> and
-              <code>flow-state-get</code> events. If FlowState isn't set up yet,
-              those events have no listener and are silently lost.
+              When a child element's
+              <code>connectedCallback</code> fires, it immediately calls
+              <code>flowWatch()</code> and
+              <code>flowGet()</code>. If the FlowSource isn't set up yet,
+              there is no source to answer and they silently find nothing.
             </p>
             <div class="cb">
               <pre><code>// ✓ Correct
@@ -934,8 +935,8 @@ this.#source = new FlowSource(this, config);</code></pre>
 
             <h3>2. Functional API only in connectedCallback</h3>
             <p>
-              <code>flowWatch()</code> and <code>flowGet()</code> dispatch
-              events that bubble up to a parent FlowState source instance. That
+              <code>flowWatch()</code> and <code>flowGet()</code> look
+              up to a parent FlowState source instance. That
               source instance only exists once the parent is connected to the
               DOM. Never call them in a <code>constructor</code>.
             </p>
@@ -1004,18 +1005,20 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre>
           <section id="shadow-dom">
             <h2>Scope &amp; Shadow DOM</h2>
             <p>
-              FlowState uses DOM event bubbling to locate the right scope.
-              Shadow DOM normally blocks bubbling — FlowState handles this by
-              dispatching events with <code>composed: true</code>, which crosses
-              shadow boundaries. You can mount a source on either an
+              FlowState locates the right scope from where an element sits in
+              the DOM, looking up through shadow hosts, so shadow boundaries do
+              not get in the way. You can mount a source on either an
               <code>HTMLElement</code> or directly on a <code>ShadowRoot</code>.
-              For <strong>declarative bindings</strong>, open shadow roots are
-              discovered automatically. Use <code>flowThrough()</code> to link a
-              <strong>closed</strong> shadow root into an ancestor scope when
+              For <strong>declarative bindings</strong>, an open shadow root is
+              discovered automatically if it exists when its host enters the DOM
+              (or is attached when the element's tag is defined). Use
+              <code>flowThrough()</code> to link a
+              <strong>closed</strong> shadow root, or an open one attached later,
+              into an ancestor scope when
               that source is mounted outside the shadow. It's not required for
               the
               functional API (<code>flowWatch</code>/<code>flowGet</code>)
-              because those events are already composed.
+              because those look up through every shadow boundary.
             </p>
             <div class="cb">
               <pre><code data-nohl>document
@@ -1023,7 +1026,7 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre>
      └─ #shadow-root      ← if closed, flowThrough() links this in
          └─ &lt;my-column&gt;   ← FlowState scope (root = my-column)
              └─ #shadow-root
-                 └─ &lt;my-card&gt;   ← watch/get bubble up through shadows</code></pre>
+                 └─ &lt;my-card&gt;   ← watch/get look up through shadows</code></pre>
             </div>
             <p>
               When <code>&lt;my-card&gt;</code> calls
@@ -1031,7 +1034,7 @@ console.log(flowGet(this, 'count')); // still old value!</code></pre>
             </p>
             <ol>
               <li>
-                Event bubbles through <code>my-column</code>'s shadow → host →
+                The lookup goes up through <code>my-column</code>'s shadow → host →
                 <code>my-app</code>'s shadow → host
               </li>
               <li>
@@ -1164,7 +1167,7 @@ http://localhost:3300/devtools/</code></pre>
                   <tr>
                     <td><code>flowThrough(shadowRoot)</code></td>
                     <td>child <code>connectedCallback</code></td>
-                    <td>Link closed shadow into an ancestor scope</td>
+                    <td>Link a closed (or late-attached open) shadow into an ancestor scope</td>
                   </tr>
                   <tr>
                     <td><code>flowDevtools()</code></td>

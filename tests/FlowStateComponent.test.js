@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FlowStateComponent } from '../lib/FlowStateComponent.js';
-import { flowGet, flowWatch } from '../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch } from '../lib/FlowState.js';
 
 // Each test registers a uniquely named custom element to avoid
 // "already defined" errors across tests.
@@ -190,6 +190,30 @@ describe('FlowStateComponent', () => {
     await el.source.update({ count: 1 });
 
     expect(spy).toHaveBeenCalledWith(1);
+  });
+
+  it('automatically unsubscribes flowWatch listeners on a key owned by a source above', async () => {
+    const parent = document.createElement('div');
+    document.body.appendChild(parent);
+    const parentState = new FlowSource(parent, { theme: 'light' });
+
+    class MyComp extends FlowStateComponent {
+      shadowMode = 'closed';
+    }
+    const name = tag();
+    customElements.define(name, MyComp);
+    const el = document.createElement(name);
+    parent.appendChild(el);
+
+    const spy = vi.fn();
+    flowWatch(el, 'theme', spy);
+    expect(spy).toHaveBeenCalledWith('light');
+    spy.mockClear();
+
+    el.remove();
+    await parentState.update({ theme: 'dark' });
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it('auto-destroys its source scope on disconnect', async () => {

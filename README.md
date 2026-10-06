@@ -201,8 +201,8 @@ class MyCounter extends FlowStateComponent<{ count: number }> {
 
 ### Two limits worth knowing
 
-`flowGet` and `flowWatch` take a DOM Node, and the owning source is resolved at runtime by a
-bubbling event. There is no static link between the two, so the value type cannot be inferred —
+`flowGet` and `flowWatch` take a DOM Node, and the owning source is resolved at runtime from
+where that node sits in the DOM. There is no static link between the two, so the value type cannot be inferred —
 supply it at the call site:
 
 ```ts
