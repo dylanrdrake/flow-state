@@ -110,11 +110,13 @@ Still linear in depth, but about **0.025µs per ancestor source** on top of ~0.2
 where it was ~0.3µs per hop on top of ~1.3µs of event dispatch. Three things follow:
 
 - **Shadow DOM per level no longer costs fan-out.** Same d4 × b3 tree, root fan-out
-  enqueue → flush: **1.0ms light DOM, 1.0ms with a shadow root at every level** (p50). Before,
-  it was 1.2ms → 3.0ms, because the binding pass walked every shadow root on every update.
-- **Shadow DOM per level costs mount instead.** Mounting the same tree takes 10.8ms in light
-  DOM and 15.0ms with shadow roots. Indexing happens when nodes arrive, and each shadow root
-  is one more subtree to observe and index.
+  enqueue → flush: **0.9ms light DOM, 1.0ms with a shadow root at every level** (p50). Before,
+  it was 1.3ms → 3.1ms, because the binding pass walked every shadow root on every update.
+- **The work moved from the first update into the build.** Bindings are indexed as nodes
+  arrive, so the synchronous build is a little slower, and the first update that follows it
+  no longer searches the DOM. The Mount scenario times only the build, so on its own it
+  understates the result. Timed through the first update, the same tree is ready in 14.2ms
+  where it took 18.9ms, and with shadow roots in 20.5ms where it took 154.6ms.
 - **Owning a key closer to its consumers still helps, on a much smaller number.** Moving the
   owner from the root to depth 6 took the deepest leaf's resolution from 0.5µs to 0.3µs.
 
@@ -123,14 +125,20 @@ brackets:
 
 | | now | before |
 | --- | --- | --- |
-| Mount, 121 nested sources | 10.8ms, 89µs/source (15.0ms) | 9.1ms (6.3ms) |
-| Unmount | 0.9ms (0.8ms) | 1.0ms (0.7ms) |
-| Root fan-out, enqueue → flush, p50 / p95 | 1.0ms / 1.5ms (1.0ms / 1.3ms) | 1.2ms / 1.7ms (3.0ms / 3.8ms) |
-| Leaf-local, 81 sources in one tick | 1.8ms (1.8ms) | 2.6ms (3.1ms) |
-| Subtree churn, mount + unmount, p50 | 3.1ms (3.8ms) | 2.1ms (1.9ms) |
+| Mount (synchronous build), 121 nested sources | 9.0ms, 74µs/source (13.0ms) | 8.7ms (9.1ms) |
+| Build + first update | 14.2ms (20.5ms) | 18.9ms (154.6ms) |
+| Unmount | 0.7ms (0.9ms) | 0.8ms (0.6ms) |
+| Root fan-out, enqueue → flush, p50 / p95 | 0.9ms / 1.2ms (1.0ms / 1.3ms) | 1.3ms / 1.8ms (3.1ms / 3.7ms) |
+| Leaf-local, 81 sources in one tick | 2.0ms (2.2ms) | 2.3ms (3.2ms) |
+| Subtree churn, mount + unmount, p50 | 3.1ms (2.6ms) | 2.1ms (1.9ms) |
 
-The trade is visible in the last column: updates and key resolution got cheaper, mount and
-churn got more expensive, most of all with shadow DOM (mount 2.4× slower).
+"Build + first update" is not a lab scenario: it is `Rebuild tree` timed from the click until
+the microtasks it queued have run, median of 25, so it also includes removing the previous
+tree.
+
+What still costs more than before: the synchronous build with shadow roots (each one is
+observed, and that call gets slower as the app defines more distinct keys), and subtree
+churn.
 
 ## One behavior worth knowing
 
