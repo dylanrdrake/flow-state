@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { FlowSource, flowThrough, flowGet, flowWatch } from '../lib/FlowState.js';
+import { FlowSource, flowThrough, flowGet, flowWatch, flowCompute } from '../lib/FlowState.js';
 
 // Bindings are read from an index kept in step with the DOM, not queried on each update.
 // These cover DOM that changes after the source is mounted.
@@ -81,7 +81,7 @@ describe('FlowSource – binding index follows the DOM', () => {
 
     other.appendChild(span);
     await state.update({ name: 'Carol' });
-    expect(span.textContent).toBe('Bob');
+    expect(span.textContent).toBe('Zed'); // filled from its new source, not the old one
 
     await otherState.update({ name: 'Yan' });
     expect(span.textContent).toBe('Yan');
@@ -193,7 +193,7 @@ describe('FlowSource – binding index and nested sources', () => {
 
     other.appendChild(inner);
     await a.update({ theme: 'a-3' });
-    expect(span.textContent).toBe('a-2');
+    expect(span.textContent).toBe('b'); // filled from its new parent, not the old one
 
     await b.update({ theme: 'b-2' });
     expect(span.textContent).toBe('b-2');
@@ -527,5 +527,147 @@ describe('FlowSource – shadow roots attached after the host is in the DOM', ()
     shadow.innerHTML = '<span flow-watch-name-to-prop="textContent"></span>';
     await state.update({ name: 'Bob' });
     expect(shadow.querySelector('span').textContent).toBe('');
+  });
+});
+
+describe('FlowSource – new bindings are filled with the current value', () => {
+  let root;
+  const settle = () => new Promise(resolve => setTimeout(resolve));
+
+  afterEach(() => root.remove());
+
+  const mount = async (config, html = '') => {
+    root = document.createElement('div');
+    root.innerHTML = html;
+    document.body.appendChild(root);
+    const state = new FlowSource(root, config);
+    await settle();
+    return state;
+  };
+
+  it('fills an element added after the first update, with no update needed', async () => {
+    await mount({ name: 'Alice', role: 'admin' });
+    const span = bound('name');
+    span.setAttribute('flow-watch-role-to-attr', 'data-role');
+    root.appendChild(span);
+
+    await settle();
+    expect(span.textContent).toBe('Alice');
+    expect(span.getAttribute('data-role')).toBe('admin');
+  });
+
+  it('fills a binding attribute added to an element already in the DOM', async () => {
+    await mount({ name: 'Alice' }, '<span></span>');
+    const span = root.querySelector('span');
+
+    span.setAttribute('flow-watch-name-to-prop', 'textContent');
+    await settle();
+    expect(span.textContent).toBe('Alice');
+  });
+
+  it('is filled by the time a flowGet from the new element returns', async () => {
+    await mount({ name: 'Alice' });
+    const span = bound('name');
+    root.appendChild(span);
+
+    flowGet(span, 'name');
+    expect(span.textContent).toBe('Alice');
+  });
+
+  it('fills bindings inside flow-if content for keys the update did not change', async () => {
+    const state = await mount(
+      { open: false, name: 'Alice', items: ['a', 'b'], deep: true },
+      `<template flow-if="open">
+         <section>
+           <span id="name" flow-watch-name-to-prop="textContent"></span>
+           <ul flow-ul="items"><template><li flow-li-to-prop="textContent"></li></template></ul>
+           <template flow-if="deep"><em flow-watch-name-to-prop="textContent"></em></template>
+         </section>
+       </template>`,
+    );
+    expect(root.querySelector('#name')).toBeNull();
+
+    await state.update({ open: true });
+    await settle();
+    expect(root.querySelector('#name').textContent).toBe('Alice');
+    expect([...root.querySelectorAll('li')].map(li => li.textContent)).toEqual(['a', 'b']);
+    expect(root.querySelector('em').textContent).toBe('Alice');
+  });
+
+  it('fills nested flow-if content during the first update', async () => {
+    await mount(
+      { open: true, deep: true, name: 'Alice' },
+      `<template flow-if="open">
+         <section><template flow-if="deep"><em flow-watch-name-to-prop="textContent"></em></template></section>
+       </template>`,
+    );
+    expect(root.querySelector('em').textContent).toBe('Alice');
+  });
+
+  it('fills from a source further up when the nearest one does not define the key', async () => {
+    await mount({ theme: 'dark' }, '<section></section>');
+    const section = root.querySelector('section');
+    new FlowSource(section, { own: 1 });
+    await settle();
+
+    const span = bound('theme');
+    section.appendChild(span);
+    await settle();
+    expect(span.textContent).toBe('dark');
+  });
+
+  it('fills with a computed value and a nested key', async () => {
+    await mount({ user: { name: 'Alice' }, shout: flowCompute((user) => user.name.toUpperCase(), ['user']) });
+    const a = bound('user-name');
+    const b = bound('shout');
+    root.append(a, b);
+
+    await settle();
+    expect(a.textContent).toBe('Alice');
+    expect(b.textContent).toBe('ALICE');
+  });
+
+  it('does not write a binding twice during the first update', async () => {
+    root = document.createElement('div');
+    const el = document.createElement('div');
+    let writes = 0;
+    Object.defineProperty(el, 'value', { set() { writes++; } });
+    el.setAttribute('flow-watch-name-to-prop', 'value');
+    root.appendChild(el);
+    document.body.appendChild(root);
+
+    new FlowSource(root, { name: 'Alice' });
+    await settle();
+    expect(writes).toBe(1);
+  });
+
+  it('refills a detached element with what it missed once it is put back', async () => {
+    const state = await mount({ name: 'Alice' }, '<span flow-watch-name-to-prop="textContent"></span>');
+    const span = root.querySelector('span');
+
+    span.remove();
+    await state.update({ name: 'Bob' });
+    expect(span.textContent).toBe('Alice');
+
+    root.appendChild(span);
+    await settle();
+    expect(span.textContent).toBe('Bob');
+  });
+
+  it('refills from the source above when the source that shadowed a key is destroyed', async () => {
+    root = document.createElement('div');
+    root.innerHTML = '<section><div><span flow-watch-name-to-prop="textContent"></span></div></section>';
+    const outer = new FlowSource(root, { name: 'outer' });
+    const middle = new FlowSource(root.querySelector('section'), { name: 'middle' });
+    new FlowSource(root.querySelector('div'), { own: 1 });
+    await settle();
+    const span = root.querySelector('span');
+    expect(span.textContent).toBe('middle');
+
+    middle.destroy();
+    await settle();
+    expect(span.textContent).toBe('outer');
+    await outer.update({ name: 'outer-2' });
+    expect(span.textContent).toBe('outer-2');
   });
 });

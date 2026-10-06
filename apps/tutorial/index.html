@@ -644,8 +644,12 @@ deleteItem(this.#itemId);</code></pre>
 &lt;span flow-watch-user-name-to-prop="textContent"&gt;&lt;/span&gt;</code></pre>
             </div>
             <p>
-              FlowState queries for these attributes inside its scope and
-              updates them automatically when the key changes.
+              FlowState keeps track of these attributes inside its scope and
+              updates them automatically when the key changes. A binding that
+              arrives later (an element added to the page, an attribute added to
+              an element, content rendered by <code>flow-if</code> or
+              <code>flow-ul</code>) is given the current value as soon as it
+              arrives.
             </p>
             <blockquote>
               Dots in key names become dashes in attribute names:

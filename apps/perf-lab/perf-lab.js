@@ -257,13 +257,6 @@ class PerfLab extends FlowStateComponent {
   }
 
   #syncTreeFacts() {
-    const root = this.#rootNode();
-    // Re-push the root-owned key. flowWatch hands a new subscriber the current value
-    // immediately, so rebuilt leaves are correct on mount, but template bindings are
-    // push-only — without this, a freshly mounted node keeps its placeholder until the
-    // next update. The asymmetry is worth seeing; a stale-looking tree is not.
-    root?.source?.update({ broadcast: flowGet(root, 'broadcast') ?? 0 });
-
     return this.source.update({
       sourceCount: totalNodes(),
       leafCount: nodesAtDepth(this.#depth).length,
