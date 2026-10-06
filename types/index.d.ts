@@ -235,8 +235,20 @@ export declare function flowDevtools(): void;
  * Base class for components that own a source.
  *
  * Declare the config as `sourceConfig`; after `connectedCallback` runs, `source` holds
- * the resulting `FlowSourceInstance`. Pass the config type as `C` for a precisely typed
- * `source`: `class MyEl extends FlowStateComponent<{ count: number }>`.
+ * the resulting `FlowSourceInstance`.
+ *
+ * `source` is typed from the type argument `C`, not from the `sourceConfig` field (a class
+ * cannot type one of its members from another through `this`). Without `C`, `source` is
+ * untyped. To state the shape only once, define the config first and pass its type:
+ *
+ * ```ts
+ * const config = { count: 0 };
+ * class MyEl extends FlowStateComponent<typeof config> { sourceConfig = config; }
+ * ```
+ *
+ * The `sourceConfig` field is checked against `C`: a missing key or a wrong value type is an
+ * error. A key in the field that `C` does not list is not an error, but `source` will not
+ * know about it.
  */
 export declare class FlowStateComponent<C extends SourceConfig = SourceConfig> extends HTMLElement {
   /** Config for this component's own source. Omit to not create one. */

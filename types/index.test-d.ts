@@ -143,6 +143,60 @@ class Counter extends FlowStateComponent<{ count: number }> {
 // @ts-expect-error - `source` is the instance, assigned by connectedCallback
 new Counter().source = undefined;
 
+// The type argument is what types `source`, and the sourceConfig field is checked against it.
+class WrongType extends FlowStateComponent<{ count: number }> {
+  // @ts-expect-error - count must be a number
+  sourceConfig = { count: 'nope' };
+}
+class Missing extends FlowStateComponent<{ count: number }> {
+  // @ts-expect-error - count is required
+  sourceConfig = {};
+}
+
+// Passing `typeof config` states the shape once: field and `source` cannot disagree.
+const tallyConfig = { count: 0, label: 'a', bump: () => {} };
+class Tally extends FlowStateComponent<typeof tallyConfig> {
+  sourceConfig = tallyConfig;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.source?.update({ count: 1, label: 'b' });
+    // @ts-expect-error - unknown key
+    this.source?.update({ nonsense: 1 });
+    // @ts-expect-error - actions are not state
+    this.source?.update({ bump: () => {} });
+    if (this.source) {
+      expectType<string | undefined>(flowGet(this, this.source.label));
+      flowGet(this, this.source.bump)?.();
+    }
+  }
+}
+expectType<number | undefined>(flowGet(root, flowScope<Tally>().count));
+
+// Known gaps, pinned here so a change in either is noticed:
+// a key the type argument omits is accepted in the field but unknown to `source`...
+class Extra extends FlowStateComponent<{ count: number }> {
+  sourceConfig = { count: 0, extra: 'x' };
+
+  connectedCallback() {
+    super.connectedCallback();
+    // @ts-expect-error - `source` only knows the type argument
+    this.source?.update({ extra: 'y' });
+  }
+}
+// ...while flowScope reads the field itself, so it does see that key.
+expectType<string | undefined>(flowGet(root, flowScope<Extra>().extra));
+// With no type argument, `source` is unchecked.
+class Untyped extends FlowStateComponent {
+  sourceConfig = { count: 0 };
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.source?.update({ count: 'not checked' });
+  }
+}
+expectType<number | undefined>(flowGet(root, flowScope<Untyped>().count));
+
 // A component's keys: from its own source inside it, from flowScope<Component>() elsewhere.
 class Board extends FlowStateComponent<{ squads: string[]; user: { name: string } | null }> {
   sourceConfig = { squads: [] as string[], user: null as { name: string } | null };

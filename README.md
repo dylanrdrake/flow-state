@@ -172,18 +172,34 @@ state.update({ count: 'nope' });                              // ❌ Type 'strin
 State is inferred from the config literal. Actions (plain functions) and computed keys are
 recognized by shape and excluded from `update()`, since neither is settable.
 
-For components, declare the config as `sourceConfig`; `source` holds the resulting instance:
+For components, declare the config as `sourceConfig`; `source` holds the resulting instance.
+`this.source` is typed from the class's type argument, so pass the config's type there:
 
 ```ts
-class MyCounter extends FlowStateComponent<{ count: number }> {
-  sourceConfig = { count: 0 };
+const counterConfig = { count: 0 };
+
+class MyCounter extends FlowStateComponent<typeof counterConfig> {
+  sourceConfig = counterConfig;
 
   connectedCallback() {
     super.connectedCallback();
-    this.source?.update((prev) => ({ count: prev.count + 1 }));
+    this.source?.update((prev) => ({ count: prev.count + 1 }));   // ✅ checked
+    this.source?.update({ count: 'nope' });                       // ❌ Type 'string' is not assignable
   }
 }
 ```
+
+Defining the config first and passing `typeof counterConfig` states the shape once. You can
+also write the type by hand, `FlowStateComponent<{ count: number }>`, and declare
+`sourceConfig = { count: 0 }` inline. What the compiler then does and does not check:
+
+- The `sourceConfig` field is checked against the type argument: a missing key or a wrong
+  value type is an error.
+- A key in `sourceConfig` that the type argument does not list is **not** an error, but
+  `this.source` will not know about it.
+- With no type argument at all, `this.source` is not checked.
+- `flowScope<MyCounter>()` reads the `sourceConfig` field itself, not the type argument, so it
+  is typed correctly in all three cases.
 
 ### Typed reads
 
@@ -200,7 +216,7 @@ flowGet(root, 'count');                              // ❌ string keys are not 
 For a component, name it and `flowScope` types the keys from its `sourceConfig`:
 
 ```ts
-class SquadBoard extends FlowStateComponent<{ squads: Squad[] }> {
+class SquadBoard extends FlowStateComponent {
   sourceConfig = { squads: [] as Squad[] };
 }
 export const boardScope = flowScope<SquadBoard>();
