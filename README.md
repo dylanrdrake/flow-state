@@ -18,8 +18,8 @@ Tutorial and instructional documentation:
 `flow-state` exposes:
 
 - 2 Classes: `FlowSource` and `FlowStateComponent`
-- 2 `FlowSource` instance methods: `update` and `destroy`
-- 5 functional helpers: `flowWatch`, `flowGet`, `flowThrough`, `flowCompute`, `flowDevtools`
+- 2 `FlowSource` instance methods: `update` and `destroy`, plus one key per config entry (`source.count`)
+- 6 functional helpers: `flowWatch`, `flowGet`, `flowKeys`, `flowThrough`, `flowCompute`, `flowDevtools`
 - 1 component config field: `sourceConfig` (the instance lands on `source`)
 - 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
 - 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
@@ -117,12 +117,36 @@ const state = new FlowSource(root, {
 	increment: () => state.update(prev => ({ count: prev.count + 1 })),
 });
 
-flowWatch(root, 'doubled', (value) => {
+flowWatch(root, state.doubled, (value) => {
 	console.log('doubled =', value);
 });
 
-const increment = flowGet(root, 'increment');
+const increment = flowGet(root, state.increment);
 increment();
+```
+
+### Keys
+
+`flowGet` and `flowWatch` take a key object, not a string. A source carries one key per config
+entry, and a property of a key is the key one level down:
+
+```js
+flowGet(root, state.count);
+flowWatch(root, state.user.name, (name) => { /* ... */ });
+```
+
+`state.count` is the key, not the value: it names `count` for whichever source is nearest the
+node you pass. Because the keys sit next to `update` and `destroy`, a config cannot have a
+top-level key named `update` or `destroy`.
+
+When the source cannot be imported, as with a component's own source, get the keys from
+`flowKeys()`:
+
+```js
+import { flowKeys, flowGet } from 'flow-state';
+
+const keys = flowKeys();
+flowGet(this, keys.user.name);
 ```
 
 ## Devtools Quick Start
@@ -199,16 +223,36 @@ class MyCounter extends FlowStateComponent<{ count: number }> {
 }
 ```
 
-### Two limits worth knowing
+### Typed reads
 
-`flowGet` and `flowWatch` take a DOM Node, and the owning source is resolved at runtime from
-where that node sits in the DOM. There is no static link between the two, so the value type cannot be inferred —
-supply it at the call site:
+The owning source is still found at runtime, from where the node sits in the DOM. The key is
+what carries the value type, so a read is typed by the key you pass:
 
 ```ts
-const squads = flowGet<Squad[]>(this, 'squads');
-flowWatch<number>(this, 'count', (n) => n.toFixed(0));
+flowGet(root, state.count);                          // number | undefined
+flowWatch(root, state.user.name, (name) => name.toUpperCase());   // name: string
+flowGet(root, state.nope);                           // ❌ not a key of this source
+flowGet(root, 'count');                              // ❌ string keys are not accepted
 ```
+
+For a component, name it and `flowKeys` types the keys from its `sourceConfig`:
+
+```ts
+class SquadBoard extends FlowStateComponent<{ squads: Squad[] }> {
+  sourceConfig = { squads: [] as Squad[] };
+}
+export const boardKeys = flowKeys<SquadBoard>();
+
+// in a child component
+const squads = flowGet(this, boardKeys.squads);      // Squad[] | undefined
+```
+
+`flowKeys()` with no type argument gives untyped keys, which is what plain JavaScript gets.
+
+### Two limits worth knowing
+
+A key says what type a value has, not that a source providing it is really above the node:
+that is only known at runtime, so every read can also be `undefined`.
 
 The HTML attribute bindings (`flow-watch-…`, `flow-if`, `flow-ul`, `flow-li-…`) live in template
 strings and get no type coverage.

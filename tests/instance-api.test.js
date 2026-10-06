@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowSource, flowGet, flowWatch, flowCompute } from '../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowCompute, flowKeys } from '../lib/FlowState.js';
+
+const keys = flowKeys();
 
 describe('FlowSource – constructor and instance surface', () => {
   it('throws when FlowSource root is not a DOM Node', () => {
@@ -55,25 +57,25 @@ describe('FlowSource – update with functional read/watch APIs', () => {
 
   it('updates values retrievable through flowGet', async () => {
     await state.update({ count: 5 });
-    expect(flowGet(root, 'count')).toBe(5);
-    expect(flowGet(root, 'total')).toBe(10);
+    expect(flowGet(root, keys.count)).toBe(5);
+    expect(flowGet(root, keys.total)).toBe(10);
   });
 
   it('deep-merges nested updates', async () => {
     await state.update({ user: { age: 31 } });
-    expect(flowGet(root, 'user.age')).toBe(31);
-    expect(flowGet(root, 'user.role')).toBe('admin');
+    expect(flowGet(root, keys.user.age)).toBe(31);
+    expect(flowGet(root, keys.user.role)).toBe('admin');
   });
 
   it('functional update receives latest snapshot', async () => {
     await state.update({ count: 10 });
     await state.update(prev => ({ count: prev.count * 2 }));
-    expect(flowGet(root, 'count')).toBe(20);
+    expect(flowGet(root, keys.count)).toBe(20);
   });
 
   it('flowWatch notifies immediately and on updates', async () => {
     const spy = vi.fn();
-    flowWatch(root, 'count', spy);
+    flowWatch(root, keys.count, spy);
     expect(spy).toHaveBeenCalledWith(0);
 
     spy.mockClear();
@@ -83,7 +85,7 @@ describe('FlowSource – update with functional read/watch APIs', () => {
 
   it('flowWatch unsubscribe stops notifications', async () => {
     const spy = vi.fn();
-    const unsub = flowWatch(root, 'count', spy);
+    const unsub = flowWatch(root, keys.count, spy);
     spy.mockClear();
 
     unsub();

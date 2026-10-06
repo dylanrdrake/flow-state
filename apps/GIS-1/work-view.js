@@ -1,9 +1,11 @@
-import { FlowSource, flowGet, flowWatch } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowKeys } from '../../lib/FlowState.js';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer.js';
 import Graphic from '@arcgis/core/Graphic.js';
 import Point from '@arcgis/core/geometry/Point.js';
 import SimpleMarkerSymbol from '@arcgis/core/symbols/SimpleMarkerSymbol.js';
 import TextSymbol from '@arcgis/core/symbols/TextSymbol.js';
+
+const keys = flowKeys();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -198,7 +200,7 @@ class WorkView extends HTMLElement {
 
     this.#saveBtn.addEventListener('click', () => {
       if (this.#saveWorkItem) {
-        const edits = flowGet(this, 'edits');
+        const edits = flowGet(this, keys.edits);
         this.#saveWorkItem(edits);
       }
     });
@@ -211,11 +213,11 @@ class WorkView extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#saveWorkItem   = flowGet(this, 'saveWorkItem');
-    this.#selectWorkItem = flowGet(this, 'selectWorkItem');
+    this.#saveWorkItem   = flowGet(this, keys.saveWorkItem);
+    this.#selectWorkItem = flowGet(this, keys.selectWorkItem);
     this.#watchUnsubs = [
-      flowWatch(this, 'workItems', this.#workItemsUpdated.bind(this)),
-      flowWatch(this, 'selectedWorkItem', (workItem) => {
+      flowWatch(this, keys.workItems, this.#workItemsUpdated.bind(this)),
+      flowWatch(this, keys.selectedWorkItem, (workItem) => {
         if (workItem) {
           this.#map.view.goTo({ center: [workItem.longitude, workItem.latitude], zoom: 14 });
         }

@@ -1,4 +1,6 @@
-import { flowGet } from '../../lib/FlowState.js';
+import { flowGet, flowKeys } from '../../lib/FlowState.js';
+
+const keys = flowKeys();
 
 
 const CSS = String.raw;
@@ -130,7 +132,7 @@ export class TransactionItem extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#deleteTransaction = flowGet(this, 'deleteTransaction');
+    this.#deleteTransaction = flowGet(this, keys.deleteTransaction);
   }
 }
 

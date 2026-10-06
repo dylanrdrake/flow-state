@@ -1,7 +1,9 @@
-import { FlowSource, flowWatch, flowThrough, flowCompute, flowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowWatch, flowThrough, flowCompute, flowDevtools, flowKeys } from '../../lib/FlowState.js';
 import './budget-summary-card.js';
 import { TransactionItem } from './transaction-item.js';
 import './transaction-form.js';
+
+const keys = flowKeys();
 
 flowDevtools();
 
@@ -264,7 +266,7 @@ class BudgetApp extends HTMLElement {
     flowThrough(shadow);
 
     // Re-render list when filtered/sorted set changes
-    this.#filteredTransactionsUnsub = flowWatch(this, 'filteredTransactions', (txs) => {
+    this.#filteredTransactionsUnsub = flowWatch(this, keys.filteredTransactions, (txs) => {
       this.#txCount.textContent = `${txs.length} item${txs.length !== 1 ? 's' : ''}`;
       this.#txList.replaceChildren(...txs.map(tx => new TransactionItem(tx)));
     });

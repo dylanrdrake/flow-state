@@ -1,8 +1,10 @@
-import { FlowSource, flowWatch, flowCompute, flowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowWatch, flowCompute, flowDevtools, flowKeys } from '../../lib/FlowState.js';
 import './components/inventory-stats/inventory-stats.js';
 import './components/inventory-grid/inventory-grid.js';
 import './components/reorder-queue/reorder-queue.js';
 import './components/fulfillment-queue/fulfillment-queue.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -203,7 +205,7 @@ class FulfillmentDeskApp extends HTMLElement {
       this.#simulateDemandTick();
     });
 
-    this.#activityUnsub = flowWatch(this, 'activity', (activity = []) => {
+    this.#activityUnsub = flowWatch(this, keys.activity, (activity = []) => {
       const listEl = this.querySelector('#activity-list');
       if (!activity.length) {
         listEl.innerHTML = '<li class="activity-empty">No activity yet.</li>';

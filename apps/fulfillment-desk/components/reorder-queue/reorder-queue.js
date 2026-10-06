@@ -1,5 +1,7 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet, flowWatch } from '../../../../lib/FlowState.js';
+import { flowGet, flowWatch, flowKeys } from '../../../../lib/FlowState.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -31,10 +33,10 @@ class ReorderQueue extends FlowStateComponent {
   connectedCallback() {
     super.connectedCallback();
 
-    this.#createPurchaseOrder = flowGet(this, 'createPurchaseOrder') || (() => {});
-    this.#receivePurchaseOrder = flowGet(this, 'receivePurchaseOrder') || (() => {});
+    this.#createPurchaseOrder = flowGet(this, keys.createPurchaseOrder) || (() => {});
+    this.#receivePurchaseOrder = flowGet(this, keys.receivePurchaseOrder) || (() => {});
 
-    flowWatch(this, 'purchaseOrders', () => {
+    flowWatch(this, keys.purchaseOrders, () => {
       queueMicrotask(() => this.#syncReceiveButtons());
     });
 

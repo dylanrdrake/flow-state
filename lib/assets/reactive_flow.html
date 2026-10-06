@@ -88,9 +88,9 @@
           '}'
         ], root: true },
       { id: 'sidebar', x: 175, y: 480, w: 310, h: 280, label: 'Sidebar', state: 'source = { filter }',
-        actions: ["", "selectItem = flowGet(this, 'selectItem')", "", "flowWatch(this, 'items', (items) => {", "  // render list", "})", "", "flowWatch(this, 'filter', (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    source.update({ filter: e.target.value })", "  })"] },
+        actions: ["", "selectItem = flowGet(this, keys.selectItem)", "", "flowWatch(this, keys.items, (items) => {", "  // render list", "})", "", "flowWatch(this, keys.filter, (filter) => {", "  // render list", "})", "", "document.getElementById('filter-input')", "  .addEventListener('input', e => {", "    source.update({ filter: e.target.value })", "  })"] },
       { id: 'editor',  x: 525, y: 480, w: 295, h: 222, label: 'Editor',  state: 'source = { edits }',
-        actions: ["", "saveItem = flowGet(this, 'saveItem')", "", "flowWatch(this, 'selectedItem', (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
+        actions: ["", "saveItem = flowGet(this, keys.saveItem)", "", "flowWatch(this, keys.selectedItem, (item) => {", "  // render editor", "})", "", "document.getElementById('save-btn')", "  .addEventListener('click', () => {", "    saveItem(edits)", "  })"] },
     ];
 
     const EDGES = [
@@ -222,7 +222,7 @@
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set([3, 4, 5]); // selectItem function lines 3-5
-        // Highlight just 'selectItem' in "selectItem = flowGet(this, 'selectItem')" now at line 1
+        // Highlight just 'selectItem' in "selectItem = flowGet(this, keys.selectItem)" now at line 1
         partialBold.sidebar = { 1: { start: 0, end: 10 } }; // "selectItem" is chars 0-10 at line 1
         partialBold.editor = {};
         partialBold.app = {};
@@ -265,7 +265,7 @@
         boldActionIndices.sidebar = new Set();
         boldActionIndices.editor = new Set([7, 8, 9, 10]); // save-btn listener block
         boldActionIndices.app = new Set();
-        // Highlight just 'saveItem' in "saveItem = flowGet(this, 'saveItem')" at line 1
+        // Highlight just 'saveItem' in "saveItem = flowGet(this, keys.saveItem)" at line 1
         partialBold.sidebar = {};
         partialBold.editor = { 1: { start: 0, end: 8 } }; // "saveItem" is chars 0-8 at line 1
         partialBold.app = {};
@@ -306,7 +306,7 @@
           if (anns[k]) anns[k].alpha = 0;
         }
         glows.sidebar = 1;
-        boldActionIndices.sidebar = new Set([7, 8, 9, 11, 12, 13, 14]); // flowWatch(this, 'filter') + filter-input listener
+        boldActionIndices.sidebar = new Set([7, 8, 9, 11, 12, 13, 14]); // flowWatch(this, keys.filter) + filter-input listener
         boldActionIndices.editor = new Set();
         boldActionIndices.app = new Set();
         partialBold.sidebar = {};

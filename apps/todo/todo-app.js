@@ -1,5 +1,7 @@
-import { FlowSource, flowWatch, flowThrough, flowCompute, flowDevtools } from '../../lib/FlowState.js';
+import { FlowSource, flowWatch, flowThrough, flowCompute, flowDevtools, flowKeys } from '../../lib/FlowState.js';
 import { TodoItem } from './todo-item.js';
+
+const keys = flowKeys();
 
 flowDevtools();
 
@@ -203,7 +205,7 @@ class TodoApp extends HTMLElement {
     flowThrough(shadow);
 
     // Re-render the list whenever the filtered set changes
-    this.#filteredTodosUnsub = flowWatch(this, 'filteredTodos', (todos) => {
+    this.#filteredTodosUnsub = flowWatch(this, keys.filteredTodos, (todos) => {
       const items = todos.map(todo => new TodoItem(todo));
       this.#todoList.replaceChildren(...items);
       this.#emptyMsg.toggleAttribute('visible', items.length === 0);

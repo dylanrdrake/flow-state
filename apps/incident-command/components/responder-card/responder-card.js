@@ -1,5 +1,7 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet, flowWatch, flowCompute } from '../../../../lib/FlowState.js';
+import { flowGet, flowWatch, flowCompute, flowKeys } from '../../../../lib/FlowState.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -36,9 +38,9 @@ class ResponderCard extends FlowStateComponent {
     this.#regionId = this.getAttribute('region-id') || '';
     this.#squadId = this.getAttribute('squad-id') || '';
     this.#responderId = this.getAttribute('responder-id') || '';
-    this.#advanceResponderTask = flowGet(this, 'advanceResponderTask') || (() => {});
+    this.#advanceResponderTask = flowGet(this, keys.advanceResponderTask) || (() => {});
 
-    flowWatch(this, 'responders', (responders = []) => {
+    flowWatch(this, keys.responders, (responders = []) => {
       const responder = responders.find((entry) => entry.id === this.#responderId);
       if (!responder) return;
       this.source.update({
@@ -48,7 +50,7 @@ class ResponderCard extends FlowStateComponent {
       });
     });
 
-    flowWatch(this, 'hasQueue', (hasQueue) => {
+    flowWatch(this, keys.hasQueue, (hasQueue) => {
       const button = this.querySelector('button[data-action="advance"]');
       if (!button) return;
       button.disabled = !hasQueue;

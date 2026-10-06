@@ -1,6 +1,8 @@
-import { FlowSource, flowGet } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowKeys } from '../../lib/FlowState.js';
 import './side-bar.js';
 import './work-view.js';
+
+const keys = flowKeys();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -70,7 +72,7 @@ class Workspace extends HTMLElement {
   connectedCallback() {
     if (this.#source) return;
 
-    const workItems = (flowGet(this, 'appConfig.workItems') ?? []).map(item => ({
+    const workItems = (flowGet(this, keys.appConfig.workItems) ?? []).map(item => ({
       ...item,
       initial: item.name.charAt(0).toUpperCase()
     }));

@@ -1,13 +1,12 @@
 /**
  * Type definitions for flow-state.
  *
- * Two parts of the runtime API cannot be typed statically and are documented here
- * rather than silently under-typed:
+ * How values are typed:
  *
- * 1. `flowGet` / `flowWatch` take a DOM Node, not a source reference. The owning
- *    `FlowSource` is resolved at runtime from the node's position in the DOM, so there
- *    is no static edge from consumer to producer. Supply the value type at the call
- *    site: `flowGet<Squad[]>(this, 'squads')`.
+ * 1. `flowGet` / `flowWatch` take a DOM Node and a key object. The owning `FlowSource` is
+ *    still resolved at runtime from the node's position in the DOM; the key object is what
+ *    carries the value type. Keys come from a source (`source.squads`) or, when the source
+ *    cannot be imported, from `flowKeys<MyComponent>()`.
  * 2. The HTML attribute bindings (`flow-watch-<key>-to-prop|attr`, `flow-if`, `flow-ul`,
  *    `flow-li-<item-key>-to-prop|attr`) live in template strings and get no coverage.
  */
@@ -101,6 +100,38 @@ export type ReadableOf<C> = StateOf<C> & ActionsOf<C> & {
   [K in keyof C as C[K] extends Computed<any> ? K : never]: C[K] extends Computed<infer R> ? R : never;
 };
 
+// ---------------------------------------------------------------------------
+// Keys
+// ---------------------------------------------------------------------------
+
+declare const FLOW_KEY: unique symbol;
+
+/**
+ * What `flowGet` / `flowWatch` take to name a value: `source.count`, `keys.user.name`.
+ * It stands for the dot-path and carries the type of the value there. For an object value
+ * each property is the key one level down. It is not the value itself.
+ */
+export type FlowKey<T> =
+  IsAny<T> extends true
+    ? UntypedKey
+    : { readonly [FLOW_KEY]: T } & (
+        NonNullable<T> extends Leaf
+          ? {}
+          : { readonly [K in keyof NonNullable<T> & string]-?: FlowKey<NonNullable<T>[K]> }
+      );
+
+/** A key with no type information: any property is another untyped key. */
+export interface UntypedKey {
+  readonly [FLOW_KEY]: any;
+  readonly [name: string]: UntypedKey;
+}
+
+/** One key per readable entry of a config: state, computed results and actions. */
+export type KeysOf<C> =
+  IsAny<C> extends true
+    ? { readonly [name: string]: UntypedKey }
+    : { readonly [K in keyof ReadableOf<C> & string]: FlowKey<ReadableOf<C>[K]> };
+
 /** A patch passed to `update()`, or a function producing one from the previous state. */
 export type Update<S> =
   | DeepPartial<S>
@@ -111,11 +142,11 @@ export type Update<S> =
 // ---------------------------------------------------------------------------
 
 /**
- * The frozen `{ update, destroy }` facade returned by `new FlowSource(...)`.
- * The constructor deliberately does not return the class instance, so `FlowSource`
- * is declared as a constructor type rather than a `class`.
+ * The frozen object returned by `new FlowSource(...)`: `update`, `destroy`, and one key
+ * per config entry (`source.count`). The constructor deliberately does not return the class
+ * instance, so `FlowSource` is declared as a constructor type rather than a `class`.
  */
-export interface FlowSourceInstance<C extends SourceConfig = SourceConfig> {
+export type FlowSourceInstance<C extends SourceConfig = SourceConfig> = KeysOf<C> & {
   /**
    * Merge a patch into state. Updates within the same microtask are batched into one
    * notification. Resolves once the flush that includes this patch has run.
@@ -123,10 +154,13 @@ export interface FlowSourceInstance<C extends SourceConfig = SourceConfig> {
   update(update: Update<StateOf<C>>): Promise<void>;
   /** Tear down watchers, bindings, and devtools registration for this source. */
   destroy(): void;
-}
+};
+
+/** Names a config cannot use as keys, because the source has methods by those names. */
+type ReservedKeys = { update?: never; destroy?: never };
 
 export declare const FlowSource: {
-  new <C extends SourceConfig>(root: Node, config?: C): FlowSourceInstance<C>;
+  new <C extends SourceConfig & ReservedKeys>(root: Node, config?: C): FlowSourceInstance<C>;
 };
 
 // ---------------------------------------------------------------------------
@@ -135,21 +169,37 @@ export declare const FlowSource: {
 
 /**
  * Read a key from the nearest ancestor source that owns it. Returns `undefined` when
- * no source answers. The value type cannot be inferred (see the note at the top of this
- * file) — supply it: `flowGet<Squad[]>(this, 'squads')`.
+ * no source answers. The value type comes from the key: `flowGet(this, board.squads)`.
  */
-export declare function flowGet<T = unknown>(source: Node, key: string): T | undefined;
+export declare function flowGet<T>(source: Node, key: FlowKey<T>): T | undefined;
 
 /**
  * Subscribe to a key on the nearest ancestor source that owns it. The callback fires
  * immediately with the current value and again on every change. Returns an unsubscribe
  * function, or `undefined` when no source answered.
  */
-export declare function flowWatch<T = unknown>(
+export declare function flowWatch<T>(
   source: Node,
-  key: string,
+  key: FlowKey<T>,
   callback: (value: T) => void,
 ): (() => void) | undefined;
+
+/**
+ * Keys for a source that cannot be imported, such as a component's own source. Name the
+ * component (or its config type) and the keys are typed from its `sourceConfig`:
+ *
+ * ```ts
+ * export const boardKeys = flowKeys<SquadBoard>();
+ * flowGet(this, boardKeys.squads);
+ * ```
+ *
+ * With no type argument every property is an untyped key, which is what plain JavaScript gets.
+ */
+export declare function flowKeys<T = any>(): IsAny<T> extends true
+  ? { readonly [name: string]: UntypedKey }
+  : T extends { sourceConfig?: infer C }
+    ? KeysOf<NonNullable<C>>
+    : KeysOf<T>;
 
 /**
  * Link a shadow root into the sources above it, so their bindings reach inside. Needed for a

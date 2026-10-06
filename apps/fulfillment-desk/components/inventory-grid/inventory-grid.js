@@ -1,5 +1,7 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet } from '../../../../lib/FlowState.js';
+import { flowGet, flowKeys } from '../../../../lib/FlowState.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -26,8 +28,8 @@ class InventoryGrid extends FlowStateComponent {
 
     this.#rowsEl = this.querySelector('#rows');
 
-    this.#adjustStock = flowGet(this, 'adjustStock') || (() => {});
-    this.#setReorderPoint = flowGet(this, 'setReorderPoint') || (() => {});
+    this.#adjustStock = flowGet(this, keys.adjustStock) || (() => {});
+    this.#setReorderPoint = flowGet(this, keys.setReorderPoint) || (() => {});
 
     if (!this.#isBound) {
       this.#rowsEl.addEventListener('click', (event) => {

@@ -1,6 +1,8 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet, flowWatch } from '../../../../lib/FlowState.js';
+import { flowGet, flowWatch, flowKeys } from '../../../../lib/FlowState.js';
 import '../responder-card/responder-card.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -35,9 +37,9 @@ class SquadColumn extends FlowStateComponent {
 
     this.#regionId = this.getAttribute('region-id') || '';
     this.#squadId = this.getAttribute('squad-id') || '';
-    this.#stabilizeSquad = flowGet(this, 'stabilizeSquad') || (() => {});
+    this.#stabilizeSquad = flowGet(this, keys.stabilizeSquad) || (() => {});
 
-    flowWatch(this, 'squads', (squads = []) => {
+    flowWatch(this, keys.squads, (squads = []) => {
       const squad = squads.find((entry) => entry.id === this.#squadId);
       if (!squad) return;
 
@@ -52,7 +54,7 @@ class SquadColumn extends FlowStateComponent {
       });
     });
 
-    flowWatch(this, 'responders', (responders = []) => {
+    flowWatch(this, keys.responders, (responders = []) => {
       const container = this.querySelector('#responder-list');
       container.replaceChildren(
         ...responders.map((responder) => {

@@ -1,5 +1,7 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet } from '../../../../lib/FlowState.js';
+import { flowGet, flowKeys } from '../../../../lib/FlowState.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -22,7 +24,7 @@ class FulfillmentQueue extends FlowStateComponent {
   connectedCallback() {
     super.connectedCallback();
 
-    this.#advanceOrder = flowGet(this, 'advanceOrder') || (() => {});
+    this.#advanceOrder = flowGet(this, keys.advanceOrder) || (() => {});
 
     if (!this.#isBound) {
       this.addEventListener('click', (event) => {

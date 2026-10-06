@@ -1,6 +1,8 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowGet, flowWatch, flowCompute } from '../../../../lib/FlowState.js';
+import { flowGet, flowWatch, flowCompute, flowKeys } from '../../../../lib/FlowState.js';
 import '../squad-column/squad-column.js';
+
+const keys = flowKeys();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -40,9 +42,9 @@ class RegionBoard extends FlowStateComponent {
     if (this.#initialized) return;
 
     this.#regionId = this.getAttribute('region-id') || '';
-    this.#toggleRegionMute = flowGet(this, 'toggleRegionMute') || (() => {});
+    this.#toggleRegionMute = flowGet(this, keys.toggleRegionMute) || (() => {});
 
-    flowWatch(this, 'regions', (regions = []) => {
+    flowWatch(this, keys.regions, (regions = []) => {
       const region = regions.find((entry) => entry.id === this.#regionId);
       if (!region) return;
 
@@ -60,15 +62,15 @@ class RegionBoard extends FlowStateComponent {
       });
     });
 
-    flowWatch(this, 'escalationBand', (band) => {
+    flowWatch(this, keys.escalationBand, (band) => {
       this.source.update({ regionStatus: band });
     });
 
-    flowWatch(this, 'globalAlert', (globalAlert) => {
+    flowWatch(this, keys.globalAlert, (globalAlert) => {
       this.dataset.alert = globalAlert ? 'true' : 'false';
     });
 
-    flowWatch(this, 'squads', (squads = []) => {
+    flowWatch(this, keys.squads, (squads = []) => {
       const squadList = this.querySelector('#squad-list');
       squadList.replaceChildren(
         ...squads.map((squad) => {

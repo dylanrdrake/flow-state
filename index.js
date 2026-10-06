@@ -4,6 +4,7 @@ export {
 	flowGet,
 	flowWatch,
 	flowThrough,
+	flowKeys,
 	flowCompute,
 	flowDevtools,
 } from './lib/FlowState.js';

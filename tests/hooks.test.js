@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FlowSource, flowGet, flowWatch } from '../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowKeys } from '../lib/FlowState.js';
+
+const keys = flowKeys();
 
 describe('FlowSource – actions', () => {
   let root, state;
@@ -23,20 +25,20 @@ describe('FlowSource – actions', () => {
   });
 
   it('flowGet() returns the action function', () => {
-    expect(flowGet(root, 'onClick')).toBe(clickHandler);
-    expect(flowGet(root, 'onDelete')).toBe(deleteHandler);
+    expect(flowGet(root, keys.onClick)).toBe(clickHandler);
+    expect(flowGet(root, keys.onDelete)).toBe(deleteHandler);
   });
 
   it('flowWatch() calls the callback immediately with the action', () => {
     const spy = vi.fn();
-    flowWatch(root, 'onClick', spy);
+    flowWatch(root, keys.onClick, spy);
     expect(spy).toHaveBeenCalledOnce();
     expect(spy).toHaveBeenCalledWith(clickHandler);
   });
 
   it('action watcher is NOT called again after a state update (actions are not reactive)', async () => {
     const spy = vi.fn();
-    flowWatch(root, 'onClick', spy);
+    flowWatch(root, keys.onClick, spy);
     spy.mockClear();
 
     // Updating a regular state key should not trigger hook watchers
@@ -46,11 +48,11 @@ describe('FlowSource – actions', () => {
 
   it('action watcher unsubscribe does not throw', () => {
     const spy = vi.fn();
-    const unsub = flowWatch(root, 'onClick', spy);
+    const unsub = flowWatch(root, keys.onClick, spy);
     expect(() => unsub()).not.toThrow();
   });
 
   it('actions do not interfere with regular state values', () => {
-    expect(flowGet(root, 'count')).toBe(0);
+    expect(flowGet(root, keys.count)).toBe(0);
   });
 });
