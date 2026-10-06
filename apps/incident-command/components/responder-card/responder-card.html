@@ -1,8 +1,8 @@
 <article class="card">
   <header>
     <div>
-      <p class="name" flow-watch-name-to-prop="textContent">Responder</p>
-      <p class="status" flow-watch-status-to-prop="textContent">idle</p>
+      <p class="name" flow-prop="textContent: name">Responder</p>
+      <p class="status" flow-prop="textContent: status">idle</p>
     </div>
     <button data-action="advance">Advance</button>
   </header>
@@ -11,8 +11,8 @@
     <ul class="queue" flow-ul="queue">
       <template>
         <li>
-          <span flow-li-title-to-prop="textContent"></span>
-          <span class="pri" flow-li-priority-to-prop="textContent"></span>
+          <span flow-li-prop="textContent: title"></span>
+          <span class="pri" flow-li-prop="textContent: priority"></span>
         </li>
       </template>
     </ul>

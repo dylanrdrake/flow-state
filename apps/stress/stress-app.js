@@ -72,22 +72,22 @@ const initialNested = {
 
 // Pre-build cell grid HTML strings (avoid rebuilding on each render)
 const tickGridHTML = Array.from({ length: BINDING_COUNT }, () =>
-  `<span class="cell" flow-watch-tick-to-prop="textContent"></span>`
+  `<span class="cell" flow-prop="textContent: tick"></span>`
 ).join('');
 
 const wideGridHTML = Array.from({ length: CELL_COUNT }, (_, i) =>
-  `<span class="cell" flow-watch-c${i}-to-prop="textContent"></span>`
+  `<span class="cell" flow-prop="textContent: c${i}"></span>`
 ).join('');
 
 const listGridHTML = Array.from({ length: LIST_SIZE }, (_, i) =>
-  `<span class="cell" flow-watch-item${i}-value-to-prop="textContent"></span>`
+  `<span class="cell" flow-prop="textContent: item${i}.value"></span>`
 ).join('');
 
 const nestedGridHTML = [
-  `<span class="cell" flow-watch-user-score-to-prop="textContent"></span>`,
-  `<span class="cell" flow-watch-user-level-to-prop="textContent"></span>`,
-  `<span class="cell" flow-watch-settings-volume-to-prop="textContent"></span>`,
-  `<span class="cell" flow-watch-ui-page-to-prop="textContent"></span>`,
+  `<span class="cell" flow-prop="textContent: user.score"></span>`,
+  `<span class="cell" flow-prop="textContent: user.level"></span>`,
+  `<span class="cell" flow-prop="textContent: settings.volume"></span>`,
+  `<span class="cell" flow-prop="textContent: ui.page"></span>`,
 ].join('');
 
 const styles = CSS`
@@ -280,26 +280,26 @@ template.innerHTML = HTML`
   <div id="metrics">
     <div class="metric">
       <span class="label">Frames / sec</span>
-      <span class="value" flow-watch-metrics-fps-to-prop="textContent">—</span>
+      <span class="value" flow-prop="textContent: metrics.fps">—</span>
     </div>
     <div class="metric">
       <span class="label">Avg update()</span>
       <span class="value">
-        <span flow-watch-metrics-callus-to-prop="textContent">—</span>
+        <span flow-prop="textContent: metrics.callus">—</span>
         <span class="unit"> µs</span>
       </span>
     </div>
     <div class="metric">
       <span class="label">Total calls</span>
-      <span class="value" flow-watch-metrics-total-to-prop="textContent">0</span>
+      <span class="value" flow-prop="textContent: metrics.total">0</span>
     </div>
     <div class="metric">
       <span class="label">Calls / Frame</span>
-      <span class="value" flow-watch-metrics-cpf-to-prop="textContent">—</span>
+      <span class="value" flow-prop="textContent: metrics.cpf">—</span>
     </div>
     <div class="metric">
       <span class="label">Tick</span>
-      <span class="value" flow-watch-tick-to-prop="textContent">0</span>
+      <span class="value" flow-prop="textContent: tick">0</span>
     </div>
   </div>
 

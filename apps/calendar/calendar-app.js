@@ -34,14 +34,13 @@ sheet.replaceSync(styles);
 
 const appTemplate = document.createElement('template');
 appTemplate.innerHTML = HTML`
-  <calendar-nav flow-watch-monthLabel-to-prop="label">
+  <calendar-nav flow-prop="label: monthLabel">
   </calendar-nav>
   <div class="main">
-    <calendar-grid flow-watch-calendarDays-to-prop="days">
+    <calendar-grid flow-prop="days: calendarDays">
     </calendar-grid>
     <calendar-sidebar
-      flow-watch-selectedDayEvents-to-prop="events"
-      flow-watch-selectedDate-to-prop="selectedDate"
+      flow-prop="events: selectedDayEvents; selectedDate: selectedDate"
     >
     </calendar-sidebar>
   </div>
@@ -126,7 +125,7 @@ class CalendarApp extends HTMLElement {
 
     });
 
-    // Let FlowState pierce the closed shadow to find flow-watch attributes
+    // Let FlowState pierce the closed shadow to find flow-prop / flow-attr bindings
     flowThrough(shadow);
 
     // Stamp template AFTER FlowState is initialized so that child connectedCallbacks

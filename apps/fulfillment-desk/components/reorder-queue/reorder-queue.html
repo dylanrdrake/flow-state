@@ -4,11 +4,11 @@
     <template>
       <article class="item">
         <div class="line">
-          <span class="sku" flow-li-sku-to-prop="textContent"></span>
-          <span class="qty">Qty <span flow-li-suggestedQty-to-prop="textContent"></span></span>
+          <span class="sku" flow-li-prop="textContent: sku"></span>
+          <span class="qty">Qty <span flow-li-prop="textContent: suggestedQty"></span></span>
         </div>
-        <div class="meta" flow-li-reason-to-prop="textContent"></div>
-        <button data-action="create" flow-li-sku-to-attr="data-sku" flow-li-suggestedQty-to-attr="data-qty">
+        <div class="meta" flow-li-prop="textContent: reason"></div>
+        <button data-action="create" flow-li-attr="data-sku: sku; data-qty: suggestedQty">
           Create PO
         </button>
       </article>
@@ -26,18 +26,17 @@
     <template>
       <article class="item">
         <div class="line">
-          <span class="sku" flow-li-sku-to-prop="textContent"></span>
-          <span class="qty">Qty <span flow-li-qty-to-prop="textContent"></span></span>
+          <span class="sku" flow-li-prop="textContent: sku"></span>
+          <span class="qty">Qty <span flow-li-prop="textContent: qty"></span></span>
         </div>
         <div class="line">
-          <span class="status" flow-li-status-to-prop="textContent"></span>
-          <span class="meta">ETA <span flow-li-etaDays-to-prop="textContent"></span>d</span>
+          <span class="status" flow-li-prop="textContent: status"></span>
+          <span class="meta">ETA <span flow-li-prop="textContent: etaDays"></span>d</span>
         </div>
         <button
           class="receive-btn"
           data-action="receive"
-          flow-li-id-to-attr="data-po-id"
-          flow-li-status-to-attr="data-status"
+          flow-li-attr="data-po-id: id; data-status: status"
         >
           Receive
         </button>

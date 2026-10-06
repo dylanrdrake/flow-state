@@ -110,13 +110,13 @@ Still linear in depth, but about **0.025µs per ancestor source** on top of ~0.2
 where it was ~0.3µs per hop on top of ~1.3µs of event dispatch. Three things follow:
 
 - **Shadow DOM per level no longer costs fan-out.** Same d4 × b3 tree, root fan-out
-  enqueue → flush: **0.9ms light DOM, 0.9ms with a shadow root at every level** (p50). Before,
+  enqueue → flush: **0.9ms light DOM, 1.0ms with a shadow root at every level** (p50). Before,
   it was 1.3ms → 3.0ms, because the binding pass walked every shadow root on every update.
 - **The work moved from the first update into the build.** Bindings are indexed as nodes
   arrive, so the synchronous build is a little slower, and the first update that follows it
   no longer searches the DOM. The Mount scenario times only the build, so on its own it
-  understates the result. Timed through the first update, the same tree is ready in 15.5ms
-  where it took 20.1ms, and with shadow roots in 21.7ms where it took 153.3ms.
+  understates the result. Timed through the first update, the same tree is ready in 15.7ms
+  where it took 20.1ms, and with shadow roots in 22.0ms where it took 153.3ms.
 - **Owning a key closer to its consumers still helps, on a much smaller number.** Moving the
   owner from the root to depth 6 took the deepest leaf's resolution from 0.5µs to 0.3µs.
 
@@ -125,26 +125,26 @@ brackets:
 
 | | now | before |
 | --- | --- | --- |
-| Mount (synchronous build), 121 nested sources | 9.8ms, 81µs/source (12.3ms) | 8.3ms (8.9ms) |
-| Build + first update | 15.5ms (21.7ms) | 20.1ms (153.3ms) |
-| Unmount | 0.7ms (0.8ms) | 0.7ms (0.7ms) |
-| Root fan-out, enqueue → flush, p50 / p95 | 0.9ms / 1.3ms (0.9ms / 1.3ms) | 1.3ms / 1.7ms (3.0ms / 3.8ms) |
-| Leaf-local, 81 sources in one tick | 2.1ms (2.1ms) | 2.3ms (3.1ms) |
-| Subtree churn, mount + unmount, p50 | 3.3ms (3.3ms) | 2.2ms (1.9ms) |
+| Mount (synchronous build), 121 nested sources | 10.0ms, 83µs/source (14.1ms) | 8.3ms (8.9ms) |
+| Build + first update | 15.7ms (22.0ms) | 20.1ms (153.3ms) |
+| Unmount | 0.7ms (1.1ms) | 0.7ms (0.7ms) |
+| Root fan-out, enqueue → flush, p50 / p95 | 0.9ms / 1.3ms (1.0ms / 1.3ms) | 1.3ms / 1.7ms (3.0ms / 3.8ms) |
+| Leaf-local, 81 sources in one tick | 1.9ms (2.0ms) | 2.3ms (3.1ms) |
+| Subtree churn, mount + unmount, p50 | 2.5ms (2.6ms) | 2.2ms (1.9ms) |
 
 "Build + first update" is not a lab scenario: it is `Rebuild tree` timed from the click until
 the microtasks it queued have run, median of 25, so it also includes removing the previous
 tree.
 
 What still costs more than before: the synchronous build (indexing each binding and working
-out which source fills it; with shadow roots, also observing each one, a call that gets
-slower as the app defines more distinct keys), and subtree churn.
+out which source fills it; with shadow roots, also observing each one), and, by a smaller
+margin, subtree churn.
 
 ## One behavior worth knowing
 
 `flowWatch` hands a new subscriber the current value immediately on registration, and template
-bindings now do the same: a `flow-watch-*`, `flow-if` or `flow-ul` binding is filled with the
+bindings now do the same: a `flow-prop`, `flow-attr`, `flow-if` or `flow-ul` binding is filled with the
 current value when it arrives in the DOM, not at the next update of its key. Rebuilding the
-tree here shows both: leaves (which use `flowWatch`) and nodes (which use `flow-watch-*`
+tree here shows both: leaves (which use `flowWatch`) and nodes (which use `flow-prop`
 attributes) come back populated. The lab used to re-push the key after every rebuild to cover
 for bindings that stayed on their placeholders; that is gone.

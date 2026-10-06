@@ -5,7 +5,7 @@ import { FlowSource, flowThrough } from '../lib/FlowState.js';
 // Awaiting this lets us see the initial bound values in DOM assertions.
 const waitForInitialBindings = () => Promise.resolve();
 
-describe('FlowSource – declarative bindings (to-prop)', () => {
+describe('FlowSource – declarative bindings (flow-prop)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -13,8 +13,8 @@ describe('FlowSource – declarative bindings (to-prop)', () => {
     document.body.appendChild(root);
 
     root.innerHTML = `
-      <span id="name-el"    flow-watch-name-to-prop="textContent"></span>
-      <span id="active-el"  flow-watch-active-to-prop="hidden"></span>
+      <span id="name-el"    flow-prop="textContent: name"></span>
+      <span id="active-el"  flow-prop="hidden: active"></span>
     `;
 
     state = new FlowSource(root, {
@@ -52,8 +52,8 @@ describe('FlowSource – declarative bindings on the source root', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
-    root.setAttribute('flow-watch-title-to-prop', 'textContent');
-    root.setAttribute('flow-watch-status-to-attr', 'data-status');
+    root.setAttribute('flow-prop', 'textContent: title');
+    root.setAttribute('flow-attr', 'data-status: status');
 
     state = new FlowSource(root, {
       title: 'Dashboard',
@@ -80,7 +80,7 @@ describe('FlowSource – declarative bindings on the source root', () => {
   });
 });
 
-describe('FlowSource – declarative bindings (to-attr)', () => {
+describe('FlowSource – declarative bindings (flow-attr)', () => {
   let root, state;
 
   beforeEach(async () => {
@@ -88,8 +88,8 @@ describe('FlowSource – declarative bindings (to-attr)', () => {
     document.body.appendChild(root);
 
     root.innerHTML = `
-      <input id="count-input" flow-watch-count-to-attr="value">
-      <img   id="avatar"      flow-watch-avatar-to-attr="src">
+      <input id="count-input" flow-attr="value: count">
+      <img   id="avatar"      flow-attr="src: avatar">
     `;
 
     state = new FlowSource(root, {
@@ -124,10 +124,10 @@ describe('FlowSource – declarative bindings (dot-notation keys)', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
-    // Dot in key name becomes a dash in the attribute: user.city → flow-watch-user-city-to-prop
+    // A nested key is written as its dot-path
     root.innerHTML = `
-      <span id="city-el"  flow-watch-user-city-to-prop="textContent"></span>
-      <span id="role-el"  flow-watch-user-role-to-attr="data-role"></span>
+      <span id="city-el"  flow-prop="textContent: user.city"></span>
+      <span id="role-el"  flow-attr="data-role: user.role"></span>
     `;
 
     state = new FlowSource(root, {
@@ -174,9 +174,9 @@ describe('FlowSource – list item bindings (flow-ul)', () => {
     root.innerHTML = `
       <div flow-ul="users">
         <template>
-          <div flow-li-id-to-attr="data-id">
-            <span class="name" flow-li-name-to-prop="textContent"></span>
-            <span class="role" flow-li-role-to-attr="data-role"></span>
+          <div flow-li-attr="data-id: id">
+            <span class="name" flow-li-prop="textContent: name"></span>
+            <span class="role" flow-li-attr="data-role: role"></span>
           </div>
         </template>
       </div>
@@ -199,12 +199,12 @@ describe('FlowSource – list item bindings (flow-ul)', () => {
     expect(items.length).toBe(2);
   });
 
-  it('binds a flat property via flow-*-to-prop', () => {
+  it('binds a flat property via flow-li-prop', () => {
     const names = [...root.querySelectorAll('.name')].map(el => el.textContent);
     expect(names).toEqual(['Alice', 'Bob']);
   });
 
-  it('binds a flat attribute via flow-*-to-attr', () => {
+  it('binds a flat attribute via flow-li-attr', () => {
     const roles = [...root.querySelectorAll('.role')].map(el => el.getAttribute('data-role'));
     expect(roles).toEqual(['admin', 'viewer']);
   });
@@ -224,13 +224,12 @@ describe('FlowSource – list item bindings (nested keys)', () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
-    // Dashes in the attribute key map to nested property access:
-    // flow-li-user-city-to-prop reads item.user.city
+    // A dot-path reads a nested property: user.city reads item.user.city
     root.innerHTML = `
       <div flow-ul="people">
         <template>
-          <span class="city"  flow-li-user-city-to-prop="textContent"></span>
-          <span class="badge" flow-li-user-role-to-attr="data-role"></span>
+          <span class="city"  flow-li-prop="textContent: user.city"></span>
+          <span class="badge" flow-li-attr="data-role: user.role"></span>
         </template>
       </div>
     `;
@@ -247,12 +246,12 @@ describe('FlowSource – list item bindings (nested keys)', () => {
 
   afterEach(() => root.remove());
 
-  it('reads a nested property via dash-separated key (to-prop)', () => {
+  it('reads a nested property via a dot-path (flow-li-prop)', () => {
     const cities = [...root.querySelectorAll('.city')].map(el => el.textContent);
     expect(cities).toEqual(['NY', 'LA']);
   });
 
-  it('reads a nested property via dash-separated key (to-attr)', () => {
+  it('reads a nested property via a dot-path (flow-li-attr)', () => {
     const roles = [...root.querySelectorAll('.badge')].map(el => el.getAttribute('data-role'));
     expect(roles).toEqual(['admin', 'viewer']);
   });
@@ -263,14 +262,14 @@ describe('FlowSource – list item bindings (nested keys)', () => {
     expect(root.querySelector('.badge').getAttribute('data-role')).toBe('editor');
   });
 
-  it('binds camelCase item keys even when flow-ul attribute names are lowercased by HTML', async () => {
+  it('binds camelCase item keys exactly as written', async () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
     root.innerHTML = `
       <div flow-ul="people">
         <template>
-          <span class="display" flow-li-displayName-to-prop="textContent"></span>
+          <span class="display" flow-li-prop="textContent: displayName"></span>
         </template>
       </div>
     `;
@@ -284,15 +283,15 @@ describe('FlowSource – list item bindings (nested keys)', () => {
     expect(root.querySelector('.display').textContent).toBe('Alice');
   });
 
-  it('binds primitive list item values when flow-li omits an item key (flow-li-to-attr/to-prop)', async () => {
+  it('binds primitive list item values when a flow-li pair has no item key', async () => {
     root = document.createElement('div');
     document.body.appendChild(root);
 
     root.innerHTML = `
       <div flow-ul="levels">
         <template>
-          <span class="level" flow-li-to-attr="data-level"></span>
-          <span class="level-prop" flow-li-to-prop="textContent"></span>
+          <span class="level" flow-li-attr="data-level"></span>
+          <span class="level-prop" flow-li-prop="textContent"></span>
         </template>
       </div>
     `;
@@ -321,8 +320,8 @@ describe('FlowSource – declarative bindings in closed shadow roots', () => {
 
     const closedShadow = root.attachShadow({ mode: 'closed' });
     closedShadow.innerHTML = `
-      <span id="name" flow-watch-name-to-prop="textContent"></span>
-      <span id="role" flow-watch-role-to-attr="data-role"></span>
+      <span id="name" flow-prop="textContent: name"></span>
+      <span id="role" flow-attr="data-role: role"></span>
     `;
 
     state = new FlowSource(root, {
@@ -347,8 +346,8 @@ describe('FlowSource – declarative bindings in closed shadow roots', () => {
 
     const closedShadow = root.attachShadow({ mode: 'closed' });
     closedShadow.innerHTML = `
-      <span id="name" flow-watch-name-to-prop="textContent"></span>
-      <span id="role" flow-watch-role-to-attr="data-role"></span>
+      <span id="name" flow-prop="textContent: name"></span>
+      <span id="role" flow-attr="data-role: role"></span>
     `;
 
     state = new FlowSource(root, {
@@ -467,7 +466,7 @@ describe('FlowSource – conditional bindings (flow-if)', () => {
         <template flow-if="showUsers">
           <section id="users" flow-ul="users">
             <template>
-              <span class="name" flow-li-name-to-prop="textContent"></span>
+              <span class="name" flow-li-prop="textContent: name"></span>
             </template>
           </section>
           <p id="fallback">No users</p>
@@ -518,7 +517,7 @@ describe('FlowSource – conditional bindings (flow-if)', () => {
     closedShadow.innerHTML = `
       <div flow-ul="items">
         <template>
-          <span class="name" flow-li-name-to-prop="textContent"></span>
+          <span class="name" flow-li-prop="textContent: name"></span>
         </template>
       </div>
     `;
@@ -531,5 +530,103 @@ describe('FlowSource – conditional bindings (flow-if)', () => {
 
     const names = [...closedShadow.querySelectorAll('.name')].map(el => el.textContent);
     expect(names).toEqual(['A', 'B']);
+  });
+});
+
+describe('FlowSource – binding pairs', () => {
+  let root;
+
+  afterEach(() => root.remove());
+
+  const mount = async (config, html) => {
+    root = document.createElement('div');
+    root.innerHTML = html;
+    document.body.appendChild(root);
+    const state = new FlowSource(root, config);
+    await waitForInitialBindings();
+    return state;
+  };
+
+  it('binds several keys on one element, to props and attributes', async () => {
+    const state = await mount(
+      { name: 'Alice', bio: 'Engineer', id: 7, role: 'admin' },
+      '<span flow-prop="textContent: name; title: bio" flow-attr="data-id: id; data-role: role"></span>',
+    );
+    const span = root.querySelector('span');
+    expect([span.textContent, span.title, span.dataset.id, span.dataset.role]).toEqual(['Alice', 'Engineer', '7', 'admin']);
+
+    await state.update({ bio: 'Manager', role: 'owner' });
+    expect([span.textContent, span.title, span.dataset.id, span.dataset.role]).toEqual(['Alice', 'Manager', '7', 'owner']);
+  });
+
+  it('writes one key to several targets', async () => {
+    const state = await mount({ name: 'Alice' }, '<span flow-prop="textContent: name; title: name" flow-attr="data-name: name"></span>');
+    const span = root.querySelector('span');
+
+    await state.update({ name: 'Bob' });
+    expect([span.textContent, span.title, span.dataset.name]).toEqual(['Bob', 'Bob', 'Bob']);
+  });
+
+  it('keeps key case and dots exactly as written', async () => {
+    const state = await mount(
+      { userName: 'camel', username: 'lower', user: { name: 'nested' }, 'user-name': 'dashed' },
+      `<i flow-prop="textContent: userName"></i><i flow-prop="textContent: username"></i>
+       <i flow-prop="textContent: user.name"></i><i flow-prop="textContent: user-name"></i>`,
+    );
+    expect([...root.querySelectorAll('i')].map(el => el.textContent)).toEqual(['camel', 'lower', 'nested', 'dashed']);
+
+    await state.update({ userName: 'CAMEL' });
+    expect([...root.querySelectorAll('i')].map(el => el.textContent)).toEqual(['CAMEL', 'lower', 'nested', 'dashed']);
+  });
+
+  it('tolerates spacing, a trailing semicolon, and a target that contains a colon', async () => {
+    await mount({ name: 'Alice', url: '#a' }, '<a flow-prop="  textContent :name ;" flow-attr="xlink:href: url;"></a>');
+    const a = root.querySelector('a');
+    expect(a.textContent).toBe('Alice');
+    expect(a.getAttribute('xlink:href')).toBe('#a');
+  });
+
+  it('ignores a pair that names no key', async () => {
+    await mount({ name: 'Alice' }, '<span flow-prop="textContent; title: name">kept</span>');
+    const span = root.querySelector('span');
+    expect(span.textContent).toBe('kept');
+    expect(span.title).toBe('Alice');
+  });
+
+  it('follows the pairs when the attribute is rewritten', async () => {
+    const state = await mount({ name: 'Alice', bio: 'Engineer' }, '<span flow-prop="textContent: name"></span>');
+    const span = root.querySelector('span');
+
+    span.setAttribute('flow-prop', 'title: bio');
+    await state.update({ name: 'Bob', bio: 'Manager' });
+    expect(span.textContent).toBe('Alice');
+    expect(span.title).toBe('Manager');
+  });
+
+  it('binds several item fields on one list element', async () => {
+    await mount(
+      { rows: [{ id: 1, label: 'One', meta: { tone: 'warm' } }, { id: 2, label: 'Two', meta: { tone: 'cool' } }] },
+      `<ul flow-ul="rows"><template>
+         <li flow-li-prop="textContent: label; title: meta.tone" flow-li-attr="data-id: id; data-tone: meta.tone"></li>
+       </template></ul>`,
+    );
+    expect([...root.querySelectorAll('li')].map(li => [li.textContent, li.title, li.dataset.id, li.dataset.tone]))
+      .toEqual([['One', 'warm', '1', 'warm'], ['Two', 'cool', '2', 'cool']]);
+  });
+
+  it('binds item fields and source keys on the same list element', async () => {
+    const state = await mount(
+      { rows: [{ label: 'One' }, { label: 'Two' }], unit: 'kg' },
+      '<ul flow-ul="rows"><template><li flow-li-prop="textContent: label" flow-attr="data-unit: unit"></li></template></ul>',
+    );
+    expect([...root.querySelectorAll('li')].map(li => [li.textContent, li.dataset.unit])).toEqual([['One', 'kg'], ['Two', 'kg']]);
+
+    await state.update({ unit: 'lb' });
+    expect([...root.querySelectorAll('li')].map(li => li.dataset.unit)).toEqual(['lb', 'lb']);
+  });
+
+  it('no longer reads the old attribute-name syntax', async () => {
+    await mount({ name: 'Alice' }, '<span flow-watch-name-to-prop="textContent"></span>');
+    expect(root.querySelector('span').textContent).toBe('');
   });
 });

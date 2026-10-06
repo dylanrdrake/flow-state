@@ -15,15 +15,15 @@
       <template>
         <tr>
           <td>
-            <div flow-li-sku-to-prop="textContent"></div>
-            <div class="muted" flow-li-name-to-prop="textContent"></div>
+            <div flow-li-prop="textContent: sku"></div>
+            <div class="muted" flow-li-prop="textContent: name"></div>
           </td>
-          <td><span class="supplier" flow-li-supplier-to-prop="textContent"></span></td>
+          <td><span class="supplier" flow-li-prop="textContent: supplier"></span></td>
           <td>
             <div class="stock-box">
-              <button class="stock-btn" data-action="dec" flow-li-sku-to-attr="data-sku">-</button>
-              <strong flow-li-stock-to-prop="textContent"></strong>
-              <button class="stock-btn" data-action="inc" flow-li-sku-to-attr="data-sku">+</button>
+              <button class="stock-btn" data-action="dec" flow-li-attr="data-sku: sku">-</button>
+              <strong flow-li-prop="textContent: stock"></strong>
+              <button class="stock-btn" data-action="inc" flow-li-attr="data-sku: sku">+</button>
             </div>
           </td>
           <td>
@@ -33,12 +33,12 @@
               min="0"
               step="1"
               data-field="reorder"
-              flow-li-sku-to-attr="data-sku"
-              flow-li-reorderPoint-to-prop="value"
+              flow-li-attr="data-sku: sku"
+              flow-li-prop="value: reorderPoint"
             >
           </td>
-          <td flow-li-leadTimeDays-to-prop="textContent"></td>
-          <td flow-li-unitCostLabel-to-prop="textContent"></td>
+          <td flow-li-prop="textContent: leadTimeDays"></td>
+          <td flow-li-prop="textContent: unitCostLabel"></td>
         </tr>
       </template>
     </tbody>

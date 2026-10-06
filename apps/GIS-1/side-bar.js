@@ -96,9 +96,9 @@ template.innerHTML = HTML`
   <div class="section-label">Work Items</div>
   <div id="work-items-container" flow-ul="workItems">
     <template>
-      <div class="work-item" flow-li-id-to-attr="data-work-item-id">
-        <span class="work-item-avatar" flow-li-initial-to-prop="textContent"></span>
-        <span class="work-item-name" flow-li-name-to-prop="textContent"></span>
+      <div class="work-item" flow-li-attr="data-work-item-id: id">
+        <span class="work-item-avatar" flow-li-prop="textContent: initial"></span>
+        <span class="work-item-name" flow-li-prop="textContent: name"></span>
       </div>
     </template>
   </div>
@@ -107,9 +107,9 @@ template.innerHTML = HTML`
       <div class="section-label">Recent</div>
       <div id="work-history" flow-ul="history">
         <template>
-          <div class="work-item" flow-li-id-to-attr="data-work-item-id">
-            <span class="work-item-avatar" flow-li-initial-to-prop="textContent"></span>
-            <span class="work-item-name" flow-li-name-to-prop="textContent"></span>
+          <div class="work-item" flow-li-attr="data-work-item-id: id">
+            <span class="work-item-avatar" flow-li-prop="textContent: initial"></span>
+            <span class="work-item-name" flow-li-prop="textContent: name"></span>
           </div>
         </template>
       </div>

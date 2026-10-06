@@ -132,7 +132,7 @@ const appCSS = CSS`
 const appSheet = new CSSStyleSheet();
 appSheet.replaceSync(appCSS);
 
-// flow-watch-{key}-to-prop bindings set properties on budget-summary-card elements.
+// flow-prop bindings set properties on budget-summary-card elements.
 // The value passed is the computed object { total, count, label }.
 const appTemplate = document.createElement('template');
 appTemplate.innerHTML = HTML`
@@ -143,13 +143,13 @@ appTemplate.innerHTML = HTML`
 
   <div class="summary-row">
     <budget-summary-card label="Net Balance"
-      flow-watch-balanceSummary-to-prop="amount">
+      flow-prop="amount: balanceSummary">
     </budget-summary-card>
     <budget-summary-card label="Total Income" type="income"
-      flow-watch-incomeSummary-to-prop="amount">
+      flow-prop="amount: incomeSummary">
     </budget-summary-card>
     <budget-summary-card label="Total Expenses" type="expense"
-      flow-watch-expenseSummary-to-prop="amount">
+      flow-prop="amount: expenseSummary">
     </budget-summary-card>
   </div>
 

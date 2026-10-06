@@ -132,7 +132,7 @@ describe('FlowStateComponent', () => {
   it('declarative bindings in the template are updated when source changes', async () => {
     class MyComp extends FlowStateComponent {
       shadowMode = 'open';
-      template = '<span id="name-el" flow-watch-name-to-prop="textContent"></span>';
+      template = '<span id="name-el" flow-prop="textContent: name"></span>';
       sourceConfig = { name: 'Alice' };
     }
     const name = tag();

@@ -4,9 +4,9 @@
     <p class="sub">Nested sources, key-resolution depth, and fan-out cost.</p>
   </div>
   <div class="facts">
-    <span class="fact"><em flow-watch-sourceCount-to-prop="textContent">0</em> sources</span>
-    <span class="fact"><em flow-watch-leafCount-to-prop="textContent">0</em> leaves</span>
-    <span class="fact"><em flow-watch-treeShape-to-prop="textContent">–</em> shape</span>
+    <span class="fact"><em flow-prop="textContent: sourceCount">0</em> sources</span>
+    <span class="fact"><em flow-prop="textContent: leafCount">0</em> leaves</span>
+    <span class="fact"><em flow-prop="textContent: treeShape">–</em> shape</span>
   </div>
 </header>
 
@@ -36,20 +36,20 @@
     <button class="btn ghost" id="clear-btn">Clear results</button>
     <button class="btn ghost" id="export-btn">Export JSON</button>
     <template flow-if="running">
-      <span class="status busy" flow-watch-status-to-prop="textContent">running</span>
-      <span class="status idle" flow-watch-status-to-prop="textContent">idle</span>
+      <span class="status busy" flow-prop="textContent: status">running</span>
+      <span class="status idle" flow-prop="textContent: status">idle</span>
     </template>
   </div>
 
-  <p class="desc" flow-watch-scenarioDesc-to-prop="textContent"></p>
+  <p class="desc" flow-prop="textContent: scenarioDesc"></p>
 </section>
 
 <section class="readout">
-  <div class="metric"><span class="label">p50</span><span class="value" flow-watch-p50-to-prop="textContent">–</span></div>
-  <div class="metric"><span class="label">p95</span><span class="value" flow-watch-p95-to-prop="textContent">–</span></div>
-  <div class="metric"><span class="label">p99</span><span class="value" flow-watch-p99-to-prop="textContent">–</span></div>
-  <div class="metric"><span class="label">samples</span><span class="value" flow-watch-samples-to-prop="textContent">0</span></div>
-  <div class="metric"><span class="label">long tasks</span><span class="value" flow-watch-longTasks-to-prop="textContent">0</span></div>
+  <div class="metric"><span class="label">p50</span><span class="value" flow-prop="textContent: p50">–</span></div>
+  <div class="metric"><span class="label">p95</span><span class="value" flow-prop="textContent: p95">–</span></div>
+  <div class="metric"><span class="label">p99</span><span class="value" flow-prop="textContent: p99">–</span></div>
+  <div class="metric"><span class="label">samples</span><span class="value" flow-prop="textContent: samples">0</span></div>
+  <div class="metric"><span class="label">long tasks</span><span class="value" flow-prop="textContent: longTasks">0</span></div>
 </section>
 
 <section class="results">
@@ -59,9 +59,9 @@
   <div class="results-body" flow-ul="results">
     <template>
       <div class="result-row">
-        <span class="r-scenario" flow-li-scenario-to-prop="textContent"></span>
-        <span class="r-detail" flow-li-detail-to-prop="textContent"></span>
-        <span class="r-value" flow-li-value-to-prop="textContent"></span>
+        <span class="r-scenario" flow-li-prop="textContent: scenario"></span>
+        <span class="r-detail" flow-li-prop="textContent: detail"></span>
+        <span class="r-value" flow-li-prop="textContent: value"></span>
       </div>
     </template>
   </div>

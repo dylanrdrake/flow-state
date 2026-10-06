@@ -146,10 +146,10 @@ template.innerHTML = HTML`
   <div class="events" id="events-list">
     <div id="events-items" flow-ul="events">
       <template>
-        <div class="event-item" flow-li-id-to-attr="data-event-id">
-          <span class="event-dot" flow-li-dotStyle-to-attr="style"></span>
-          <span class="event-title" flow-li-title-to-prop="textContent"></span>
-          <button class="del-btn" type="button" title="Delete" flow-li-id-to-attr="data-event-id">✕</button>
+        <div class="event-item" flow-li-attr="data-event-id: id">
+          <span class="event-dot" flow-li-attr="style: dotStyle"></span>
+          <span class="event-title" flow-li-prop="textContent: title"></span>
+          <button class="del-btn" type="button" title="Delete" flow-li-attr="data-event-id: id">✕</button>
         </div>
       </template>
     </div>
@@ -162,7 +162,7 @@ template.innerHTML = HTML`
       id="title-input"
       type="text"
       placeholder="Event title…"
-      flow-watch-eventInputValue-to-prop="value"
+      flow-prop="value: eventInputValue"
     />
     <div class="color-row" id="color-row">${swatchesHTML}</div>
     <button class="add-btn" type="button">Add Event</button>

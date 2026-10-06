@@ -62,7 +62,7 @@ export class BudgetSummaryCard extends HTMLElement {
     this.#countEl  = shadow.querySelector('.count');
   }
 
-  // Called by FlowState when flow-watch-{key}-to-prop="amount" binding fires
+  // Called by FlowState when a flow-prop="amount: {key}" binding fires
   set amount({ total, count, label }) {
     const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
     this.#amountEl.textContent = fmt.format(total ?? 0);

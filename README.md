@@ -21,8 +21,12 @@ Tutorial and instructional documentation:
 - 2 `FlowSource` instance methods: `update` and `destroy`, plus one key per config entry (`source.count`)
 - 6 functional helpers: `flowWatch`, `flowGet`, `flowScope`, `flowThrough`, `flowCompute`, `flowDevtools`
 - 1 component config field: `sourceConfig` (the instance lands on `source`)
-- 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
-- 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
+- 2 source state bindings: `flow-prop="<prop>: <source-key>"` and `flow-attr="<attr>: <source-key>"`
+- 2 structural directives: `flow-if` and `flow-ul`, with `flow-li-prop="<prop>: <item-key>"` and `flow-li-attr="<attr>: <item-key>"` inside a list template
+
+A binding attribute takes one or more `target: key` pairs separated by semicolons, so one
+element can bind several keys: `flow-prop="textContent: user.name; title: user.bio"`. Keys are
+written exactly as in the config, with dots for nested values.
 
 
 ## Getting Started
@@ -254,7 +258,7 @@ const squads = flowGet(this, boardScope.squads);      // Squad[] | undefined
 A key says what type a value has, not that a source providing it is really above the node:
 that is only known at runtime, so every read can also be `undefined`.
 
-The HTML attribute bindings (`flow-watch-…`, `flow-if`, `flow-ul`, `flow-li-…`) live in template
+The HTML attribute bindings (`flow-prop`, `flow-attr`, `flow-if`, `flow-ul`, `flow-li-…`) live in template
 strings and get no type coverage.
 
 ### Devtools in Action

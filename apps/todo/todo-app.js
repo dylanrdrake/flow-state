@@ -148,7 +148,7 @@ template.innerHTML = HTML`
   <p id="empty-msg">Nothing here yet!</p>
 
   <div id="footer">
-    <span><span id="active-count" flow-watch-activeCount-to-prop="textContent"></span> remaining</span>
+    <span><span id="active-count" flow-prop="textContent: activeCount"></span> remaining</span>
     <button id="clear-done-btn">Clear done</button>
   </div>
 `;
@@ -194,7 +194,7 @@ class TodoApp extends HTMLElement {
         return todos;
       }, ['todos', 'filter']),
 
-      // DOM-bound via flow-watch-activeCount-to-prop
+      // DOM-bound via flow-prop="...: activeCount"
       activeCount: flowCompute((todos) => todos.filter(t => !t.done).length, ['todos']),
 
       toggleTodo: this.#toggleTodo.bind(this),

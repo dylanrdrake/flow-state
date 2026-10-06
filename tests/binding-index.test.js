@@ -8,7 +8,7 @@ const scope = flowScope();
 
 const bound = (key, tag = 'span') => {
   const el = document.createElement(tag);
-  el.setAttribute(`flow-watch-${key}-to-prop`, 'textContent');
+  el.setAttribute('flow-prop', `textContent: ${key}`);
   return el;
 };
 
@@ -39,7 +39,7 @@ describe('FlowSource – binding index follows the DOM', () => {
     await Promise.resolve();
 
     const wrapper = document.createElement('section');
-    wrapper.innerHTML = '<div><p><span flow-watch-name-to-prop="textContent"></span></p></div>';
+    wrapper.innerHTML = '<div><p><span flow-prop="textContent: name"></span></p></div>';
     root.appendChild(wrapper);
 
     await state.update({ name: 'Bob' });
@@ -96,8 +96,8 @@ describe('FlowSource – binding index follows the DOM', () => {
     root.innerHTML = `
       <template flow-if="open">
         <section>
-          <span id="title" flow-watch-title-to-prop="textContent"></span>
-          <ul flow-ul="items"><template><li flow-li-to-prop="textContent"></li></template></ul>
+          <span id="title" flow-prop="textContent: title"></span>
+          <ul flow-ul="items"><template><li flow-li-prop="textContent"></li></template></ul>
         </section>
       </template>
     `;
@@ -115,7 +115,7 @@ describe('FlowSource – binding index follows the DOM', () => {
     root = document.createElement('div');
     root.innerHTML = `
       <ul flow-ul="items">
-        <template><li><b flow-li-to-prop="textContent"></b><i flow-watch-unit-to-prop="textContent"></i></li></template>
+        <template><li><b flow-li-prop="textContent"></b><i flow-prop="textContent: unit"></i></li></template>
       </ul>
     `;
     document.body.appendChild(root);
@@ -282,7 +282,7 @@ describe('FlowSource – binding index and shadow roots', () => {
     customElements.define('late-defined-host', class extends HTMLElement {
       constructor() {
         super();
-        this.attachShadow({ mode: 'open' }).innerHTML = '<span flow-watch-name-to-prop="textContent"></span>';
+        this.attachShadow({ mode: 'open' }).innerHTML = '<span flow-prop="textContent: name"></span>';
       }
     });
     await customElements.whenDefined('late-defined-host');
@@ -414,23 +414,23 @@ describe('FlowSource – binding attributes that change on elements already in t
     return new FlowSource(root, config);
   };
 
-  it('picks up a flow-watch attribute added later', async () => {
+  it('picks up a flow-prop attribute added later', async () => {
     const state = mount({ name: 'Alice' }, '<span></span>');
     await Promise.resolve();
     const span = root.querySelector('span');
 
-    span.setAttribute('flow-watch-name-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: name');
     await state.update({ name: 'Bob' });
     expect(span.textContent).toBe('Bob');
   });
 
   it('stops updating once the attribute is removed', async () => {
-    const state = mount({ name: 'Alice' }, '<span flow-watch-name-to-prop="textContent"></span>');
+    const state = mount({ name: 'Alice' }, '<span flow-prop="textContent: name"></span>');
     await Promise.resolve();
     const span = root.querySelector('span');
     expect(span.textContent).toBe('Alice');
 
-    span.removeAttribute('flow-watch-name-to-prop');
+    span.removeAttribute('flow-prop');
     await state.update({ name: 'Bob' });
     expect(span.textContent).toBe('Alice');
   });
@@ -438,7 +438,7 @@ describe('FlowSource – binding attributes that change on elements already in t
   it('follows a flow-ul attribute that is pointed at another key', async () => {
     const state = mount(
       { a: ['x'], b: ['y', 'z'] },
-      '<ul flow-ul="a"><template><li flow-li-to-prop="textContent"></li></template></ul>',
+      '<ul flow-ul="a"><template><li flow-li-prop="textContent"></li></template></ul>',
     );
     await Promise.resolve();
     const list = root.querySelector('ul');
@@ -459,36 +459,32 @@ describe('FlowSource – binding attributes that change on elements already in t
     const state = new FlowSource(root, { name: 'Alice' });
     await Promise.resolve();
 
-    root.setAttribute('flow-watch-name-to-attr', 'data-name');
-    inner.setAttribute('flow-watch-name-to-prop', 'textContent');
+    root.setAttribute('flow-attr', 'data-name: name');
+    inner.setAttribute('flow-prop', 'textContent: name');
     await state.update({ name: 'Bob' });
     expect(root.getAttribute('data-name')).toBe('Bob');
     expect(inner.textContent).toBe('Bob');
   });
 
-  // Skipped for the same happy-dom reason as the nested-key test below: the outer root is
-  // observed again with the new attribute name, and happy-dom keeps the first options.
-  it.skip('picks up an attribute for a key defined by a source mounted later', async () => {
+  it('picks up an attribute for a key defined by a source mounted later', async () => {
     mount({ name: 'Alice' }, '<section><span></span></section>');
     await Promise.resolve();
     const span = root.querySelector('span');
 
     const inner = new FlowSource(root.querySelector('section'), { late: 1 });
     await Promise.resolve();
-    span.setAttribute('flow-watch-late-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: late');
     await inner.update({ late: 2 });
     expect(span.textContent).toBe('2');
   });
 
-  // Skipped: happy-dom keeps the options from a node's first observe() call, so the observer
-  // never learns the new attribute name. Browsers replace the options; this passes in Chromium.
-  it.skip('picks up an attribute for a nested key that appears in a later update', async () => {
+  it('picks up an attribute for a nested key that appears in a later update', async () => {
     const state = mount({ user: null }, '<span></span>');
     await Promise.resolve();
     const span = root.querySelector('span');
 
     await state.update({ user: { name: 'Alice' } });
-    span.setAttribute('flow-watch-user-name-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: user.name');
     await state.update({ user: { name: 'Bob' } });
     expect(span.textContent).toBe('Bob');
   });
@@ -508,7 +504,7 @@ describe('FlowSource – shadow roots attached after the host is in the DOM', ()
     await state.update({ name: 'Bob' });
 
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = '<p><span flow-watch-name-to-prop="textContent"></span></p>';
+    shadow.innerHTML = '<p><span flow-prop="textContent: name"></span></p>';
     await state.update({ name: 'Carol' });
     expect(shadow.querySelector('span').textContent).toBe('');
 
@@ -526,7 +522,7 @@ describe('FlowSource – shadow roots attached after the host is in the DOM', ()
     await Promise.resolve();
 
     const shadow = host.attachShadow({ mode: 'closed' });
-    shadow.innerHTML = '<span flow-watch-name-to-prop="textContent"></span>';
+    shadow.innerHTML = '<span flow-prop="textContent: name"></span>';
     await state.update({ name: 'Bob' });
     expect(shadow.querySelector('span').textContent).toBe('');
   });
@@ -550,7 +546,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
   it('fills an element added after the first update, with no update needed', async () => {
     await mount({ name: 'Alice', role: 'admin' });
     const span = bound('name');
-    span.setAttribute('flow-watch-role-to-attr', 'data-role');
+    span.setAttribute('flow-attr', 'data-role: role');
     root.appendChild(span);
 
     await settle();
@@ -562,7 +558,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
     await mount({ name: 'Alice' }, '<span></span>');
     const span = root.querySelector('span');
 
-    span.setAttribute('flow-watch-name-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: name');
     await settle();
     expect(span.textContent).toBe('Alice');
   });
@@ -581,9 +577,9 @@ describe('FlowSource – new bindings are filled with the current value', () => 
       { open: false, name: 'Alice', items: ['a', 'b'], deep: true },
       `<template flow-if="open">
          <section>
-           <span id="name" flow-watch-name-to-prop="textContent"></span>
-           <ul flow-ul="items"><template><li flow-li-to-prop="textContent"></li></template></ul>
-           <template flow-if="deep"><em flow-watch-name-to-prop="textContent"></em></template>
+           <span id="name" flow-prop="textContent: name"></span>
+           <ul flow-ul="items"><template><li flow-li-prop="textContent"></li></template></ul>
+           <template flow-if="deep"><em flow-prop="textContent: name"></em></template>
          </section>
        </template>`,
     );
@@ -600,7 +596,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
     await mount(
       { open: true, deep: true, name: 'Alice' },
       `<template flow-if="open">
-         <section><template flow-if="deep"><em flow-watch-name-to-prop="textContent"></em></template></section>
+         <section><template flow-if="deep"><em flow-prop="textContent: name"></em></template></section>
        </template>`,
     );
     expect(root.querySelector('em').textContent).toBe('Alice');
@@ -620,7 +616,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
 
   it('fills with a computed value and a nested key', async () => {
     await mount({ user: { name: 'Alice' }, shout: flowCompute((user) => user.name.toUpperCase(), ['user']) });
-    const a = bound('user-name');
+    const a = bound('user.name');
     const b = bound('shout');
     root.append(a, b);
 
@@ -634,7 +630,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
     const el = document.createElement('div');
     let writes = 0;
     Object.defineProperty(el, 'value', { set() { writes++; } });
-    el.setAttribute('flow-watch-name-to-prop', 'value');
+    el.setAttribute('flow-prop', 'value: name');
     root.appendChild(el);
     document.body.appendChild(root);
 
@@ -644,7 +640,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
   });
 
   it('refills a detached element with what it missed once it is put back', async () => {
-    const state = await mount({ name: 'Alice' }, '<span flow-watch-name-to-prop="textContent"></span>');
+    const state = await mount({ name: 'Alice' }, '<span flow-prop="textContent: name"></span>');
     const span = root.querySelector('span');
 
     span.remove();
@@ -658,7 +654,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
 
   it('refills from the source above when the source that shadowed a key is destroyed', async () => {
     root = document.createElement('div');
-    root.innerHTML = '<section><div><span flow-watch-name-to-prop="textContent"></span></div></section>';
+    root.innerHTML = '<section><div><span flow-prop="textContent: name"></span></div></section>';
     const outer = new FlowSource(root, { name: 'outer' });
     const middle = new FlowSource(root.querySelector('section'), { name: 'middle' });
     new FlowSource(root.querySelector('div'), { own: 1 });

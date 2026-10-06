@@ -7,8 +7,8 @@
  *    still resolved at runtime from the node's position in the DOM; the key object is what
  *    carries the value type. Keys come from a source (`source.squads`) or, when the source
  *    cannot be imported, from `flowScope<MyComponent>()`.
- * 2. The HTML attribute bindings (`flow-watch-<key>-to-prop|attr`, `flow-if`, `flow-ul`,
- *    `flow-li-<item-key>-to-prop|attr`) live in template strings and get no coverage.
+ * 2. The HTML attribute bindings (`flow-prop`, `flow-attr`, `flow-if`, `flow-ul`,
+ *    `flow-li-prop`, `flow-li-attr`) live in template strings and get no coverage.
  */
 
 // ---------------------------------------------------------------------------

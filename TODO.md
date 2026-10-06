@@ -2,7 +2,7 @@ Open from the virtualization work (branch `virtualize`):
 
 - Test in Firefox and Safari. The real-browser checks ran in Chromium only.
 - `flow-ul` re-render is about 20% slower (every swapped node passes through the MutationObserver). Keyed rendering that reuses items would fix it.
-- Synchronous build is still slower (perf lab d4 x b3: 9.8ms vs 8.3ms, 12.3ms vs 8.9ms with shadow DOM) and subtree churn is slower (3.3ms vs 2.2ms), though build + first update is far faster. Left to try: observing a shadow root costs more with every distinct key in the app (the attribute list is copied per call); `FlowStateComponent` builds a new `CSSStyleSheet` per instance (about 2.6ms of a 17.6ms shadow rebuild) and could share one per class.
+- Synchronous build is still slower (perf lab d4 x b3: 10.0ms vs 8.3ms, 14.1ms vs 8.9ms with shadow DOM) and subtree churn is slightly slower (2.5ms vs 2.2ms), though build + first update is far faster. Left to try: `FlowStateComponent` builds a new `CSSStyleSheet` per instance (about 2.6ms of a 17.6ms shadow rebuild) and could share one per class.
 - The tutorial page logs 24 console errors (predates the virtualization work).
 - Per-key subscriptions in the source tree: an update visits every reachable descendant source for each changed key. Only matters with thousands of sources.
 
@@ -25,7 +25,7 @@ this.#source = new FlowSource({
 })
 
 // Child
-<span flow-watch-stats-total-to-prop="innerHTML"-></span>
+<span flow-prop="innerHTML: stats.total"></span>
 
 
 

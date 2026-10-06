@@ -120,15 +120,16 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>1 source state binding</strong></td>
+                    <td><strong>2 source state bindings</strong></td>
                     <td>
-                      <code><b>flow-watch</b>-&lt;source-key&gt;-<b>to</b>-&lt;attr|prop&gt;</code>
+                      <code><b>flow-prop</b>="&lt;prop&gt;: &lt;source-key&gt;"</code> &middot;
+                      <code><b>flow-attr</b>="&lt;attr&gt;: &lt;source-key&gt;"</code>
                     </td>
                   </tr>
                   <tr>
-                    <td><strong>3 structural directives</strong></td>
+                    <td><strong>2 structural directives</strong></td>
                     <td>
-                      <code><b>flow-if</b>-&lt;source-key&gt;</code> &middot; <code><b>flow-ul</b>-&lt;source-key&gt;</b></code> -> <code><b>flow-li</b>-&lt;item-key&gt;-<b>to</b>-&lt;attr|prop&gt;</b></code>
+                      <code><b>flow-if</b>="&lt;source-key&gt;"</code> &middot; <code><b>flow-ul</b>="&lt;source-key&gt;"</code> with <code><b>flow-li-prop</b></code> / <code><b>flow-li-attr</b>="&lt;target&gt;: &lt;item-key&gt;"</code>
                     </td>
                   </tr>
                 </tbody>
@@ -293,7 +294,7 @@ source.update({ name: 'Alice' }); // batched — one notification fires</code></
             <div class="cb">
               <pre><code>&lt;!-- HTML --&gt;
 &lt;div id="app"&gt;
-  &lt;span flow-watch-count-to-prop="textContent"&gt;0&lt;/span&gt;
+  &lt;span flow-prop="textContent: count"&gt;0&lt;/span&gt;
   &lt;button id="inc"&gt;Increment&lt;/button&gt;
 &lt;/div&gt;</code></pre>
             </div>
@@ -658,7 +659,7 @@ deleteItem(this.#itemId);</code></pre>
             <div class="cb">
               <pre><code>connectedCallback() {
   const shadow = this.attachShadow({ mode: 'closed' });
-  // Enables downward flow to declarative bindings (flow-watch-*, flow-ul-*, etc...) in this closed shadow
+  // Enables downward flow to declarative bindings (flow-prop, flow-attr, flow-if, flow-ul) in this closed shadow
   flowThrough(shadow);
 }</code></pre>
             </div>
@@ -673,13 +674,13 @@ deleteItem(this.#itemId);</code></pre>
             </p>
             <div class="cb">
               <pre><code data-nohl>&lt;!-- Bind state key 'username' to the element's textContent property --&gt;
-&lt;span flow-watch-username-to-prop="textContent"&gt;&lt;/span&gt;
+&lt;span flow-prop="textContent: username"&gt;&lt;/span&gt;
 
 &lt;!-- Bind to an attribute --&gt;
-&lt;img flow-watch-avatar-url-to-attr="src"&gt;
+&lt;img flow-attr="src: avatar.url"&gt;
 
-&lt;!-- Nested key (dot → dash) --&gt;
-&lt;span flow-watch-user-name-to-prop="textContent"&gt;&lt;/span&gt;</code></pre>
+&lt;!-- Nested key: its dot-path --&gt;
+&lt;span flow-prop="textContent: user.name"&gt;&lt;/span&gt;</code></pre>
             </div>
             <p>
               FlowState keeps track of these attributes inside its scope and
@@ -689,9 +690,20 @@ deleteItem(this.#itemId);</code></pre>
               <code>flow-ul</code>) is given the current value as soon as it
               arrives.
             </p>
+            <p>
+              Each attribute takes one or more
+              <code>target: key</code> pairs separated by semicolons, so one
+              element can bind several keys, and one key can go to several
+              targets:
+            </p>
+            <div class="cb">
+              <pre><code data-nohl>&lt;span flow-prop="textContent: user.name; title: user.bio"
+      flow-attr="data-id: user.id"&gt;&lt;/span&gt;</code></pre>
+            </div>
             <blockquote>
-              Dots in key names become dashes in attribute names:
-              <code>user.name</code> → <code>flow-watch-user-name-to-prop</code>
+              Keys are written exactly as they appear in the source config:
+              <code>userName</code> keeps its capital letter, and a nested
+              value is its dot-path, <code>user.name</code>.
             </blockquote>
 
             <h3>Conditional rendering — <code>flow-if</code></h3>
@@ -769,9 +781,9 @@ sourceConfig = {
 
             <h3>
               Render a list — <code>flow-ul</code> (<code
-                >flow-li-&lt;item-key&gt;-to-prop</code
+                >flow-li-prop</code
               >
-              / <code>flow-li-&lt;item-key&gt;-to-attr</code>)
+              / <code>flow-li-attr</code>)
             </h3>
             <p>
               Place <code>flow-ul="key"</code> on a container with a
@@ -779,37 +791,37 @@ sourceConfig = {
               child. When the array state key updates, FlowState re-renders the
               container by cloning the template once per item. Inside the
               template, bind item fields with
-              <code>flow-li-&lt;item-key&gt;-to-prop</code> and
-              <code>flow-li-&lt;item-key&gt;-to-attr</code>, where
+              <code>flow-li-prop="&lt;prop&gt;: &lt;item-key&gt;"</code> and
+              <code>flow-li-attr="&lt;attr&gt;: &lt;item-key&gt;"</code>, where
               <code>&lt;item-key&gt;</code> is the field name from the item
               object:
             </p>
             <div class="cb">
               <pre><code data-nohl>&lt;div flow-ul="users"&gt;
   &lt;template&gt;
-    &lt;div flow-li-id-to-attr="data-user-id"&gt;
-      &lt;span flow-li-name-to-prop="textContent"&gt;&lt;/span&gt;
-      &lt;span flow-li-role-to-prop="textContent"&gt;&lt;/span&gt;
+    &lt;div flow-li-attr="data-user-id: id"&gt;
+      &lt;span flow-li-prop="textContent: name"&gt;&lt;/span&gt;
+      &lt;span flow-li-prop="textContent: role"&gt;&lt;/span&gt;
     &lt;/div&gt;
   &lt;/template&gt;
 &lt;/div&gt;</code></pre>
             </div>
             <p>
-              The item key is encoded in the attribute name itself, consistent
-              with
-              <code>flow-watch-*-to-prop</code> scope bindings. Use dashes to
-              access nested properties:
-              <code>flow-li-user-city-to-prop</code> reads
-              <code>item.user.city</code> (nested key). For primitive arrays
-              like <code>[1, 2, 3]</code>, omit
-              <code>&lt;item-key&gt;</code> and bind the item value directly
-              with <code>flow-li-to-prop</code> or <code>flow-li-to-attr</code>.
+              These take the same <code>target: key</code> pairs as
+              <code>flow-prop</code> and <code>flow-attr</code>, with the key
+              read from the item. Use a dot-path for nested properties:
+              <code>flow-li-prop="textContent: user.city"</code> reads
+              <code>item.user.city</code>. For primitive arrays
+              like <code>[1, 2, 3]</code>, leave out the key and bind the item
+              value directly:
+              <code>flow-li-prop="textContent"</code> or
+              <code>flow-li-attr="data-level"</code>.
             </p>
             <div class="cb">
               <pre><code data-nohl>&lt;div flow-ul="levels"&gt;
   &lt;template&gt;
-    &lt;span flow-li-to-prop="textContent"&gt;&lt;/span&gt;
-    &lt;span flow-li-to-attr="data-level"&gt;&lt;/span&gt;
+    &lt;span flow-li-prop="textContent"&gt;&lt;/span&gt;
+    &lt;span flow-li-attr="data-level"&gt;&lt;/span&gt;
   &lt;/template&gt;
 &lt;/div&gt;</code></pre>
             </div>

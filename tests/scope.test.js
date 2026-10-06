@@ -176,7 +176,7 @@ describe('FlowSource – closed shadow DOM and through()', () => {
     const closedShadow = child.attachShadow({ mode: 'closed' });
 
     const span = document.createElement('span');
-    span.setAttribute('flow-watch-status-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: status');
     closedShadow.appendChild(span);
 
     // Register the closed shadow with the parent scope
@@ -200,7 +200,7 @@ describe('FlowSource – closed shadow DOM and through()', () => {
     const shadow = child.attachShadow({ mode: 'closed' });
 
     const span = document.createElement('span');
-    span.setAttribute('flow-watch-mode-to-prop', 'textContent');
+    span.setAttribute('flow-prop', 'textContent: mode');
     shadow.appendChild(span);
 
     // Register BEFORE update — binding should receive the next value
