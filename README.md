@@ -59,48 +59,6 @@ git clone https://github.com/dylanrdrake/flow-state.git
 
 Then `import { FlowSource } from 'flow-state'` as you would with an npm module.
 
-## Devtools Quick Start
-
-Enable in app entry:
-
-```js
-import { flowDevtools } from 'flow-state';
-flowDevtools();
-```
-
-Run devtools server and open both pages on the same origin:
-```bash
-node node_modules/flow-state/devtools/server.js -r ./app/root/path -p 3300
-```
-
-```bash
-node lib/devtools/server.js -r ./app/root/path -p 3300
-```
-
-- `http://localhost:3300/`
-- `http://localhost:3300/devtools/`
-
-npm script example (once package is installed):
-
-```json
-{
-	"scripts": {
-		"devtools": "node ./node_modules/flow-state/lib/devtools/server.js -r . -p 3300"
-	}
-}
-```
-
-For this repository clone path, use:
-
-```json
-{
-	"scripts": {
-		"devtools": "node lib/devtools/server.js -r . -p 3300"
-	}
-}
-```
-
-
 ## Quick Start
 
 ```js
