@@ -28,9 +28,9 @@ const FANOUT_ROUNDS = 60;
 const RESOLVE_BATCH = 1000;  // flowGet calls timed as one batch
 const RESOLVE_ROUNDS = 9;    // batches per depth
 const CHURN_ROUNDS = 20;
-// Rows kept in the DOM. Update cost scales with total DOM under a source, so an
-// unbounded results table would drift the very numbers it displays. The export
-// buffer (#runs) keeps every row regardless.
+// Rows kept in the DOM. The cap dates from when update cost scaled with total DOM under a
+// source and an unbounded results table drifted the very numbers it displayed. It still
+// keeps the page small. The export buffer (#runs) keeps every row regardless.
 const RESULTS_DISPLAY_LIMIT = 40;
 
 const SCENARIOS = [
@@ -43,8 +43,8 @@ const SCENARIOS = [
   {
     id: 'resolveDepth',
     label: 'Resolution depth',
-    desc: 'flowGet() for a root-owned key, called from nodes at each depth. The key is resolved by a '
-        + 'bubbling event that every ancestor source listens for, so this traces the cost curve of '
+    desc: 'flowGet() for a root-owned key, called from nodes at each depth. The key is resolved by '
+        + 'following the source tree up through every ancestor source, so this traces the cost curve of '
         + 'nesting itself — the number the flat stress app cannot produce.',
   },
   {
@@ -96,10 +96,9 @@ class PerfLab extends FlowStateComponent {
 
   sourceConfig = {
     // `broadcast` is deliberately NOT here. It is owned by the tree root (the depth-0
-    // perf-node) so that its binding pass walks only the tree. Owning it on the lab put
-    // the results table inside the measured subtree, and since #updateBindingsForKey
-    // re-queries from the source root on every update, fan-out then got slower with every
-    // row logged — the lab measured itself rather than the library.
+    // perf-node), which keeps the lab's own DOM out of the measured tree. This mattered when
+    // every update re-queried the DOM under its source: owned by the lab, fan-out got slower
+    // with every row logged. Updates read a binding index now, so it is only tidiness.
     sourceCount: 0,
     leafCount: 0,
     treeShape: '–',

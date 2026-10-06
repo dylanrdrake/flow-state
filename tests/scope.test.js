@@ -136,7 +136,7 @@ describe('FlowSource – closed shadow DOM and through()', () => {
 
   afterEach(() => { document.body.innerHTML = ''; });
 
-  it('flowWatch can reach a closed shadow scope via composed events', () => {
+  it('flowWatch can reach a closed shadow scope by looking up through its host', () => {
     const { shadow } = makeClosedHost('closed-scope-watch', { label: 'hello' });
 
     const inner = document.createElement('span');

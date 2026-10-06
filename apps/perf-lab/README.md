@@ -2,8 +2,8 @@
 
 A performance demo for the part of flow-state that the flat `apps/stress` app cannot reach:
 **nested sources**. Every node in the tree owns its own `FlowSource`, so a depth-4,
-branch-3 tree mounts 121 of them, and a key owned by the root is resolved by an event that
-bubbles through every ancestor between the consumer and the owner.
+branch-3 tree mounts 121 of them, and a key owned by the root is resolved by following the
+source tree up through every ancestor source between the consumer and the owner.
 
 Open `index.html` over HTTP (module imports and `fetch` for templates need an origin):
 
@@ -75,63 +75,62 @@ export buffer too.
 
 ## What the lab is careful about
 
-Two things keep the lab from measuring itself:
+Two precautions date from when every update re-queried the DOM under its source:
 
-- **`broadcast` is owned by the tree root**, the depth-0 `perf-node` — not by the lab
-  component. `#updateBindingsForKey` re-queries from the source root on every update, so a
-  key owned by the lab would drag the controls, readout and results table into every
-  fan-out binding pass.
-- **The results table is capped** at the last `RESULTS_DISPLAY_LIMIT` rows. Update cost
-  scales with total DOM under a source, so an unbounded table drifts the numbers it is
-  displaying. The export buffer keeps every row regardless.
+- **`broadcast` is owned by the tree root**, the depth-0 `perf-node`, not by the lab
+  component.
+- **The results table is capped** at the last `RESULTS_DISPLAY_LIMIT` rows. The export
+  buffer keeps every row regardless.
 
-Both matter more than they sound. With `broadcast` owned by the lab and the table
-uncapped, five consecutive `Run all` cycles degraded like this — 116 accumulated rows, and
-nothing wrong with the library:
+Back then a key owned by the lab dragged the controls, readout and results table into every
+fan-out binding pass, and an uncapped table slowed the numbers it was displaying. Five
+consecutive `Run all` cycles went from 0.80ms to 3.30ms fan-out p50 with 116 rows
+accumulated, and nothing wrong with the library.
 
-| cycle | rows in DOM | fan-out p50 | mount µs/source | churn p50 |
-| --- | --- | --- | --- | --- |
-| 1 | 0 | 0.80ms | 50.4 | 2.50ms |
-| 5 | 116 | 3.30ms | 220.7 | 15.90ms |
-
-Key resolution, unmount and leaf-local updates stayed flat across the same five cycles,
-which is what identified it: `flowGet` dispatch stops at the owning source and never walks
-the DOM, so only the DOM-walking measurements moved.
+Updates now read a binding index, so their cost follows the number of elements bound to
+the changed key, not the amount of DOM under the source. Neither precaution should change
+the numbers any more (not re-measured without them). Both are kept: they cost nothing, and
+they keep the lab's own DOM out of the tree's mount and unmount work.
 
 ## Baseline
 
-Chromium 151 headless, one machine, single run. Relative shape matters, absolute numbers do not.
-
-> Measured before `broadcast` moved to the tree root. The fan-out figures were taken with
-> the lab shell inside the walked subtree, so they read high; the shape of the results
-> holds.
+Chromium 140 headless, one machine, median of 5 `Run all` runs (3 for the depth chain).
+Relative shape matters, absolute numbers do not. "Before" is the last commit that queried the
+DOM on every update and resolved keys with a bubbling event (`7209820`), measured the same
+way on the same machine.
 
 Depth chain (d12 × b1), `flowGet` of a root-owned key:
 
 | depth | 0 | 2 | 4 | 6 | 8 | 10 | 12 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| per call | 4µs | 5µs | 7µs | 8µs | 11µs | 12µs | 13µs |
+| per call | 0.2µs | 0.3µs | 0.3µs | 0.3µs | 0.4µs | 0.4µs | 0.5µs |
+| before | 1.3µs | 1.9µs | 3.1µs | 2.9µs | 3.9µs | 4.3µs | 5.0µs |
 
-Roughly linear in depth — about **0.75µs per ancestor hop** on top of ~4µs of fixed dispatch
-cost. Two things follow:
+Still linear in depth, but about **0.025µs per ancestor source** on top of ~0.2µs fixed,
+where it was ~0.3µs per hop on top of ~1.3µs of event dispatch. Three things follow:
 
-- **Shadow DOM per level costs fan-out, not resolution.** Same d4 × b3 tree, root fan-out
-  enqueue → flush: **1.6ms light DOM → 5.0ms with a shadow root at every level** (p50). Key
-  resolution barely moves (2.06× vs 2.09× depth slowdown). The cost is in the binding pass —
-  `#updateBindingsForKey` re-queries from the source root on every update, and crossing shadow
-  roots means walking each one.
-- **Owning a key closer to its consumers is worth real time.** Moving the owner from the root
-  to depth 2 made the deepest leaf's resolution **~39% faster**.
+- **Shadow DOM per level no longer costs fan-out.** Same d4 × b3 tree, root fan-out
+  enqueue → flush: **1.0ms light DOM, 1.0ms with a shadow root at every level** (p50). Before,
+  it was 1.2ms → 3.0ms, because the binding pass walked every shadow root on every update.
+- **Shadow DOM per level costs mount instead.** Mounting the same tree takes 10.8ms in light
+  DOM and 15.0ms with shadow roots. Indexing happens when nodes arrive, and each shadow root
+  is one more subtree to observe and index.
+- **Owning a key closer to its consumers still helps, on a much smaller number.** Moving the
+  owner from the root to depth 6 took the deepest leaf's resolution from 0.5µs to 0.3µs.
 
-Other measurements at d4 × b3 (121 sources, 81 leaves):
+Other measurements at d4 × b3 (121 sources, 81 leaves), light DOM, with shadow DOM in
+brackets:
 
-| | |
-| --- | --- |
-| Mount, 121 nested sources | 19.2ms (159µs/source) |
-| Unmount | 2.0ms |
-| Root fan-out, enqueue → flush | 1.6ms p50 / 2.4ms p95 |
-| Leaf-local, 81 sources in one tick | 7.6ms |
-| Subtree churn, mount + unmount | 7.3ms p50 |
+| | now | before |
+| --- | --- | --- |
+| Mount, 121 nested sources | 10.8ms, 89µs/source (15.0ms) | 9.1ms (6.3ms) |
+| Unmount | 0.9ms (0.8ms) | 1.0ms (0.7ms) |
+| Root fan-out, enqueue → flush, p50 / p95 | 1.0ms / 1.5ms (1.0ms / 1.3ms) | 1.2ms / 1.7ms (3.0ms / 3.8ms) |
+| Leaf-local, 81 sources in one tick | 1.8ms (1.8ms) | 2.6ms (3.1ms) |
+| Subtree churn, mount + unmount, p50 | 3.1ms (3.8ms) | 2.1ms (1.9ms) |
+
+The trade is visible in the last column: updates and key resolution got cheaper, mount and
+churn got more expensive, most of all with shadow DOM (mount 2.4× slower).
 
 ## One behavior worth knowing
 

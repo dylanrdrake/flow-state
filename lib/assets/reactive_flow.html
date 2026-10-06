@@ -152,7 +152,7 @@
       });
     }
 
-    // Particle traveling up (event bubbling): from top of child to bottom of parent
+    // Particle traveling up (flowGet/flowWatch lookup): from top of child to bottom of parent
     function spawnUp(from, to, { delay = 0, onDone } = {}) {
       const [x0, y0] = ntop(from), [x1, y1] = nbot(to);
       particles.push({
