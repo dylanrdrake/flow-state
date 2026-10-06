@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FlowStateComponent } from '../lib/FlowStateComponent.js';
-import { FlowSource, flowGet, flowWatch, flowKeys } from '../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowScope } from '../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 // Each test registers a uniquely named custom element to avoid
 // "already defined" errors across tests.
@@ -21,7 +21,7 @@ describe('FlowStateComponent', () => {
         super.connectedCallback();
         // source should be available here
         expect(this.source).toBeDefined();
-        expect(flowGet(this, keys.value)).toBe(42);
+        expect(flowGet(this, scope.value)).toBe(42);
       }
     }
     const name = tag();
@@ -89,7 +89,7 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     await el.source.update({ count: 5 });
-    expect(flowGet(el, keys.count)).toBe(5);
+    expect(flowGet(el, scope.count)).toBe(5);
   });
 
   it('flowWatch() fires immediately with the current value', () => {
@@ -104,7 +104,7 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     const spy = vi.fn();
-    flowWatch(el, keys.label, spy);
+    flowWatch(el, scope.label, spy);
     expect(spy).toHaveBeenCalledWith('hello');
   });
 
@@ -160,7 +160,7 @@ describe('FlowStateComponent', () => {
     document.body.appendChild(el);
 
     const spy = vi.fn();
-    flowWatch(el, keys.count, spy);
+    flowWatch(el, scope.count, spy);
     expect(spy).toHaveBeenCalledWith(0);
     spy.mockClear();
 
@@ -185,7 +185,7 @@ describe('FlowStateComponent', () => {
 
     const child = el.querySelector('#child');
     const spy = vi.fn();
-    flowWatch(child, keys.count, spy);
+    flowWatch(child, scope.count, spy);
     expect(spy).toHaveBeenCalledWith(0);
     spy.mockClear();
 
@@ -208,7 +208,7 @@ describe('FlowStateComponent', () => {
     parent.appendChild(el);
 
     const spy = vi.fn();
-    flowWatch(el, keys.theme, spy);
+    flowWatch(el, scope.theme, spy);
     expect(spy).toHaveBeenCalledWith('light');
     spy.mockClear();
 

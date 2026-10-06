@@ -6,7 +6,7 @@
  * 1. `flowGet` / `flowWatch` take a DOM Node and a key object. The owning `FlowSource` is
  *    still resolved at runtime from the node's position in the DOM; the key object is what
  *    carries the value type. Keys come from a source (`source.squads`) or, when the source
- *    cannot be imported, from `flowKeys<MyComponent>()`.
+ *    cannot be imported, from `flowScope<MyComponent>()`.
  * 2. The HTML attribute bindings (`flow-watch-<key>-to-prop|attr`, `flow-if`, `flow-ul`,
  *    `flow-li-<item-key>-to-prop|attr`) live in template strings and get no coverage.
  */
@@ -107,7 +107,7 @@ export type ReadableOf<C> = StateOf<C> & ActionsOf<C> & {
 declare const FLOW_KEY: unique symbol;
 
 /**
- * What `flowGet` / `flowWatch` take to name a value: `source.count`, `keys.user.name`.
+ * What `flowGet` / `flowWatch` take to name a value: `source.count`, `scope.user.name`.
  * It stands for the dot-path and carries the type of the value there. For an object value
  * each property is the key one level down. It is not the value itself.
  */
@@ -189,13 +189,13 @@ export declare function flowWatch<T>(
  * component (or its config type) and the keys are typed from its `sourceConfig`:
  *
  * ```ts
- * export const boardKeys = flowKeys<SquadBoard>();
- * flowGet(this, boardKeys.squads);
+ * export const boardScope = flowScope<SquadBoard>();
+ * flowGet(this, boardScope.squads);
  * ```
  *
  * With no type argument every property is an untyped key, which is what plain JavaScript gets.
  */
-export declare function flowKeys<T = any>(): IsAny<T> extends true
+export declare function flowScope<T = any>(): IsAny<T> extends true
   ? { readonly [name: string]: UntypedKey }
   : T extends { sourceConfig?: infer C }
     ? KeysOf<NonNullable<C>>

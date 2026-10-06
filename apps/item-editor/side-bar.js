@@ -1,6 +1,6 @@
-import { FlowSource, flowGet, flowWatch, flowKeys } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./side-bar.css', import.meta.url)).then(r => r.text()));
 
@@ -32,7 +32,7 @@ class SideBar extends HTMLElement {
   #onListClick = (e) => {
     const el = e.target.closest('[data-id]');
     if (!el) return;
-    const item = flowGet(this, keys.items).find(i => i.id === +el.dataset.id);
+    const item = flowGet(this, scope.items).find(i => i.id === +el.dataset.id);
     if (item) this.#selectWorkItem(item);
   };
 
@@ -50,17 +50,17 @@ class SideBar extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#selectWorkItem = flowGet(this, keys.selectItem);
+    this.#selectWorkItem = flowGet(this, scope.selectItem);
 
     this.#watchUnsubs = [
-      flowWatch(this, keys.items, items => {
-        this.#updateFilteredItems(items, flowGet(this, keys.filter), flowGet(this, keys.selectedItem));
+      flowWatch(this, scope.items, items => {
+        this.#updateFilteredItems(items, flowGet(this, scope.filter), flowGet(this, scope.selectedItem));
       }),
-      flowWatch(this, keys.selectedItem, selected => {
-        this.#updateFilteredItems(flowGet(this, keys.items), flowGet(this, keys.filter), selected);
+      flowWatch(this, scope.selectedItem, selected => {
+        this.#updateFilteredItems(flowGet(this, scope.items), flowGet(this, scope.filter), selected);
       }),
-      flowWatch(this, keys.filter, filter => { // Could also use static flowWatch(this, keys.filter, ...)
-        this.#updateFilteredItems(flowGet(this, keys.items), filter, flowGet(this, keys.selectedItem));
+      flowWatch(this, scope.filter, filter => { // Could also use static flowWatch(this, scope.filter, ...)
+        this.#updateFilteredItems(flowGet(this, scope.items), filter, flowGet(this, scope.selectedItem));
       })
     ];
 

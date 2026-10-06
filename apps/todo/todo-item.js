@@ -1,6 +1,6 @@
-import { flowGet, flowKeys } from '../../lib/FlowState.js';
+import { flowGet, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 
 const HTML = String.raw;
@@ -99,8 +99,8 @@ export class TodoItem extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#toggleTodoDone = flowGet(this, keys.toggleTodo);
-    this.#deleteTodo = flowGet(this, keys.deleteTodo);
+    this.#toggleTodoDone = flowGet(this, scope.toggleTodo);
+    this.#deleteTodo = flowGet(this, scope.deleteTodo);
   }
 }
 

@@ -4,10 +4,10 @@ import {
   flowGet,
   flowWatch,
   flowThrough,
-  flowCompute, flowKeys
+  flowCompute, flowScope
 } from '../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 describe('functional API – create/get/watch', () => {
   let parent;
@@ -34,12 +34,12 @@ describe('functional API – create/get/watch', () => {
   });
 
   it('flowGet reads from descendant scope', () => {
-    expect(flowGet(child, keys.label)).toBe('hello');
+    expect(flowGet(child, scope.label)).toBe('hello');
   });
 
   it('flowWatch subscribes and unsubscribes', async () => {
     const spy = vi.fn();
-    const unsub = flowWatch(child, keys.count, spy);
+    const unsub = flowWatch(child, scope.count, spy);
     expect(spy).toHaveBeenCalledWith(1);
 
     spy.mockClear();
@@ -69,7 +69,7 @@ describe('functional API – flowThrough/flowCompute', () => {
       total: flowCompute((price, qty) => price * qty, ['price', 'qty']),
     });
 
-    expect(flowGet(root, keys.total)).toBe(20);
+    expect(flowGet(root, scope.total)).toBe(20);
     state.destroy();
     root.remove();
   });
@@ -85,7 +85,7 @@ describe('functional API – flowThrough/flowCompute', () => {
     flowThrough(shadow);
 
     const spy = vi.fn();
-    flowWatch(inner, keys.count, spy);
+    flowWatch(inner, scope.count, spy);
     spy.mockClear();
 
     await state.update({ count: 5 });
@@ -125,13 +125,13 @@ describe('keys', () => {
     expect(source.user.name).toBe(source.user.name);
   });
 
-  it('flowKeys() gives the same keys without a source', async () => {
-    const keys = flowKeys();
+  it('flowScope() gives the same keys without a source', async () => {
+    const scope = flowScope();
     const seen = [];
-    flowWatch(root, keys.user.name, (value) => seen.push(value));
+    flowWatch(root, scope.user.name, (value) => seen.push(value));
     await source.update({ user: { name: 'Grace' } });
     expect(seen).toEqual(['Ada', 'Grace']);
-    expect(flowGet(root, keys['count'])).toBe(1);
+    expect(flowGet(root, scope['count'])).toBe(1);
   });
 
   it('a key from one source reads whichever source is nearest the node', () => {
@@ -146,7 +146,7 @@ describe('keys', () => {
     expect(() => flowGet(root, 'count')).toThrow(/requires a key/);
     expect(() => flowWatch(root, 'count', () => {})).toThrow(/requires a key/);
     expect(() => flowGet(root, undefined)).toThrow(TypeError);
-    expect(() => flowGet(root, flowKeys())).toThrow(TypeError);
+    expect(() => flowGet(root, flowScope())).toThrow(TypeError);
     expect(() => flowGet(root, { count: 1 })).toThrow(TypeError);
   });
 

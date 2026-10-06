@@ -1,6 +1,6 @@
-import { flowGet, flowKeys } from '../../lib/FlowState.js';
+import { flowGet, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 
 const CSS = String.raw;
@@ -132,7 +132,7 @@ export class TransactionForm extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#addTransaction = flowGet(this, keys.addTransaction);
+    this.#addTransaction = flowGet(this, scope.addTransaction);
   }
 
   #submit() {

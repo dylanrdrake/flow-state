@@ -1,7 +1,7 @@
-import { FlowSource, flowWatch, flowCompute, flowDevtools, flowKeys } from '../../lib/FlowState.js';
+import { FlowSource, flowWatch, flowCompute, flowDevtools, flowScope } from '../../lib/FlowState.js';
 import './components/region-board/region-board.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -90,7 +90,7 @@ class IncidentCommandApp extends HTMLElement {
       this.#injectLoadSpike();
     });
 
-    this.#activityUnsub = flowWatch(this, keys.activity, (activity = []) => {
+    this.#activityUnsub = flowWatch(this, scope.activity, (activity = []) => {
       const activityList = this.querySelector('#activity-list');
       if (!activity.length) {
         activityList.innerHTML = '<li>No activity yet.</li>';

@@ -19,7 +19,7 @@ Tutorial and instructional documentation:
 
 - 2 Classes: `FlowSource` and `FlowStateComponent`
 - 2 `FlowSource` instance methods: `update` and `destroy`, plus one key per config entry (`source.count`)
-- 6 functional helpers: `flowWatch`, `flowGet`, `flowKeys`, `flowThrough`, `flowCompute`, `flowDevtools`
+- 6 functional helpers: `flowWatch`, `flowGet`, `flowScope`, `flowThrough`, `flowCompute`, `flowDevtools`
 - 1 component config field: `sourceConfig` (the instance lands on `source`)
 - 1 source state binding: `flow-watch-<source-key>-to-<attr|prop>`
 - 3 structural directives: `flow-if`, `flow-ul`, and `flow-li-<item-key>-to-<attr|prop>`
@@ -140,13 +140,13 @@ node you pass. Because the keys sit next to `update` and `destroy`, a config can
 top-level key named `update` or `destroy`.
 
 When the source cannot be imported, as with a component's own source, get the keys from
-`flowKeys()`:
+`flowScope()`:
 
 ```js
-import { flowKeys, flowGet } from 'flow-state';
+import { flowScope, flowGet } from 'flow-state';
 
-const keys = flowKeys();
-flowGet(this, keys.user.name);
+const scope = flowScope();
+flowGet(this, scope.user.name);
 ```
 
 ## Devtools Quick Start
@@ -235,19 +235,19 @@ flowGet(root, state.nope);                           // ❌ not a key of this so
 flowGet(root, 'count');                              // ❌ string keys are not accepted
 ```
 
-For a component, name it and `flowKeys` types the keys from its `sourceConfig`:
+For a component, name it and `flowScope` types the keys from its `sourceConfig`:
 
 ```ts
 class SquadBoard extends FlowStateComponent<{ squads: Squad[] }> {
   sourceConfig = { squads: [] as Squad[] };
 }
-export const boardKeys = flowKeys<SquadBoard>();
+export const boardScope = flowScope<SquadBoard>();
 
 // in a child component
-const squads = flowGet(this, boardKeys.squads);      // Squad[] | undefined
+const squads = flowGet(this, boardScope.squads);      // Squad[] | undefined
 ```
 
-`flowKeys()` with no type argument gives untyped keys, which is what plain JavaScript gets.
+`flowScope()` with no type argument gives untyped keys, which is what plain JavaScript gets.
 
 ### Two limits worth knowing
 

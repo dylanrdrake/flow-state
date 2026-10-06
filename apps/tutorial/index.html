@@ -113,7 +113,7 @@
                     <td>
                       <code>flowWatch</code> &middot;
                       <code>flowGet</code> &middot;
-                      <code>flowKeys</code> &middot;
+                      <code>flowScope</code> &middot;
                       <code>flowThrough</code> &middot;
                       <code>flowCompute</code> &middot;
                       <code>flowDevtools</code>
@@ -333,7 +333,7 @@ class MyCounter extends HTMLElement {
     shadow.innerHTML = `&lt;button id="btn"&gt;Click me&lt;/button&gt;`;
     const btn = shadow.getElementById('btn');
 
-    this.#countUnsub = flowWatch(this, keys.count, n => {
+    this.#countUnsub = flowWatch(this, scope.count, n => {
       btn.textContent = `Clicked ${n} times`;
     });
 
@@ -386,7 +386,7 @@ class MyCounter extends FlowStateComponent {
   connectedCallback() {
     super.connectedCallback(); // always call first
 
-    flowWatch(this, keys.count, n => {
+    flowWatch(this, scope.count, n => {
       this.shadowRoot.getElementById('btn').textContent = `Clicked ${n} times`;
     });
 
@@ -435,7 +435,7 @@ customElements.define('my-counter', MyCounter);</code></pre>
   sourceConfig = { message: 'Hello' };
   connectedCallback() {
     super.connectedCallback();
-    flowWatch(this, keys.message, v => {
+    flowWatch(this, scope.message, v => {
       this.querySelector('#msg').textContent = v;
     });
   }
@@ -517,7 +517,7 @@ source.update({ user: { name: 'Bob' } }); // only name changes, role preserved
 
 // Awaitable
 await source.update({ count: 99 });
-const current = flowGet(root, keys.count); // 99 ✓</code></pre>
+const current = flowGet(root, scope.count); // 99 ✓</code></pre>
             </div>
             <blockquote>
               ⚠️ Only <strong>configured keys</strong> can be updated. Attempts
@@ -567,7 +567,7 @@ const current = flowGet(root, keys.count); // 99 ✓</code></pre>
 discounted: flowCompute((total, discount) => total * (1 - discount), ['total', 'discount']),</code></pre>
             </div>
 
-            <h3>Keys: <code>source.count</code> and <code>flowKeys()</code></h3>
+            <h3>Keys: <code>source.count</code> and <code>flowScope()</code></h3>
             <p>
               <code>flowWatch()</code> and <code>flowGet()</code> take a
               <strong>key object</strong>, not a string. A source carries one
@@ -585,22 +585,22 @@ flowGet(root, source.user.name);   // 'Ada'</code></pre>
             <p>
               A child component usually cannot import the source it reads
               from, because that source is created when its parent connects.
-              <code>flowKeys()</code> gives the same keys without a source.
+              <code>flowScope()</code> gives the same keys without a source.
               The examples on this page use it:
             </p>
             <div class="cb">
-              <pre><code>import { flowKeys, flowGet, flowWatch } from 'flow-state';
+              <pre><code>import { flowScope, flowGet, flowWatch } from 'flow-state';
 
-const keys = flowKeys();
+const scope = flowScope();
 
-flowWatch(this, keys.items, items => this.render(items));
-flowGet(this, keys.user.name);</code></pre>
+flowWatch(this, scope.items, items => this.render(items));
+flowGet(this, scope.user.name);</code></pre>
             </div>
             <p>
               Because keys share the source object with its methods, a config
               cannot have a top-level key named <code>update</code> or
               <code>destroy</code>. In TypeScript,
-              <code>flowKeys&lt;MyComponent&gt;()</code> types the keys from
+              <code>flowScope&lt;MyComponent&gt;()</code> types the keys from
               that component's <code>sourceConfig</code>.
             </p>
 
@@ -615,7 +615,7 @@ flowGet(this, keys.user.name);</code></pre>
             </p>
             <div class="cb">
               <pre><code>// Inside a child element's connectedCallback:
-this.#itemsUnsub = flowWatch(this, keys.items, items => {
+this.#itemsUnsub = flowWatch(this, scope.items, items => {
   this.render(items);
 });
 
@@ -631,7 +631,7 @@ disconnectedCallback() {
               <code>key</code>.
             </p>
             <div class="cb">
-              <pre><code>const deleteItem = flowGet(this, keys.deleteItem); // retrieve a hook/callback
+              <pre><code>const deleteItem = flowGet(this, scope.deleteItem); // retrieve a hook/callback
 deleteItem(this.#itemId);</code></pre>
             </div>
 
@@ -848,11 +848,11 @@ sourceConfig = {
 }
 
 // Child (in connectedCallback)
-const deleteCard = flowGet(this, keys.deleteCard);</code></pre>
+const deleteCard = flowGet(this, scope.deleteCard);</code></pre>
             </div>
             <p>
               Actions are <strong>not reactive</strong> —
-              <code>flowWatch(el, keys.deleteCard, cb)</code> calls
+              <code>flowWatch(el, scope.deleteCard, cb)</code> calls
               <code>cb</code> once with the action value and never again. Use
               them for stable callbacks and config, not changing data.
             </p>
@@ -870,8 +870,8 @@ const deleteCard = flowGet(this, keys.deleteCard);</code></pre>
   #itemsUnsub = () => {};
 
   connectedCallback() {
-    this.#itemsUnsub = flowWatch(this, keys.items, items => this.#render(items));
-    const remove = flowGet(this, keys.removeItem);
+    this.#itemsUnsub = flowWatch(this, scope.items, items => this.#render(items));
+    const remove = flowGet(this, scope.removeItem);
     this.#btn.addEventListener('click', () => remove(this.#id));
   }
 
@@ -929,7 +929,7 @@ sourceConfig = {
 source.update(prev => ({ count: prev.count + 1 }));
 
 // ✗ Risky if called multiple times before flush
-source.update({ count: flowGet(root, keys.count) + 1 });</code></pre>
+source.update({ count: flowGet(root, scope.count) + 1 });</code></pre>
             </div>
 
             <h3>Cleanup on permanent unmount</h3>
@@ -986,7 +986,7 @@ this.#source = new FlowSource(this, config);</code></pre>
               <pre><code>// ✗ Wrong — parent not yet connected
 constructor() {
   super();
-  flowWatch(this, keys.items, cb); // no listener exists yet
+  flowWatch(this, scope.items, cb); // no listener exists yet
 }
 
 // ✓ Correct
@@ -994,7 +994,7 @@ class Child extends HTMLElement {
   #itemsUnsub = () => {};
 
   connectedCallback() {
-    this.#itemsUnsub = flowWatch(this, keys.items, cb);
+    this.#itemsUnsub = flowWatch(this, scope.items, cb);
   }
 
   disconnectedCallback() {
@@ -1015,7 +1015,7 @@ class CounterView extends HTMLElement {
   #countUnsub = () => {};
 
   connectedCallback() {
-    this.#countUnsub = flowWatch(this, keys.count, n => console.log(n));
+    this.#countUnsub = flowWatch(this, scope.count, n => console.log(n));
   }
 
   disconnectedCallback() {
@@ -1025,11 +1025,11 @@ class CounterView extends HTMLElement {
 
 // ✓ Await the update
 await source.update({ count: 99 });
-console.log(flowGet(this, keys.count)); // 99
+console.log(flowGet(this, scope.count)); // 99
 
 // ✗ Race condition
 source.update({ count: 99 });
-console.log(flowGet(this, keys.count)); // still old value!</code></pre>
+console.log(flowGet(this, scope.count)); // still old value!</code></pre>
             </div>
 
             <h3>4. Initial notification is deferred one microtask</h3>
@@ -1072,7 +1072,7 @@ console.log(flowGet(this, keys.count)); // still old value!</code></pre>
             </div>
             <p>
               When <code>&lt;my-card&gt;</code> calls
-              <code>flowWatch(this, keys.theme, cb)</code>:
+              <code>flowWatch(this, scope.theme, cb)</code>:
             </p>
             <ol>
               <li>
@@ -1197,7 +1197,7 @@ http://localhost:3300/devtools/</code></pre>
                     <td>Declare computed values</td>
                   </tr>
                   <tr>
-                    <td><code>flowKeys()</code></td>
+                    <td><code>flowScope()</code></td>
                     <td>module scope</td>
                     <td>Keys to pass to <code>flowWatch</code> / <code>flowGet</code></td>
                   </tr>

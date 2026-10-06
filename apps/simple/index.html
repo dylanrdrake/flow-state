@@ -22,9 +22,9 @@
     </button>
   </div>
   <script type="module">
-    import { FlowSource, flowWatch, flowDevtools, flowKeys } from 'flow-state';
+    import { FlowSource, flowWatch, flowDevtools, flowScope } from 'flow-state';
 
-    const keys = flowKeys();
+    const scope = flowScope();
 
     flowDevtools();
 
@@ -34,7 +34,7 @@
       count: 0
     });
 
-    flowWatch(appEl, keys.count, count => {
+    flowWatch(appEl, scope.count, count => {
       console.log('count changed to', count);
     });
 

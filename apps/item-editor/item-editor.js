@@ -1,6 +1,6 @@
-import { FlowSource, flowGet, flowWatch, flowThrough, flowKeys } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowThrough, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 const sheet = new CSSStyleSheet();
 await sheet.replace(await fetch(new URL('./item-editor.css', import.meta.url)).then(r => r.text()));
 
@@ -47,7 +47,7 @@ class ItemEditor extends HTMLElement {
       const target = e.target;
       if (!(target instanceof Element) || target.id !== 'save-btn') return;
 
-      const edits = flowGet(this, keys.edits);
+      const edits = flowGet(this, scope.edits);
       if (edits && this.#saveWorkItem) {
         this.#saveWorkItem(edits);
         target.textContent = 'Saved!';
@@ -61,9 +61,9 @@ class ItemEditor extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#saveWorkItem = flowGet(this, keys.saveWorkItem);
+    this.#saveWorkItem = flowGet(this, scope.saveWorkItem);
 
-    this.#selectedItemUnsub = flowWatch(this, keys.selectedItem, item => {
+    this.#selectedItemUnsub = flowWatch(this, scope.selectedItem, item => {
       this.#source.update({
         hasSelection: Boolean(item),
         edits: item ? { ...item } : null,

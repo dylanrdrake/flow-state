@@ -1,8 +1,8 @@
 import { FlowStateComponent } from '../../../../lib/FlowStateComponent.js';
-import { flowWatch, flowKeys } from '../../../../lib/FlowState.js';
+import { flowWatch, flowScope } from '../../../../lib/FlowState.js';
 import { registerNode, unregisterNode } from '../../registry.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 const loadText = async (relativePath) => {
   const response = await fetch(new URL(relativePath, import.meta.url));
@@ -55,7 +55,7 @@ class PerfLeaf extends FlowStateComponent {
     this.#echoEl = (this.shadowRoot ?? this).querySelector('#echo');
 
     // Resolves through every ancestor source up to whichever one owns `broadcast`.
-    this.#unwatch = flowWatch(this, keys.broadcast, (value) => {
+    this.#unwatch = flowWatch(this, scope.broadcast, (value) => {
       if (this.#echoEl) this.#echoEl.textContent = String(value ?? '–');
     });
   }

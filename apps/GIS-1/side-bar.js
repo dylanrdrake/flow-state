@@ -1,6 +1,6 @@
-import { FlowSource, flowGet, flowWatch, flowCompute, flowKeys } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowCompute, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 const CSS = String.raw;
 const HTML = String.raw;
@@ -149,8 +149,8 @@ class SideBar extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#selectWorkItem = flowGet(this, keys.selectWorkItem);
-    this.#selectedItemUnsub = flowWatch(this, keys.selectedWorkItem, this.#workItemSelected.bind(this));
+    this.#selectWorkItem = flowGet(this, scope.selectWorkItem);
+    this.#selectedItemUnsub = flowWatch(this, scope.selectedWorkItem, this.#workItemSelected.bind(this));
   }
 
   disconnectedCallback() {
@@ -163,7 +163,7 @@ class SideBar extends HTMLElement {
     const el = e.target.closest('[data-work-item-id]');
     if (!el) return;
     const id = parseInt(el.getAttribute('data-work-item-id'));
-    const workItem = flowGet(this, keys.workItems)?.find(w => w.id === id);
+    const workItem = flowGet(this, scope.workItems)?.find(w => w.id === id);
     if (workItem) this.#selectWorkItem(workItem);
   };
 

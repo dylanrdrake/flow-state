@@ -7,7 +7,7 @@ import {
   FlowStateComponent,
   flowCompute,
   flowGet,
-  flowKeys,
+  flowScope,
   flowThrough,
   flowWatch,
   type Paths,
@@ -90,15 +90,15 @@ new FlowSource(root, { update: 1 });
 // @ts-expect-error - reserved key
 new FlowSource(root, { destroy: () => {} });
 
-// flowKeys: typed from a config type, untyped with no type argument.
-const appKeys = flowKeys<{ squads: string[]; total: ReturnType<typeof flowCompute<number>>; nested: { deep: { flag: boolean } } }>();
-expectType<string[] | undefined>(flowGet(root, appKeys.squads));
-expectType<number | undefined>(flowGet(root, appKeys.total));
-expectType<boolean | undefined>(flowGet(root, appKeys.nested.deep.flag));
+// flowScope: typed from a config type, untyped with no type argument.
+const appScope = flowScope<{ squads: string[]; total: ReturnType<typeof flowCompute<number>>; nested: { deep: { flag: boolean } } }>();
+expectType<string[] | undefined>(flowGet(root, appScope.squads));
+expectType<number | undefined>(flowGet(root, appScope.total));
+expectType<boolean | undefined>(flowGet(root, appScope.nested.deep.flag));
 // @ts-expect-error - not a key of that config
-flowGet(root, appKeys.missing);
-const anyKeys = flowKeys();
-flowWatch(root, anyKeys.whatever.nested, (value) => expectType<any>(value));
+flowGet(root, appScope.missing);
+const anyScope = flowScope();
+flowWatch(root, anyScope.whatever.nested, (value) => expectType<any>(value));
 
 // flowCompute infers its result type from the callback's return.
 const total = flowCompute((price: number, qty: number) => price * qty, ['price', 'qty']);
@@ -143,7 +143,7 @@ class Counter extends FlowStateComponent<{ count: number }> {
 // @ts-expect-error - `source` is the instance, assigned by connectedCallback
 new Counter().source = undefined;
 
-// A component's keys: from its own source inside it, from flowKeys<Component>() elsewhere.
+// A component's keys: from its own source inside it, from flowScope<Component>() elsewhere.
 class Board extends FlowStateComponent<{ squads: string[]; user: { name: string } | null }> {
   sourceConfig = { squads: [] as string[], user: null as { name: string } | null };
 
@@ -152,11 +152,11 @@ class Board extends FlowStateComponent<{ squads: string[]; user: { name: string 
     if (this.source) expectType<string[] | undefined>(flowGet(this, this.source.squads));
   }
 }
-const boardKeys = flowKeys<Board>();
-expectType<string[] | undefined>(flowGet(root, boardKeys.squads));
-flowWatch(root, boardKeys.user.name, (name) => expectType<string>(name));
+const boardScope = flowScope<Board>();
+expectType<string[] | undefined>(flowGet(root, boardScope.squads));
+flowWatch(root, boardScope.user.name, (name) => expectType<string>(name));
 // @ts-expect-error - not a key of Board
-flowGet(root, boardKeys.count);
+flowGet(root, boardScope.count);
 
 // ---------------------------------------------------------------------------
 // Devtools contract

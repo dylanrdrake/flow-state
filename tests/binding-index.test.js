@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { FlowSource, flowThrough, flowGet, flowWatch, flowCompute, flowKeys } from '../lib/FlowState.js';
+import { FlowSource, flowThrough, flowGet, flowWatch, flowCompute, flowScope } from '../lib/FlowState.js';
 
-const sourceKeys = flowKeys();
+const scope = flowScope();
 
 // Bindings are read from an index kept in step with the DOM, not queried on each update.
 // These cover DOM that changes after the source is mounted.
@@ -315,8 +315,8 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     }
     const shadow = child.attachShadow({ mode: 'closed' });
     flowThrough(shadow);
-    expect(flowGet(child, sourceKeys.count)).toBe(1);
-    flowWatch(child, sourceKeys.count, () => {})();
+    expect(flowGet(child, scope.count)).toBe(1);
+    flowWatch(child, scope.count, () => {})();
     expect(seen).toEqual([]);
   });
 
@@ -327,11 +327,11 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     new FlowSource(top, { theme: 'dark', greet: () => 'hi' });
     new FlowSource(mid, { own: 1 });
 
-    expect(flowGet(leaf, sourceKeys.theme)).toBe('dark');
-    expect(flowGet(leaf, sourceKeys.own)).toBe(1);
-    expect(flowGet(leaf, sourceKeys.greet)()).toBe('hi');
-    expect(flowGet(leaf, sourceKeys.missing)).toBeUndefined();
-    expect(flowWatch(leaf, sourceKeys.missing, () => {})).toBeUndefined();
+    expect(flowGet(leaf, scope.theme)).toBe('dark');
+    expect(flowGet(leaf, scope.own)).toBe(1);
+    expect(flowGet(leaf, scope.greet)()).toBe('hi');
+    expect(flowGet(leaf, scope.missing)).toBeUndefined();
+    expect(flowWatch(leaf, scope.missing, () => {})).toBeUndefined();
   });
 
   it('follows a node that moves, with no wait in between', () => {
@@ -340,10 +340,10 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     const node = el(a);
     new FlowSource(a, { name: 'a' });
     new FlowSource(b, { name: 'b' });
-    expect(flowGet(node, sourceKeys.name)).toBe('a');
+    expect(flowGet(node, scope.name)).toBe('a');
 
     b.appendChild(node);
-    expect(flowGet(node, sourceKeys.name)).toBe('b');
+    expect(flowGet(node, scope.name)).toBe('b');
   });
 
   it('follows a nested source that moves, with no wait in between', () => {
@@ -353,14 +353,14 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     new FlowSource(a, { name: 'a' });
     new FlowSource(b, { name: 'b' });
     new FlowSource(inner, { own: 1 });
-    expect(flowGet(inner, sourceKeys.name)).toBe('a');
+    expect(flowGet(inner, scope.name)).toBe('a');
 
     b.appendChild(inner);
-    expect(flowGet(inner, sourceKeys.name)).toBe('b');
+    expect(flowGet(inner, scope.name)).toBe('b');
 
     inner.remove();
-    expect(flowGet(inner, sourceKeys.name)).toBeUndefined();
-    expect(flowGet(inner, sourceKeys.own)).toBe(1);
+    expect(flowGet(inner, scope.name)).toBeUndefined();
+    expect(flowGet(inner, scope.own)).toBe(1);
   });
 
   it('resolves across a closed shadow root that is not through-linked', () => {
@@ -371,8 +371,8 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     shadow.appendChild(inside);
     new FlowSource(root, { name: 'outer' });
 
-    expect(flowGet(inside, sourceKeys.name)).toBe('outer');
-    expect(flowGet(shadow, sourceKeys.name)).toBe('outer');
+    expect(flowGet(inside, scope.name)).toBe('outer');
+    expect(flowGet(shadow, scope.name)).toBe('outer');
   });
 
   it('a source mounted in between takes over resolution for its keys', () => {
@@ -380,10 +380,10 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     const mid = el(top);
     const leaf = el(mid);
     new FlowSource(top, { name: 'top' });
-    expect(flowGet(leaf, sourceKeys.name)).toBe('top');
+    expect(flowGet(leaf, scope.name)).toBe('top');
 
     new FlowSource(mid, { name: 'mid' });
-    expect(flowGet(leaf, sourceKeys.name)).toBe('mid');
+    expect(flowGet(leaf, scope.name)).toBe('mid');
   });
 
   it('keeps notifying a watcher after its node moves away, until it unsubscribes', async () => {
@@ -392,7 +392,7 @@ describe('flowGet / flowWatch – resolved through the source tree', () => {
     const node = el(a);
     const state = new FlowSource(a, { n: 0 });
     const seen = [];
-    const unsub = flowWatch(node, sourceKeys.n, (value) => seen.push(value));
+    const unsub = flowWatch(node, scope.n, (value) => seen.push(value));
 
     b.appendChild(node);
     await state.update({ n: 1 });
@@ -572,7 +572,7 @@ describe('FlowSource – new bindings are filled with the current value', () => 
     const span = bound('name');
     root.appendChild(span);
 
-    flowGet(span, sourceKeys.name);
+    flowGet(span, scope.name);
     expect(span.textContent).toBe('Alice');
   });
 

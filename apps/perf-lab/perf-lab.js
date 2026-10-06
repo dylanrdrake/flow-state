@@ -1,9 +1,9 @@
 import { FlowStateComponent } from '../../lib/FlowStateComponent.js';
-import { flowGet, flowDevtools, flowKeys } from '../../lib/FlowState.js';
+import { flowGet, flowDevtools, flowScope } from '../../lib/FlowState.js';
 import { nodesAtDepth, depths, totalNodes, clearRegistry } from './registry.js';
 import './components/perf-node/perf-node.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 // Devtools is opt-in here. It is a real cost — every flush schedules a snapshot
 // broadcast, and snapshots walk the whole registry — so leaving it on by default
@@ -279,7 +279,7 @@ class PerfLab extends FlowStateComponent {
   }
 
   #log(scenario, detail, value, raw = {}) {
-    const results = flowGet(this, keys.results) ?? [];
+    const results = flowGet(this, scope.results) ?? [];
     const row = {
       scenario,
       detail,
@@ -464,7 +464,7 @@ class PerfLab extends FlowStateComponent {
       for (let round = 0; round < RESOLVE_ROUNDS; round++) {
         const node = nodes[round % nodes.length];
         const started = performance.now();
-        for (let i = 0; i < RESOLVE_BATCH; i++) flowGet(node, keys.broadcast);
+        for (let i = 0; i < RESOLVE_BATCH; i++) flowGet(node, scope.broadcast);
         perCall.push((performance.now() - started) / RESOLVE_BATCH);
       }
 

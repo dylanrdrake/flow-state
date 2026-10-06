@@ -1,6 +1,6 @@
-import { FlowSource, flowGet, flowWatch, flowCompute, flowKeys } from '../../lib/FlowState.js';
+import { FlowSource, flowGet, flowWatch, flowCompute, flowScope } from '../../lib/FlowState.js';
 
-const keys = flowKeys();
+const scope = flowScope();
 
 
 const CSS = String.raw;
@@ -226,10 +226,10 @@ export class CalendarSidebar extends HTMLElement {
   }
 
   connectedCallback() {
-    this.#addEvent = flowGet(this, keys.addEvent);
-    this.#deleteEvent = flowGet(this, keys.deleteEvent);
+    this.#addEvent = flowGet(this, scope.addEvent);
+    this.#deleteEvent = flowGet(this, scope.deleteEvent);
 
-    this.#eventInputUnsub = flowWatch(this, keys.eventInputValue, (value) => {
+    this.#eventInputUnsub = flowWatch(this, scope.eventInputValue, (value) => {
       if (value.length > 0) this.#addBtn.removeAttribute('disabled');
       else this.#addBtn.setAttribute('disabled', '');
     });
@@ -241,7 +241,7 @@ export class CalendarSidebar extends HTMLElement {
   }
 
   #submit() {
-    const title = flowGet(this, keys.eventInputValue).trim();
+    const title = flowGet(this, scope.eventInputValue).trim();
     if (!title || !this.#currentDate) return;
     this.#addEvent?.({ title, color: this.#selectedColor, date: this.#currentDate });
     this.#source.update({ eventInputValue: '' });
