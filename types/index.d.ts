@@ -239,11 +239,11 @@ export declare function flowDevtools(): void;
  *
  * `source` is typed from the type argument `C`, not from the `sourceConfig` field (a class
  * cannot type one of its members from another through `this`). Without `C`, `source` is
- * untyped. To state the shape only once, define the config first and pass its type:
+ * untyped:
  *
  * ```ts
- * const config = { count: 0 };
- * class MyEl extends FlowStateComponent<typeof config> { sourceConfig = config; }
+ * type CounterConfig = { count: number };
+ * class MyEl extends FlowStateComponent<CounterConfig> { sourceConfig = { count: 0 }; }
  * ```
  *
  * The `sourceConfig` field is checked against `C`: a missing key or a wrong value type is an

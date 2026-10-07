@@ -176,10 +176,10 @@ For components, declare the config as `sourceConfig`; `source` holds the resulti
 `this.source` is typed from the class's type argument, so pass the config's type there:
 
 ```ts
-const counterConfig = { count: 0 };
+type CounterConfig = { count: number };
 
-class MyCounter extends FlowStateComponent<typeof counterConfig> {
-  sourceConfig = counterConfig;
+class MyCounter extends FlowStateComponent<CounterConfig> {
+  sourceConfig = { count: 0 };
 
   connectedCallback() {
     super.connectedCallback();
@@ -189,9 +189,7 @@ class MyCounter extends FlowStateComponent<typeof counterConfig> {
 }
 ```
 
-Defining the config first and passing `typeof counterConfig` states the shape once. You can
-also write the type by hand, `FlowStateComponent<{ count: number }>`, and declare
-`sourceConfig = { count: 0 }` inline. What the compiler then does and does not check:
+What the compiler does and does not check:
 
 - The `sourceConfig` field is checked against the type argument: a missing key or a wrong
   value type is an error.
