@@ -1,0 +1,23 @@
+# Dev container: live preview of the example apps, with node in Docker instead of on the host.
+# Runs the repo's own dev server (lib/devtools/server.js) over the working tree, mounted read-only,
+# so an edit shows on the next browser refresh. No build step, no rebuild, no data.
+# Serves on http://127.0.0.1:8895
+#   Apps:     /apps/<name>/   (the folders in apps/; there is no index page at /)
+#   Devtools: /devtools/
+# Restart only after changing lib/devtools/server.js itself.
+#   docker compose -f compose.dev.yaml up -d     # then stop / start
+name: flow-state-dev
+services:
+  flow-state:
+    image: node:24
+    container_name: flow-state-dev
+    restart: unless-stopped
+    init: true   # forwards SIGTERM, so it stops at once
+    user: "1000:1000"
+    read_only: true
+    working_dir: /app
+    command: node lib/devtools/server.js -r . -p 8080
+    volumes:
+      - .:/app:ro
+    ports:
+      - 127.0.0.1:8895:8080
